@@ -265,6 +265,8 @@ enum game_id;
 void mes_set_game(enum game_id id);
 uint8_t mes_stmt_opcode(enum mes_statement_op op);
 uint8_t mes_expr_opcode(enum mes_expression_op op);
+enum mes_statement_op mes_opcode_to_stmt(uint8_t op);
+enum mes_expression_op mes_opcode_to_expr(uint8_t op);
 
 /* print.c */
 void mes_expression_print(struct mes_expression *expr, struct port *out);

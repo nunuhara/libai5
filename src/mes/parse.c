@@ -320,14 +320,14 @@ void mes_set_game(enum game_id id)
 	set_opcode_tables(get_opcode_tables(id));
 }
 
-static enum mes_statement_op parse_stmt_op(uint8_t op)
+enum mes_statement_op mes_opcode_to_stmt(uint8_t op)
 {
 	if (op >= ARRAY_SIZE(op_tables.int_to_stmt_op))
 		return MES_STMT_INVALID;
 	return op_tables.int_to_stmt_op[op];
 }
 
-static enum mes_expression_op parse_expr_op(uint8_t op)
+enum mes_expression_op mes_opcode_to_expr(uint8_t op)
 {
 	return op_tables.int_to_expr_op[op];
 }
@@ -364,7 +364,7 @@ static struct mes_expression *mes_parse_expression(struct buffer *mes)
 			goto error;
 		}
 		uint8_t b = buffer_read_u8(mes);
-		switch ((expr->op = parse_expr_op(b))) {
+		switch ((expr->op = mes_opcode_to_expr(b))) {
 		case MES_EXPR_VAR:
 			expr->arg8 = buffer_read_u8(mes);
 			break;
@@ -673,7 +673,7 @@ static struct mes_statement *mes_parse_statement(struct buffer *mes)
 	struct mes_statement *stmt = xcalloc(1, sizeof(struct mes_statement));
 	stmt->address = mes->index;
 	uint8_t b = buffer_read_u8(mes);
-	switch ((stmt->op = parse_stmt_op(b))) {
+	switch ((stmt->op = mes_opcode_to_stmt(b))) {
 	case MES_STMT_END:
 		break;
 	case MES_STMT_TXT:
