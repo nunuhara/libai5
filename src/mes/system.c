@@ -241,6 +241,7 @@ const char *mes_system_var16_names[MES_NR_SYSTEM_VARIABLES] = {
 	[MES_SYS_VAR_TEXT_CURSOR_Y] = "text_cursor_y",
 	[MES_SYS_VAR_FONT_WIDTH] = "font_width",
 	[MES_SYS_VAR_FONT_HEIGHT] = "font_height",
+	[MES_SYS_VAR_FONT_WEIGHT] = "font_weight",
 	[MES_SYS_VAR_FONT_WIDTH2] = "font_width2",
 	[MES_SYS_VAR_FONT_HEIGHT2] = "font_height2",
 	[MES_SYS_VAR_MASK_COLOR] = "mask_color",
