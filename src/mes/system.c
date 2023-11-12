@@ -124,6 +124,8 @@ static struct mes_path_component *sys_image_children[] = {
 	[4] = &sys_image_clear_text,
 };
 
+static struct mes_path_component sys_wait = { .name = "wait" };
+
 static struct mes_path_component sys_image = {
 	.name = "Image",
 	.nr_children = ARRAY_SIZE(sys_image_children),
@@ -146,6 +148,7 @@ static struct mes_path_component *system_children[] = {
 	[8] = &sys_load_image,
 	[9] = &sys_palette,
 	[10] = &sys_image,
+	[11] = &sys_wait,
 	[12] = &sys_set_text_colors,
 	[13] = &sys_farcall,
 	[16] = &sys_get_time,

@@ -680,6 +680,10 @@ static void stmt_sys_print(struct mes_statement *stmt, struct port *out)
 			port_printf(out, "System.Palette.function[%d]", cmd);
 		mes_parameter_list_print_from(stmt->SYS.params, 1, out);
 		break;
+	case 11:
+		port_puts(out, "System.wait");
+		mes_parameter_list_print(stmt->SYS.params, out);
+		break;
 	case 10:
 		if ((cmd = get_int_parameter(stmt->SYS.params, 0)) < 0)
 			goto fallback;
