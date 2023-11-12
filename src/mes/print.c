@@ -684,9 +684,9 @@ static void stmt_sys_print(struct mes_statement *stmt, struct port *out)
 		if ((cmd = get_int_parameter(stmt->SYS.params, 0)) < 0)
 			goto fallback;
 		if (cmd == 2)
-			port_puts(out, "System.Image.fill");
+			port_puts(out, "System.Image.fill_bg");
 		else if (cmd == 4)
-			port_puts(out, "System.Image.clear_text");
+			port_puts(out, "System.Image.swap_bg_fg");
 		else
 			port_printf(out, "System.Image.function[%d]", cmd);
 		mes_parameter_list_print_from(stmt->SYS.params, 1, out);

@@ -116,8 +116,8 @@ static struct mes_path_component sys_palette = {
 	.children = sys_palette_children
 };
 
-static struct mes_path_component sys_image_fill = { .name = "fill" };
-static struct mes_path_component sys_image_clear_text = { "clear_text" };
+static struct mes_path_component sys_image_fill = { .name = "fill_bg" };
+static struct mes_path_component sys_image_clear_text = { "swap_bg_fg" };
 
 static struct mes_path_component *sys_image_children[] = {
 	[2] = &sys_image_fill,
