@@ -230,10 +230,10 @@ error:
 
 const char *mes_system_var16_names[MES_NR_SYSTEM_VARIABLES] = {
 	[MES_SYS_VAR_FLAGS] = "flags",
-	[MES_SYS_VAR_TEXT_HOME_X] = "text_home_x",
-	[MES_SYS_VAR_TEXT_HOME_Y] = "text_home_y",
-	[MES_SYS_VAR_WIDTH] = "width",
-	[MES_SYS_VAR_HEIGHT] = "height",
+	[MES_SYS_VAR_TEXT_START_X] = "text_start_x",
+	[MES_SYS_VAR_TEXT_START_Y] = "text_start_y",
+	[MES_SYS_VAR_TEXT_END_X] = "text_end_x",
+	[MES_SYS_VAR_TEXT_END_Y] = "text_end_y",
 	[MES_SYS_VAR_TEXT_CURSOR_X] = "text_cursor_x",
 	[MES_SYS_VAR_TEXT_CURSOR_Y] = "text_cursor_y",
 	[MES_SYS_VAR_FONT_WIDTH] = "font_width",
