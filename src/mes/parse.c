@@ -305,7 +305,7 @@ static void set_opcode_tables(struct opcode_tables *tables)
 	memcpy(op_tables.int_to_expr_op, tables->int_to_expr_op, sizeof(op_tables.int_to_expr_op));
 }
 
-static struct opcode_tables *get_opcode_tables(enum game_id id)
+static struct opcode_tables *get_opcode_tables(enum ai5_game_id id)
 {
 	switch (id) {
 	case GAME_ELF_CLASSICS:
@@ -315,7 +315,7 @@ static struct opcode_tables *get_opcode_tables(enum game_id id)
 	}
 }
 
-void mes_set_game(enum game_id id)
+void mes_set_game(enum ai5_game_id id)
 {
 	set_opcode_tables(get_opcode_tables(id));
 }
@@ -400,7 +400,7 @@ static struct mes_expression *mes_parse_expression(struct buffer *mes)
 				goto error;
 			break;
 		case MES_EXPR_RAND:
-			if (target_game == GAME_DOUKYUUSEI) {
+			if (ai5_target_game == GAME_DOUKYUUSEI) {
 				// TODO: which other games do this?
 				//       should test:
 				//         Shuusaku (1998 CD version)

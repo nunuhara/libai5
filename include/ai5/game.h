@@ -17,7 +17,7 @@
 #ifndef AI5_GAME_H
 #define AI5_GAME_H
 
-enum game_id {
+enum ai5_game_id {
 	GAME_YUKINOJOU,    // 2001-08-31 release
 	GAME_ELF_CLASSICS, // 2000-12-22 release
 	GAME_BEYOND,       // 2000-07-19 release
@@ -26,7 +26,19 @@ enum game_id {
 	GAME_DOUKYUUSEI,   // 1999-08-27 release (windows edition)
 	GAME_ISAKU,        // 1999-02-26 release (renewal version)
 };
+#define AI5_NR_GAME_IDS (GAME_ISAKU+1)
 
-extern enum game_id target_game;
+extern enum ai5_game_id ai5_target_game;
+
+struct ai5_game {
+	const char *name;
+	enum ai5_game_id id;
+	const char *description;
+};
+
+extern struct ai5_game ai5_games[AI5_NR_GAME_IDS];
+
+enum ai5_game_id ai5_parse_game_id(const char *str);
+void ai5_set_game(const char *name);
 
 #endif // AI5_GAME_H

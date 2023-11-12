@@ -26,6 +26,7 @@ ai5_sources = [
   'src/cg/cg.c',
   'src/cg/g16_24_32.c',
   'src/cg/png.c',
+  'src/game.c',
   'src/mes/parse.c',
   'src/mes/print.c',
   'src/mes/system.c'

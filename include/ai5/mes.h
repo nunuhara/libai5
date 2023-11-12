@@ -25,6 +25,7 @@
 typedef char *string;
 
 struct port;
+enum ai5_game_id;
 
 #define MES_ADDRESS_SYNTHETIC 0xFFFFFFFF
 
@@ -262,7 +263,7 @@ void mes_statement_free(struct mes_statement *stmt);
 void mes_statement_list_free(mes_statement_list list);
 
 enum game_id;
-void mes_set_game(enum game_id id);
+void mes_set_game(enum ai5_game_id id);
 uint8_t mes_stmt_opcode(enum mes_statement_op op);
 uint8_t mes_expr_opcode(enum mes_expression_op op);
 enum mes_statement_op mes_opcode_to_stmt(uint8_t op);
