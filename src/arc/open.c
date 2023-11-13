@@ -16,6 +16,7 @@
 
 #include <stdio.h>
 #include <string.h>
+#include <ctype.h>
 #include <errno.h>
 #include <unistd.h>
 #include <fcntl.h>
@@ -321,7 +322,15 @@ bool archive_data_load(struct archive_data *data)
 
 int archive_get_index(struct archive *arc, const char *name)
 {
-	hashtable_iter_t k = hashtable_get(arcindex, &arc->index, name);
+	// convert name to uppercase
+	int i;
+	char upname[256];
+	for (i = 0; name[i] && i < 255; i++) {
+		upname[i] = toupper(name[i]);
+	}
+	upname[i] = 0;
+
+	hashtable_iter_t k = hashtable_get(arcindex, &arc->index, upname);
 	if (k == hashtable_end(&arc->index))
 		return -1;
 	return hashtable_val(&arc->index, k);
