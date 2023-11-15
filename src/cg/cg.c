@@ -22,6 +22,7 @@
 #include "ai5/arc.h"
 #include "ai5/cg.h"
 
+struct cg *gp8_decode(uint8_t *data, size_t size);
 struct cg *gxx_decode(uint8_t *data, size_t size, unsigned bpp);
 struct cg *png_decode(uint8_t *data, size_t size);
 
@@ -31,6 +32,7 @@ bool png_write(struct cg *cg, FILE *out);
 struct cg *cg_load(uint8_t *data, size_t size, enum cg_type type)
 {
 	switch (type) {
+	case CG_TYPE_G8:  return gp8_decode(data, size);
 	case CG_TYPE_G16: return gxx_decode(data, size, 16);
 	case CG_TYPE_G24: return gxx_decode(data, size, 24);
 	case CG_TYPE_G32: return gxx_decode(data, size, 32);
@@ -42,6 +44,7 @@ struct cg *cg_load(uint8_t *data, size_t size, enum cg_type type)
 enum cg_type cg_type_from_name(const char *name)
 {
 	const char *ext = file_extension(name);
+	if (!strcasecmp(ext, "gp8"))  return CG_TYPE_G8;
 	if (!strcasecmp(ext, "g16")) return CG_TYPE_G16;
 	if (!strcasecmp(ext, "g24")) return CG_TYPE_G24;
 	if (!strcasecmp(ext, "g32")) return CG_TYPE_G32;
@@ -59,9 +62,48 @@ struct cg *cg_load_arcdata(struct archive_data *data)
 	return cg_load(data->data, data->size, type);
 }
 
-bool cg_write(struct cg *cg, FILE *out, enum cg_type type)
+uint8_t *_cg_depalettize(struct cg *cg)
+{
+	assert(cg->palette);
+	uint8_t *px = xmalloc(cg->metrics.w * cg->metrics.h * 4);
+	uint8_t *dst = px;
+	uint8_t *src = cg->pixels;
+	for (int i = 0; i < cg->metrics.w * cg->metrics.h; i++) {
+		uint8_t *color = &cg->palette[*src++ * 4];
+		*dst++ = color[2];
+		*dst++ = color[1];
+		*dst++ = color[0];
+		*dst++ = 255;
+	}
+	return px;
+}
+
+void cg_depalettize(struct cg *cg)
+{
+	if (!cg->palette)
+		return;
+
+	uint8_t *px = _cg_depalettize(cg);
+	free(cg->pixels);
+	free(cg->palette);
+	cg->pixels = px;
+}
+
+struct cg *cg_depalettize_copy(struct cg *cg)
+{
+	struct cg *copy = xmalloc(sizeof(struct cg));
+	*copy = *cg;
+
+	uint8_t *px = _cg_depalettize(cg);
+	copy->pixels = px;
+	copy->palette = NULL;
+	return copy;
+}
+
+bool _cg_write(struct cg *cg, FILE *out, enum cg_type type)
 {
 	switch (type) {
+	case CG_TYPE_G8:  ERROR("G8 write not supported");
 	case CG_TYPE_G16: return gxx_write(cg, out, 16);
 	case CG_TYPE_G24: return gxx_write(cg, out, 24);
 	case CG_TYPE_G32: return gxx_write(cg, out, 32);
@@ -70,8 +112,21 @@ bool cg_write(struct cg *cg, FILE *out, enum cg_type type)
 	ERROR("Invalid CG type: %d", type);
 }
 
+bool cg_write(struct cg *cg, FILE *out, enum cg_type type)
+{
+	if (cg->palette) {
+		struct cg *copy = cg_depalettize_copy(cg);
+		bool r = _cg_write(copy, out, type);
+		cg_free(copy);
+		return r;
+	} else {
+		return _cg_write(cg, out, type);
+	}
+}
+
 void cg_free(struct cg *cg)
 {
 	free(cg->pixels);
+	free(cg->palette);
 	free(cg);
 }

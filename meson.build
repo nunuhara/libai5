@@ -24,6 +24,7 @@ nulib_sources = [
 ai5_sources = [
   'src/arc/open.c',
   'src/cg/cg.c',
+  'src/cg/gp8.c',
   'src/cg/g16_24_32.c',
   'src/cg/png.c',
   'src/game.c',

@@ -23,6 +23,7 @@
 struct archive_data;
 
 enum cg_type {
+	CG_TYPE_G8,
 	CG_TYPE_G16,
 	CG_TYPE_G24,
 	CG_TYPE_G32,
@@ -41,13 +42,18 @@ struct cg_metrics {
 
 struct cg {
 	struct cg_metrics metrics;
+	// XXX: if `palette` is non-NULL, it's a 256-color BGRx palette
+	//      and `pixels` is 8-bit indexed. Otherwise `pixels` is
+	//      RGBA.
 	uint8_t *pixels;
+	uint8_t *palette;
 };
 
 enum cg_type cg_type_from_name(const char *name);
 
 struct cg *cg_load(uint8_t *data, size_t size, enum cg_type type);
 struct cg *cg_load_arcdata(struct archive_data *data);
+void cg_depalettize(struct cg *cg);
 
 bool cg_write(struct cg *cg, FILE *out, enum cg_type type);
 
