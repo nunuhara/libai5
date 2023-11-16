@@ -27,17 +27,28 @@ struct mes_path_component {
 	struct mes_path_component **children;
 };
 
-static struct mes_path_component sys_set_font_size = { .name = "set_font_size" };
+#define LEAF(pre, _name) static struct mes_path_component pre##_##_name = { .name = #_name }
 
-static struct mes_path_component sys_cursor_load = { .name = "load" };
-static struct mes_path_component sys_cursor_refresh = { .name = "refresh" };
-static struct mes_path_component sys_cursor_save_pos = { .name = "save_pos" };
-static struct mes_path_component sys_cursor_set_pos = { .name = "set_pos" };
-static struct mes_path_component sys_cursor_open = { .name = "open" };
-static struct mes_path_component sys_cursor_show = { .name = "show" };
-static struct mes_path_component sys_cursor_hide = { .name = "hide" };
+#define NODE(ident, _name, ...) \
+	static struct mes_path_component * ident##_children[] = { __VA_ARGS__ }; \
+	static struct mes_path_component ident = { \
+		.name = #_name, \
+		.nr_children = ARRAY_SIZE(ident##_children), \
+		.children = ident##_children \
+	}
 
-static struct mes_path_component *sys_cursor_children[] = {
+// System.set_font_size
+LEAF(sys, set_font_size);
+
+// System.Cursor
+LEAF(sys_cursor, load);
+LEAF(sys_cursor, refresh);
+LEAF(sys_cursor, save_pos);
+LEAF(sys_cursor, set_pos);
+LEAF(sys_cursor, open);
+LEAF(sys_cursor, show);
+LEAF(sys_cursor, hide);
+NODE(sys_cursor, Cursor,
 	[0] = &sys_cursor_load,
 	[1] = &sys_cursor_refresh,
 	[2] = &sys_cursor_save_pos,
@@ -45,27 +56,20 @@ static struct mes_path_component *sys_cursor_children[] = {
 	[4] = &sys_cursor_open,
 	[5] = &sys_cursor_show,
 	[6] = &sys_cursor_hide,
-};
+);
 
-static struct mes_path_component sys_cursor = {
-	.name = "Cursor",
-	.nr_children = ARRAY_SIZE(sys_cursor_children),
-	.children = sys_cursor_children
-};
-
-static struct mes_path_component sys_savedata_save = { .name = "save" };
-static struct mes_path_component sys_savedata_load = { .name = "load" };
-static struct mes_path_component sys_savedata_save_except_mes_name =
-	{ .name = "save_except_mes_name" };
-static struct mes_path_component sys_savedata_load_var4 = { .name = "load_var4" };
-static struct mes_path_component sys_savedata_write_var4 = { .name = "write_var4" };
-static struct mes_path_component sys_savedata_save_union_var4 = { .name = "save_union_var4" };
-static struct mes_path_component sys_savedata_load_var4_slice = { .name = "load_var4_slice" };
-static struct mes_path_component sys_savedata_save_var4_slice = { .name = "save_var4_slice" };
-static struct mes_path_component sys_savedata_copy = { .name = "copy" };
-static struct mes_path_component sys_savedata_set_mes_name = { .name = "set_mes_name" };
-
-static struct mes_path_component *sys_savedata_children[] = {
+// System.SaveData
+LEAF(sys_savedata, save);
+LEAF(sys_savedata, load);
+LEAF(sys_savedata, save_except_mes_name);
+LEAF(sys_savedata, load_var4);
+LEAF(sys_savedata, write_var4);
+LEAF(sys_savedata, save_union_var4);
+LEAF(sys_savedata, load_var4_slice);
+LEAF(sys_savedata, save_var4_slice);
+LEAF(sys_savedata, copy);
+LEAF(sys_savedata, set_mes_name);
+NODE(sys_savedata, SaveData,
 	[1] = &sys_savedata_save,
 	[2] = &sys_savedata_load,
 	[3] = &sys_savedata_save_except_mes_name,
@@ -76,68 +80,77 @@ static struct mes_path_component *sys_savedata_children[] = {
 	[8] = &sys_savedata_save_var4_slice,
 	[9] = &sys_savedata_copy,
 	[13] = &sys_savedata_set_mes_name,
-};
+);
 
-static struct mes_path_component sys_savedata = {
-	.name = "SaveData",
-	.nr_children = ARRAY_SIZE(sys_savedata_children),
-	.children = sys_savedata_children
-};
+// System.Audio
+LEAF(sys_audio, bgm_play);
+LEAF(sys_audio, bgm_stop);
+LEAF(sys_audio, se_play);
+LEAF(sys_audio, bgm_fade_sync);
+LEAF(sys_audio, bgm_set_volume);
+LEAF(sys_audio, bgm_fade);
+LEAF(sys_audio, bgm_fade_out_sync);
+LEAF(sys_audio, bgm_fade_out);
+LEAF(sys_audio, se_stop);
+LEAF(sys_audio, bgm_stop2);
+NODE(sys_audio, Audio,
+	[0] = &sys_audio_bgm_play,
+	[2] = &sys_audio_bgm_stop,
+	[3] = &sys_audio_se_play,
+	[4] = &sys_audio_bgm_fade_sync,
+	[5] = &sys_audio_bgm_set_volume,
+	[7] = &sys_audio_bgm_fade,
+	[9] = &sys_audio_bgm_fade_out_sync,
+	[10] = &sys_audio_bgm_fade_out,
+	[12] = &sys_audio_se_stop,
+	[18] = &sys_audio_bgm_stop2,
+);
 
-static struct mes_path_component sys_audio = {
-	.name = "Audio",
-};
-
-static struct mes_path_component sys_file_read = { .name = "read" };
-static struct mes_path_component sys_file_write = { .name = "write" };
-
-static struct mes_path_component *sys_file_children[] = {
+// System.File
+LEAF(sys_file, read);
+LEAF(sys_file, write);
+NODE(sys_file, File,
 	[0] = &sys_file_read,
 	[1] = &sys_file_write,
-};
+);
 
-static struct mes_path_component sys_file = {
-	.name = "File",
-	.nr_children = ARRAY_SIZE(sys_file_children),
-	.children = sys_file_children
-};
+// System.load_image
+LEAF(sys, load_image);
 
-static struct mes_path_component sys_load_image = { .name = "load_image" };
-
-static struct mes_path_component sys_palette_set = { .name = "set" };
-
-static struct mes_path_component *sys_palette_children[] = {
+// System.Palette
+LEAF(sys_palette, set);
+NODE(sys_palette, Palette,
 	[0] = &sys_palette_set,
-};
+);
 
-static struct mes_path_component sys_palette = {
-	.name = "Palette",
-	.nr_children = ARRAY_SIZE(sys_palette_children),
-	.children = sys_palette_children
-};
+// System.Image
+LEAF(sys_image, fill_bg);
+LEAF(sys_image, swap_bg_fg);
+NODE(sys_image, Image,
+	[2] = &sys_image_fill_bg,
+	[4] = &sys_image_swap_bg_fg,
+);
 
-static struct mes_path_component sys_image_fill = { .name = "fill_bg" };
-static struct mes_path_component sys_image_clear_text = { "swap_bg_fg" };
+// System.wait
+LEAF(sys, wait);
 
-static struct mes_path_component *sys_image_children[] = {
-	[2] = &sys_image_fill,
-	[4] = &sys_image_clear_text,
-};
+// System.set_text_colors
+LEAF(sys, set_text_colors);
 
-static struct mes_path_component sys_wait = { .name = "wait" };
+// System.farcall
+LEAF(sys, farcall);
 
-static struct mes_path_component sys_image = {
-	.name = "Image",
-	.nr_children = ARRAY_SIZE(sys_image_children),
-	.children = sys_image_children
-};
+// System.get_time
+LEAF(sys, get_time);
 
-static struct mes_path_component sys_set_text_colors = { .name = "set_text_colors" };
-static struct mes_path_component sys_farcall = { .name = "farcall" };
-static struct mes_path_component sys_get_time = { .name = "get_time" };
-static struct mes_path_component sys_noop = { .name = "noop" };
-static struct mes_path_component sys_noop2 = { .name = "noop2" };
-static struct mes_path_component sys_strlen = { .name = "strlen" };
+// System.noop
+LEAF(sys, noop);
+
+// System.noop2
+LEAF(sys, noop2);
+
+// System.strlen
+LEAF(sys, strlen);
 
 static struct mes_path_component *system_children[] = {
 	[0] = &sys_set_font_size,

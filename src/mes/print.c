@@ -653,7 +653,28 @@ static void stmt_sys_print(struct mes_statement *stmt, struct port *out)
 	case 5:
 		if ((cmd = get_int_parameter(stmt->SYS.params, 0)) < 0)
 			goto fallback;
-		port_printf(out, "System.Audio.function[%d]", cmd);
+		else if (cmd == 0)
+			port_puts(out, "System.Audio.bgm_play");
+		else if (cmd == 2)
+			port_puts(out, "System.Audio.bgm_stop");
+		else if (cmd == 3)
+			port_puts(out, "System.Audio.se_play");
+		else if (cmd == 4)
+			port_puts(out, "System.Audio.bgm_fade_sync");
+		else if (cmd == 5)
+			port_puts(out, "System.Audio.bgm_set_volume");
+		else if (cmd == 7)
+			port_puts(out, "System.Audio.bgm_fade");
+		else if (cmd == 9)
+			port_puts(out, "System.Audio.bgm_fade_out_sync");
+		else if (cmd == 10)
+			port_puts(out, "System.Audio.bgm_fade_out");
+		else if (cmd == 12)
+			port_puts(out, "System.Audio.se_stop");
+		else if (cmd == 18)
+			port_puts(out, "System.Audio.bgm_stop2");
+		else
+			port_printf(out, "System.Audio.function[%d]", cmd);
 		mes_parameter_list_print_from(stmt->SYS.params, 1, out);
 		break;
 	case 7:
