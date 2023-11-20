@@ -41,19 +41,19 @@ struct mes_path_component {
 LEAF(sys, set_font_size);
 
 // System.Cursor
-LEAF(sys_cursor, load);
-LEAF(sys_cursor, refresh);
+LEAF(sys_cursor, reload);
+LEAF(sys_cursor, unload);
 LEAF(sys_cursor, save_pos);
 LEAF(sys_cursor, set_pos);
-LEAF(sys_cursor, open);
+LEAF(sys_cursor, load);
 LEAF(sys_cursor, show);
 LEAF(sys_cursor, hide);
 NODE(sys_cursor, Cursor,
-	[0] = &sys_cursor_load,
-	[1] = &sys_cursor_refresh,
+	[0] = &sys_cursor_reload,
+	[1] = &sys_cursor_unload,
 	[2] = &sys_cursor_save_pos,
 	[3] = &sys_cursor_set_pos,
-	[4] = &sys_cursor_open,
+	[4] = &sys_cursor_load,
 	[5] = &sys_cursor_show,
 	[6] = &sys_cursor_hide,
 );

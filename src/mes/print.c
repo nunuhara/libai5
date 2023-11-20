@@ -583,15 +583,15 @@ static void stmt_sys_print(struct mes_statement *stmt, struct port *out)
 		if ((cmd = get_int_parameter(stmt->SYS.params, 0)) < 0)
 			goto fallback;
 		if (cmd == 0)
-			port_puts(out, "System.Cursor.load");
+			port_puts(out, "System.Cursor.reload");
 		else if (cmd == 1)
-			port_puts(out, "System.Cursor.refresh");
+			port_puts(out, "System.Cursor.unload");
 		else if (cmd == 2)
 			port_puts(out, "System.Cursor.save_pos");
 		else if (cmd == 3)
 			port_puts(out, "System.Cursor.set_pos");
 		else if (cmd == 4)
-			port_puts(out, "System.Cursor.open");
+			port_puts(out, "System.Cursor.load");
 		else if (cmd == 5)
 			port_puts(out, "System.Cursor.show");
 		else if (cmd == 6)
