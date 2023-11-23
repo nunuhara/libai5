@@ -59,22 +59,24 @@ NODE(sys_cursor, Cursor,
 );
 
 // System.SaveData
-LEAF(sys_savedata, save);
+LEAF(sys_savedata, resume_load);
+LEAF(sys_savedata, resume_save);
 LEAF(sys_savedata, load);
-LEAF(sys_savedata, save_except_mes_name);
+LEAF(sys_savedata, save);
 LEAF(sys_savedata, load_var4);
-LEAF(sys_savedata, write_var4);
+LEAF(sys_savedata, save_var4);
 LEAF(sys_savedata, save_union_var4);
 LEAF(sys_savedata, load_var4_slice);
 LEAF(sys_savedata, save_var4_slice);
 LEAF(sys_savedata, copy);
 LEAF(sys_savedata, set_mes_name);
 NODE(sys_savedata, SaveData,
-	[1] = &sys_savedata_save,
+	[0] = &sys_savedata_resume_load,
+	[1] = &sys_savedata_resume_save,
 	[2] = &sys_savedata_load,
-	[3] = &sys_savedata_save_except_mes_name,
+	[3] = &sys_savedata_save,
 	[4] = &sys_savedata_load_var4,
-	[5] = &sys_savedata_write_var4,
+	[5] = &sys_savedata_save_var4,
 	[6] = &sys_savedata_save_union_var4,
 	[7] = &sys_savedata_load_var4_slice,
 	[8] = &sys_savedata_save_var4_slice,

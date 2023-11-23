@@ -609,16 +609,18 @@ static void stmt_sys_print(struct mes_statement *stmt, struct port *out)
 	case 4:
 		if ((cmd = get_int_parameter(stmt->SYS.params, 0)) < 0)
 			goto fallback;
+		else if (cmd == 0)
+			port_puts(out, "System.SaveData.resume_load");
 		else if (cmd == 1)
-			port_puts(out, "System.SaveData.save");
+			port_puts(out, "System.SaveData.resume_save");
 		else if (cmd == 2)
 			port_puts(out, "System.SaveData.load");
 		else if (cmd == 3)
-			port_puts(out, "System.SaveData.save_except_mes_name");
+			port_puts(out, "System.SaveData.save");
 		else if (cmd == 4)
 			port_puts(out, "System.SaveData.load_var4");
 		else if (cmd == 5)
-			port_puts(out, "System.SaveData.write_var4");
+			port_puts(out, "System.SaveData.save_var4");
 		else if (cmd == 6)
 			port_puts(out, "System.SaveData.save_union_var4");
 		else if (cmd == 7)
