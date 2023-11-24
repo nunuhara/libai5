@@ -352,7 +352,7 @@ static struct mes_expression *stack_pop(unsigned addr, struct mes_expression **s
 	return stack[*stack_ptr];
 }
 
-static struct mes_expression *mes_parse_expression(struct buffer *mes)
+static struct mes_expression *_mes_parse_expression(struct buffer *mes)
 {
 	int stack_ptr = 0;
 	struct mes_expression *stack[4096];
@@ -464,12 +464,19 @@ error:
 	}
 }
 
+struct mes_expression *mes_parse_expression(uint8_t *data, size_t data_size)
+{
+	struct buffer buf;
+	buffer_init(&buf, data, data_size);
+	return _mes_parse_expression(&buf);
+}
+
 static bool mes_parse_expression_list(struct buffer *mes, mes_expression_list *exprs)
 {
 	vector_init(*exprs);
 
 	do {
-		struct mes_expression *expr = mes_parse_expression(mes);
+		struct mes_expression *expr = _mes_parse_expression(mes);
 		if (!expr)
 			goto error;
 		vector_push(struct mes_expression*, *exprs, expr);
@@ -547,7 +554,7 @@ static bool mes_parse_parameter_list(struct buffer *mes, mes_parameter_list *par
 			if (!mes_parse_string_param(mes, &vector_A(*params, i)))
 				goto error;
 		} else if (b == MES_PARAM_EXPRESSION) {
-			struct mes_expression *expr = mes_parse_expression(mes);
+			struct mes_expression *expr = _mes_parse_expression(mes);
 			if (!expr)
 				goto error;
 			vector_A(*params, i).expr = expr;
@@ -668,7 +675,7 @@ unterminated:
 	return sjis_cstring_to_utf8(str, str_i);
 }
 
-static struct mes_statement *mes_parse_statement(struct buffer *mes)
+static struct mes_statement *_mes_parse_statement(struct buffer *mes)
 {
 	struct mes_statement *stmt = xcalloc(1, sizeof(struct mes_statement));
 	stmt->address = mes->index;
@@ -695,7 +702,7 @@ static struct mes_statement *mes_parse_statement(struct buffer *mes)
 			goto error;
 		break;
 	case MES_STMT_SETRBE:
-		if (!(stmt->SETRBE.reg_expr = mes_parse_expression(mes)))
+		if (!(stmt->SETRBE.reg_expr = _mes_parse_expression(mes)))
 			goto error;
 		if (!mes_parse_expression_list(mes, &stmt->SETRBE.val_exprs)) {
 			mes_expression_free(stmt->SETRBE.reg_expr);
@@ -703,7 +710,7 @@ static struct mes_statement *mes_parse_statement(struct buffer *mes)
 		}
 		break;
 	case MES_STMT_SETAC:
-		if (!(stmt->SETAC.off_expr = mes_parse_expression(mes)))
+		if (!(stmt->SETAC.off_expr = _mes_parse_expression(mes)))
 			goto error;
 		stmt->SETAC.var_no = buffer_read_u8(mes);
 		if (!mes_parse_expression_list(mes, &stmt->SETAC.val_exprs)) {
@@ -712,7 +719,7 @@ static struct mes_statement *mes_parse_statement(struct buffer *mes)
 		}
 		break;
 	case MES_STMT_SETA_AT:
-		if (!(stmt->SETA_AT.off_expr = mes_parse_expression(mes)))
+		if (!(stmt->SETA_AT.off_expr = _mes_parse_expression(mes)))
 			goto error;
 		stmt->SETA_AT.var_no = buffer_read_u8(mes);
 		if (!mes_parse_expression_list(mes, &stmt->SETA_AT.val_exprs)) {
@@ -721,7 +728,7 @@ static struct mes_statement *mes_parse_statement(struct buffer *mes)
 		}
 		break;
 	case MES_STMT_SETAD:
-		if (!(stmt->SETAD.off_expr = mes_parse_expression(mes)))
+		if (!(stmt->SETAD.off_expr = _mes_parse_expression(mes)))
 			goto error;
 		stmt->SETAD.var_no = buffer_read_u8(mes);
 		if (!mes_parse_expression_list(mes, &stmt->SETAD.val_exprs)) {
@@ -730,7 +737,7 @@ static struct mes_statement *mes_parse_statement(struct buffer *mes)
 		}
 		break;
 	case MES_STMT_SETAW:
-		if (!(stmt->SETAW.off_expr = mes_parse_expression(mes)))
+		if (!(stmt->SETAW.off_expr = _mes_parse_expression(mes)))
 			goto error;
 		stmt->SETAW.var_no = buffer_read_u8(mes);
 		if (!mes_parse_expression_list(mes, &stmt->SETAW.val_exprs)) {
@@ -739,7 +746,7 @@ static struct mes_statement *mes_parse_statement(struct buffer *mes)
 		}
 		break;
 	case MES_STMT_SETAB:
-		if (!(stmt->SETAB.off_expr = mes_parse_expression(mes)))
+		if (!(stmt->SETAB.off_expr = _mes_parse_expression(mes)))
 			goto error;
 		stmt->SETAB.var_no = buffer_read_u8(mes);
 		if (!mes_parse_expression_list(mes, &stmt->SETAB.val_exprs)) {
@@ -748,7 +755,7 @@ static struct mes_statement *mes_parse_statement(struct buffer *mes)
 		}
 		break;
 	case MES_STMT_JZ:
-		if (!(stmt->JZ.expr = mes_parse_expression(mes)))
+		if (!(stmt->JZ.expr = _mes_parse_expression(mes)))
 			goto error;
 		stmt->JZ.addr = buffer_read_u32(mes);
 		break;
@@ -756,7 +763,7 @@ static struct mes_statement *mes_parse_statement(struct buffer *mes)
 		stmt->JMP.addr = buffer_read_u32(mes);
 		break;
 	case MES_STMT_SYS:
-		if (!(stmt->SYS.expr = mes_parse_expression(mes)))
+		if (!(stmt->SYS.expr = _mes_parse_expression(mes)))
 			goto error;
 		if (!mes_parse_parameter_list(mes, &stmt->SYS.params)) {
 			mes_expression_free(stmt->SYS.expr);
@@ -788,7 +795,7 @@ static struct mes_statement *mes_parse_statement(struct buffer *mes)
 		stmt->LINE.arg = buffer_read_u8(mes);
 		break;
 	case MES_STMT_PROCD:
-		if (!(stmt->PROCD.no_expr = mes_parse_expression(mes)))
+		if (!(stmt->PROCD.no_expr = _mes_parse_expression(mes)))
 			goto error;
 		stmt->PROCD.skip_addr = buffer_read_u32(mes);
 		break;
@@ -819,6 +826,13 @@ static struct mes_statement *mes_parse_statement(struct buffer *mes)
 error:
 	free(stmt);
 	return NULL;
+}
+
+struct mes_statement *mes_parse_statement(uint8_t *data, size_t data_size)
+{
+	struct buffer buf;
+	buffer_init(&buf, data, data_size);
+	return _mes_parse_statement(&buf);
 }
 
 declare_hashtable_int_type(addr_table, struct mes_statement*);
@@ -878,7 +892,7 @@ bool mes_parse_statements(uint8_t *data, size_t data_size, mes_statement_list *s
 	buffer_init(&mes, data, data_size);
 
 	while (!buffer_end(&mes)) {
-		struct mes_statement *stmt = mes_parse_statement(&mes);
+		struct mes_statement *stmt = _mes_parse_statement(&mes);
 		if (!stmt)
 			goto error;
 		vector_push(struct mes_statement*, *statements, stmt);

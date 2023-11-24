@@ -99,6 +99,8 @@ enum mes_expression_op {
 
 enum mes_system_var16 {
 	MES_SYS_VAR_FLAGS = 2,
+	MES_SYS_VAR_CURSOR_X = 3,
+	MES_SYS_VAR_CURSOR_Y = 4,
 	MES_SYS_VAR_TEXT_START_X = 5,
 	MES_SYS_VAR_TEXT_START_Y = 6,
 	MES_SYS_VAR_TEXT_END_X = 7,
@@ -110,6 +112,7 @@ enum mes_system_var16 {
 	MES_SYS_VAR_FONT_WEIGHT = 14,
 	MES_SYS_VAR_CHAR_SPACE = 15,
 	MES_SYS_VAR_LINE_SPACE = 16,
+	MES_SYS_VAR_NR_MENU_ENTRIES = 21,
 	MES_SYS_VAR_MASK_COLOR = 23,
 };
 
@@ -256,6 +259,8 @@ typedef vector_t(struct mes_statement*) mes_statement_list;
 bool mes_char_is_hankaku(uint8_t b);
 bool mes_char_is_zenkaku(uint8_t b);
 
+struct mes_expression *mes_parse_expression(uint8_t *data, size_t data_size);
+struct mes_statement *mes_parse_statement(uint8_t *data, size_t data_size);
 bool mes_parse_statements(uint8_t *data, size_t data_size, mes_statement_list *statements);
 void mes_qname_free(mes_qname name);
 void mes_expression_free(struct mes_expression *expr);

@@ -248,6 +248,8 @@ error:
 
 const char *mes_system_var16_names[MES_NR_SYSTEM_VARIABLES] = {
 	[MES_SYS_VAR_FLAGS] = "flags",
+	[MES_SYS_VAR_CURSOR_X] = "cursor_x",
+	[MES_SYS_VAR_CURSOR_Y] = "cursor_y",
 	[MES_SYS_VAR_TEXT_START_X] = "text_start_x",
 	[MES_SYS_VAR_TEXT_START_Y] = "text_start_y",
 	[MES_SYS_VAR_TEXT_END_X] = "text_end_x",
@@ -259,6 +261,7 @@ const char *mes_system_var16_names[MES_NR_SYSTEM_VARIABLES] = {
 	[MES_SYS_VAR_FONT_WEIGHT] = "font_weight",
 	[MES_SYS_VAR_CHAR_SPACE] = "char_space",
 	[MES_SYS_VAR_LINE_SPACE] = "line_space",
+	[MES_SYS_VAR_NR_MENU_ENTRIES] = "nr_menu_entries",
 	[MES_SYS_VAR_MASK_COLOR] = "mask_color",
 };
 
