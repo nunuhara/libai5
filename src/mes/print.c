@@ -754,6 +754,10 @@ static void stmt_sys_print(struct mes_statement *stmt, struct port *out)
 		port_printf(out, "System.function[22].function[%d]", cmd);
 		mes_parameter_list_print_from(stmt->SYS.params, 1, out);
 		break;
+	case 23:
+		port_puts(out, "System.set_screen_surface");
+		mes_parameter_list_print(stmt->SYS.params, out);
+		break;
 	default:
 		goto fallback;
 	}

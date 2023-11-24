@@ -154,6 +154,9 @@ LEAF(sys, noop2);
 // System.strlen
 LEAF(sys, strlen);
 
+// System.set_screen_surface
+LEAF(sys, set_screen_surface);
+
 static struct mes_path_component *system_children[] = {
 	[0] = &sys_set_font_size,
 	[2] = &sys_cursor,
@@ -170,6 +173,7 @@ static struct mes_path_component *system_children[] = {
 	[17] = &sys_noop,
 	[20] = &sys_noop2,
 	[21] = &sys_strlen,
+	[23] = &sys_set_screen_surface,
 };
 
 static struct mes_path_component syscalls = {
@@ -247,6 +251,7 @@ error:
 }
 
 const char *mes_system_var16_names[MES_NR_SYSTEM_VARIABLES] = {
+	[MES_SYS_DST_SURFACE] = "dst_surface",
 	[MES_SYS_VAR_FLAGS] = "flags",
 	[MES_SYS_VAR_CURSOR_X] = "cursor_x",
 	[MES_SYS_VAR_CURSOR_Y] = "cursor_y",

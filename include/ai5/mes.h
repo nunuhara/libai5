@@ -98,6 +98,7 @@ enum mes_expression_op {
 };
 
 enum mes_system_var16 {
+	MES_SYS_DST_SURFACE = 1,
 	MES_SYS_VAR_FLAGS = 2,
 	MES_SYS_VAR_CURSOR_X = 3,
 	MES_SYS_VAR_CURSOR_Y = 4,
