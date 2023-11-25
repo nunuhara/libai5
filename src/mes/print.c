@@ -699,6 +699,8 @@ static void stmt_sys_print(struct mes_statement *stmt, struct port *out)
 			goto fallback;
 		if (cmd == 0)
 			port_puts(out, "System.Palette.set");
+		else if (cmd == 2)
+			port_puts(out, "System.Palette.crossfade");
 		else
 			port_printf(out, "System.Palette.function[%d]", cmd);
 		mes_parameter_list_print_from(stmt->SYS.params, 1, out);
