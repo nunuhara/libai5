@@ -128,11 +128,23 @@ NODE(sys_palette, Palette,
 );
 
 // System.Image
+LEAF(sys_image, copy);
+LEAF(sys_image, copy_masked);
 LEAF(sys_image, fill_bg);
+LEAF(sys_image, copy_swap);
 LEAF(sys_image, swap_bg_fg);
+LEAF(sys_image, copy_sprite_bg);
+LEAF(sys_image, invert_colors);
+LEAF(sys_image, copy_progressive);
 NODE(sys_image, Image,
+	[0] = &sys_image_copy,
+	[1] = &sys_image_copy_masked,
 	[2] = &sys_image_fill_bg,
+	[3] = &sys_image_copy_swap,
 	[4] = &sys_image_swap_bg_fg,
+	[5] = &sys_image_copy_sprite_bg,
+	[6] = &sys_image_invert_colors,
+	[20] = &sys_image_copy_progressive,
 );
 
 // System.wait
@@ -253,7 +265,7 @@ error:
 }
 
 const char *mes_system_var16_names[MES_NR_SYSTEM_VARIABLES] = {
-	[MES_SYS_DST_SURFACE] = "dst_surface",
+	[MES_SYS_VAR_DST_SURFACE] = "dst_surface",
 	[MES_SYS_VAR_FLAGS] = "flags",
 	[MES_SYS_VAR_CURSOR_X] = "cursor_x",
 	[MES_SYS_VAR_CURSOR_Y] = "cursor_y",

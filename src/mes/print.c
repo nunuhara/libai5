@@ -712,10 +712,22 @@ static void stmt_sys_print(struct mes_statement *stmt, struct port *out)
 	case 10:
 		if ((cmd = get_int_parameter(stmt->SYS.params, 0)) < 0)
 			goto fallback;
-		if (cmd == 2)
+		if (cmd == 0)
+			port_puts(out, "System.Image.copy");
+		else if (cmd == 1)
+			port_puts(out, "System.Image.copy_masked");
+		else if (cmd == 2)
 			port_puts(out, "System.Image.fill_bg");
+		else if (cmd == 3)
+			port_puts(out, "System.Image.copy_swap");
 		else if (cmd == 4)
 			port_puts(out, "System.Image.swap_bg_fg");
+		else if (cmd == 5)
+			port_puts(out, "System.Image.copy_sprite_bg");
+		else if (cmd == 6)
+			port_puts(out, "System.Image.invert_colors");
+		else if (cmd == 20)
+			port_puts(out, "System.Image.copy_progressive");
 		else
 			port_printf(out, "System.Image.function[%d]", cmd);
 		mes_parameter_list_print_from(stmt->SYS.params, 1, out);
