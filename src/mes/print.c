@@ -748,6 +748,10 @@ static void stmt_sys_print(struct mes_statement *stmt, struct port *out)
 		port_puts(out, "System.noop");
 		mes_parameter_list_print(stmt->SYS.params, out);
 		break;
+	case 18:
+		port_puts(out, "System.check_input");
+		mes_parameter_list_print(stmt->SYS.params, out);
+		break;
 	case 19:
 		if ((cmd = get_int_parameter(stmt->SYS.params, 0)) < 0)
 			goto fallback;

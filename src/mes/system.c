@@ -162,6 +162,9 @@ LEAF(sys, get_time);
 // System.noop
 LEAF(sys, noop);
 
+// System.input_state
+LEAF(sys, check_input);
+
 // System.noop2
 LEAF(sys, noop2);
 
@@ -185,6 +188,7 @@ static struct mes_path_component *system_children[] = {
 	[13] = &sys_farcall,
 	[16] = &sys_get_time,
 	[17] = &sys_noop,
+	[18] = &sys_check_input,
 	[20] = &sys_noop2,
 	[21] = &sys_strlen,
 	[23] = &sys_set_screen_surface,
