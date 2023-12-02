@@ -62,6 +62,22 @@ struct cg *cg_load_arcdata(struct archive_data *data)
 	return cg_load(data->data, data->size, type);
 }
 
+struct cg *cg_copy(struct cg *cg)
+{
+	struct cg *copy = xmalloc(sizeof(struct cg));
+	*copy = *cg;
+	if (cg->palette) {
+		copy->palette = xmalloc(256 * 4);
+		memcpy(copy->palette, cg->palette, 256 * 4);
+		copy->pixels = xmalloc(cg->metrics.w * cg->metrics.h);
+		memcpy(copy->pixels, cg->pixels, cg->metrics.w * cg->metrics.h);
+	} else {
+		copy->pixels = xmalloc(cg->metrics.w * cg->metrics.h * 4);
+		memcpy(copy->pixels, cg->pixels, cg->metrics.w * cg->metrics.h * 4);
+	}
+	return copy;
+}
+
 uint8_t *_cg_depalettize(struct cg *cg)
 {
 	assert(cg->palette);
@@ -94,8 +110,7 @@ struct cg *cg_depalettize_copy(struct cg *cg)
 	struct cg *copy = xmalloc(sizeof(struct cg));
 	*copy = *cg;
 
-	uint8_t *px = _cg_depalettize(cg);
-	copy->pixels = px;
+	copy->pixels = _cg_depalettize(cg);
 	copy->palette = NULL;
 	return copy;
 }
@@ -126,6 +141,8 @@ bool cg_write(struct cg *cg, FILE *out, enum cg_type type)
 
 void cg_free(struct cg *cg)
 {
+	if (!cg)
+		return;
 	free(cg->pixels);
 	free(cg->palette);
 	free(cg);

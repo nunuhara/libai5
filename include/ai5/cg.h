@@ -53,7 +53,9 @@ enum cg_type cg_type_from_name(const char *name);
 
 struct cg *cg_load(uint8_t *data, size_t size, enum cg_type type);
 struct cg *cg_load_arcdata(struct archive_data *data);
+struct cg *cg_copy(struct cg *cg);
 void cg_depalettize(struct cg *cg);
+struct cg *cg_depalettize_copy(struct cg *cg);
 
 bool cg_write(struct cg *cg, FILE *out, enum cg_type type);
 
