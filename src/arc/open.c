@@ -262,7 +262,7 @@ void archive_close(struct archive *arc)
 static bool data_decompress(struct archive_data *data)
 {
 	const char *ext = file_extension(data->name);
-	static const char *compressed_ext[] = { "mes", "lib", "a", "a6", "msk", "x" };
+	static const char *compressed_ext[] = { "mes", "lib", "a", "a6", "msk", "s4", "x" };
 	for (unsigned i = 0; i < ARRAY_SIZE(compressed_ext); i++) {
 		if (strcasecmp(ext, compressed_ext[i]))
 			continue;
