@@ -23,7 +23,8 @@
 struct archive_data;
 
 enum cg_type {
-	CG_TYPE_G8,
+	CG_TYPE_GP4,
+	CG_TYPE_GP8,
 	CG_TYPE_G16,
 	CG_TYPE_G24,
 	CG_TYPE_G32,

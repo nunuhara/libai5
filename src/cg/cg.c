@@ -22,6 +22,7 @@
 #include "ai5/arc.h"
 #include "ai5/cg.h"
 
+struct cg *gp4_decode(uint8_t *data, size_t size);
 struct cg *gp8_decode(uint8_t *data, size_t size);
 struct cg *gxx_decode(uint8_t *data, size_t size, unsigned bpp);
 struct cg *png_decode(uint8_t *data, size_t size);
@@ -32,7 +33,8 @@ bool png_write(struct cg *cg, FILE *out);
 struct cg *cg_load(uint8_t *data, size_t size, enum cg_type type)
 {
 	switch (type) {
-	case CG_TYPE_G8:  return gp8_decode(data, size);
+	case CG_TYPE_GP4: return gp4_decode(data, size);
+	case CG_TYPE_GP8:  return gp8_decode(data, size);
 	case CG_TYPE_G16: return gxx_decode(data, size, 16);
 	case CG_TYPE_G24: return gxx_decode(data, size, 24);
 	case CG_TYPE_G32: return gxx_decode(data, size, 32);
@@ -44,7 +46,8 @@ struct cg *cg_load(uint8_t *data, size_t size, enum cg_type type)
 enum cg_type cg_type_from_name(const char *name)
 {
 	const char *ext = file_extension(name);
-	if (!strcasecmp(ext, "gp8"))  return CG_TYPE_G8;
+	if (!strcasecmp(ext, "gp4")) return CG_TYPE_GP4;
+	if (!strcasecmp(ext, "gp8")) return CG_TYPE_GP8;
 	if (!strcasecmp(ext, "g16")) return CG_TYPE_G16;
 	if (!strcasecmp(ext, "g24")) return CG_TYPE_G24;
 	if (!strcasecmp(ext, "g32")) return CG_TYPE_G32;
@@ -118,7 +121,8 @@ struct cg *cg_depalettize_copy(struct cg *cg)
 bool _cg_write(struct cg *cg, FILE *out, enum cg_type type)
 {
 	switch (type) {
-	case CG_TYPE_G8:  ERROR("G8 write not supported");
+	case CG_TYPE_GP4: ERROR("GP4 write not supported");
+	case CG_TYPE_GP8:  ERROR("GP8 write not supported");
 	case CG_TYPE_G16: return gxx_write(cg, out, 16);
 	case CG_TYPE_G24: return gxx_write(cg, out, 24);
 	case CG_TYPE_G32: return gxx_write(cg, out, 32);
