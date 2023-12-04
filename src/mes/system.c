@@ -58,6 +58,22 @@ NODE(sys_cursor, Cursor,
 	[6] = &sys_cursor_hide,
 );
 
+// System.Anim
+LEAF(sys_anim, init);
+LEAF(sys_anim, start);
+LEAF(sys_anim, stop);
+LEAF(sys_anim, halt);
+LEAF(sys_anim, stop_all);
+LEAF(sys_anim, halt_all);
+NODE(sys_anim, Anim,
+	[0] = &sys_anim_init,
+	[1] = &sys_anim_start,
+	[2] = &sys_anim_stop,
+	[3] = &sys_anim_halt,
+	[5] = &sys_anim_stop_all,
+	[6] = &sys_anim_halt_all,
+);
+
 // System.SaveData
 LEAF(sys_savedata, resume_load);
 LEAF(sys_savedata, resume_save);
@@ -177,6 +193,7 @@ LEAF(sys, set_screen_surface);
 static struct mes_path_component *system_children[] = {
 	[0] = &sys_set_font_size,
 	[2] = &sys_cursor,
+	[3] = &sys_anim,
 	[4] = &sys_savedata,
 	[5] = &sys_audio,
 	[7] = &sys_file,
@@ -284,12 +301,18 @@ const char *mes_system_var16_names[MES_NR_SYSTEM_VARIABLES] = {
 	[MES_SYS_VAR_FONT_WEIGHT] = "font_weight",
 	[MES_SYS_VAR_CHAR_SPACE] = "char_space",
 	[MES_SYS_VAR_LINE_SPACE] = "line_space",
+	[MES_SYS_VAR_CG_START_X] = "cg_start_x",
+	[MES_SYS_VAR_CG_START_Y] = "cg_start_y",
+	[MES_SYS_VAR_CG_END_X] = "cg_end_x",
+	[MES_SYS_VAR_CG_END_Y] = "cg_end_y",
 	[MES_SYS_VAR_NR_MENU_ENTRIES] = "nr_menu_entries",
 	[MES_SYS_VAR_MASK_COLOR] = "mask_color",
 };
 
 const char *mes_system_var32_names[MES_NR_SYSTEM_VARIABLES] = {
 	[MES_SYS_VAR_MEMORY] = "memory",
+	[MES_SYS_VAR_CG_OFFSET] = "cg_offset",
+	[MES_SYS_VAR_DATA_OFFSET] = "data_offset",
 	[MES_SYS_VAR_PALETTE] = "palette",
 	[MES_SYS_VAR_FILE_DATA] = "file_data",
 	[MES_SYS_VAR_MENU_ENTRY_ADDRESSES] = "menu_entry_addresses",

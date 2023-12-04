@@ -113,15 +113,28 @@ enum mes_system_var16 {
 	MES_SYS_VAR_FONT_WEIGHT = 14,
 	MES_SYS_VAR_CHAR_SPACE = 15,
 	MES_SYS_VAR_LINE_SPACE = 16,
+	MES_SYS_VAR_CG_START_X = 17,
+	MES_SYS_VAR_CG_START_Y = 18,
+	MES_SYS_VAR_CG_END_X = 19,
+	MES_SYS_VAR_CG_END_Y = 20,
 	MES_SYS_VAR_NR_MENU_ENTRIES = 21,
 	MES_SYS_VAR_MASK_COLOR = 23,
 };
 
 enum mes_system_var32 {
+	// pointer to memory
 	MES_SYS_VAR_MEMORY = 0,
+	// offset to CG file in file_data
+	MES_SYS_VAR_CG_OFFSET = 1,
+	// offset to data file in file_data
+	MES_SYS_VAR_DATA_OFFSET = 2,
+	// pointer to palette
 	MES_SYS_VAR_PALETTE = 5,
+	// pointer to file_data
 	MES_SYS_VAR_FILE_DATA = 7,
+	// pointer to menu_entry_addresses
 	MES_SYS_VAR_MENU_ENTRY_ADDRESSES = 8,
+	// pointer to menu_entry_numbers
 	MES_SYS_VAR_MENU_ENTRY_NUMBERS = 9,
 };
 

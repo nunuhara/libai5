@@ -603,7 +603,20 @@ static void stmt_sys_print(struct mes_statement *stmt, struct port *out)
 	case 3:
 		if ((cmd = get_int_parameter(stmt->SYS.params, 0)) < 0)
 			goto fallback;
-		port_printf(out, "System.function[3].function[%d]", cmd);
+		if (cmd == 0)
+			port_puts(out, "System.Anim.init");
+		else if (cmd == 1)
+			port_puts(out, "System.Anim.start");
+		else if (cmd == 2)
+			port_puts(out, "System.Anim.stop");
+		else if (cmd == 3)
+			port_puts(out, "System.Anim.halt");
+		else if (cmd == 5)
+			port_puts(out, "System.Anim.stop_all");
+		else if (cmd == 6)
+			port_puts(out, "System.Anim.halt_all");
+		else
+			port_printf(out, "System.Anim.function[%d]", cmd);
 		mes_parameter_list_print_from(stmt->SYS.params, 1, out);
 		break;
 	case 4:
