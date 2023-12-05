@@ -81,8 +81,15 @@ static bool parse_draw_call(struct buffer *in, struct s4_draw_call *out)
 		return false;
 	}
 
-	buffer_seek(in, start + 33);
+	buffer_seek(in, start + S4_DRAW_CALL_SIZE);
 	return true;
+}
+
+bool s4_parse_draw_call(uint8_t *data, struct s4_draw_call *out)
+{
+	struct buffer b;
+	buffer_init(&b, data, S4_DRAW_CALL_SIZE);
+	return parse_draw_call(&b, out);
 }
 
 static bool s4_parse_instruction(struct buffer *in, struct s4 *s4, struct s4_instruction *out)
