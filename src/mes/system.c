@@ -40,6 +40,9 @@ struct mes_path_component {
 // System.set_font_size
 LEAF(sys, set_font_size);
 
+// System.display_number
+LEAF(sys, display_number);
+
 // System.Cursor
 LEAF(sys_cursor, reload);
 LEAF(sys_cursor, unload);
@@ -172,6 +175,12 @@ LEAF(sys, set_text_colors);
 // System.farcall
 LEAF(sys, farcall);
 
+// System.get_cursor_segment
+LEAF(sys, get_cursor_segment);
+
+// System.get_menu_no
+LEAF(sys, get_menu_no);
+
 // System.get_time
 LEAF(sys, get_time);
 
@@ -192,6 +201,7 @@ LEAF(sys, set_screen_surface);
 
 static struct mes_path_component *system_children[] = {
 	[0] = &sys_set_font_size,
+	[1] = &sys_display_number,
 	[2] = &sys_cursor,
 	[3] = &sys_anim,
 	[4] = &sys_savedata,
@@ -203,6 +213,8 @@ static struct mes_path_component *system_children[] = {
 	[11] = &sys_wait,
 	[12] = &sys_set_text_colors,
 	[13] = &sys_farcall,
+	[14] = &sys_get_cursor_segment,
+	[15] = &sys_get_menu_no,
 	[16] = &sys_get_time,
 	[17] = &sys_noop,
 	[18] = &sys_check_input,
@@ -283,6 +295,48 @@ error:
 	vector_destroy(params);
 	*no = -1;
 	return (mes_parameter_list)vector_initializer;
+}
+
+static struct mes_path_component *get_child(struct mes_path_component *parent, unsigned no)
+{
+	if (no >= parent->nr_children)
+		return NULL;
+	return parent->children[no];
+}
+
+static string _mes_get_syscall_name(string name, struct mes_path_component *parent,
+		mes_parameter_list params, unsigned *skip_params)
+{
+	if (vector_length(params) <= *skip_params)
+		return name;
+	if (parent->nr_children == 0 || vector_A(params, *skip_params).type != MES_PARAM_EXPRESSION)
+		return name;
+	struct mes_expression *expr = vector_A(params, 0).expr;
+	if (expr->op != MES_EXPR_IMM)
+		return name;
+
+	(*skip_params)++;
+
+	struct mes_path_component *child = get_child(parent, expr->arg8);
+	if (!child) {
+		return string_concat_fmt(name, ".function[%u]", expr->arg8);
+	}
+
+	name = string_concat_fmt(name, ".%s", child->name);
+	return _mes_get_syscall_name(name, child, params, skip_params);
+}
+
+string mes_get_syscall_name(unsigned no, mes_parameter_list params, unsigned *skip_params)
+{
+	*skip_params = 0;
+	string name = string_new("System");
+	struct mes_path_component *sys = get_child(&syscalls, no);
+	if (!sys) {
+		return string_concat_fmt(name, ".function[%u]", no);
+	}
+
+	name = string_concat_fmt(name, ".%s", sys->name);
+	return _mes_get_syscall_name(name, sys, params, skip_params);
 }
 
 const char *mes_system_var16_names[MES_NR_SYSTEM_VARIABLES] = {

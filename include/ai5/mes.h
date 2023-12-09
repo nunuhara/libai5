@@ -303,6 +303,7 @@ void mes_statement_list_print(mes_statement_list statements, struct port *out);
 
 /* system.c */
 mes_parameter_list mes_resolve_syscall(mes_qname name, int *no);
+string mes_get_syscall_name(unsigned no, mes_parameter_list params, unsigned *skip_params);
 int mes_resolve_sysvar(string name, bool *dword);
 
 #endif // AI5_MES_H
