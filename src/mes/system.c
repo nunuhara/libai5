@@ -141,9 +141,15 @@ LEAF(sys, load_image);
 // System.Palette
 LEAF(sys_palette, set);
 LEAF(sys_palette, crossfade);
+LEAF(sys_palette, crossfade_timed);
+LEAF(sys_palette, hide);
+LEAF(sys_palette, unhide);
 NODE(sys_palette, Palette,
 	[0] = &sys_palette_set,
-	[2] = &sys_palette_crossfade,
+	[1] = &sys_palette_crossfade,
+	[2] = &sys_palette_crossfade_timed,
+	[3] = &sys_palette_hide,
+	[4] = &sys_palette_unhide,
 );
 
 // System.Image
