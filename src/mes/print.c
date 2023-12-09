@@ -577,6 +577,16 @@ static void stmt_sys_print(struct mes_statement *stmt, struct port *out)
 	string_free(name);
 }
 
+static void stmt_util_print(struct mes_statement *stmt, struct port *out)
+{
+	unsigned skip_params;
+	string name = mes_get_util_name(stmt->UTIL.params, &skip_params);
+	port_puts(out, name);
+	mes_parameter_list_print_from(stmt->UTIL.params, skip_params, out);
+	port_puts(out, ";\n");
+	string_free(name);
+}
+
 void _mes_statement_print(struct mes_statement *stmt, struct port *out, int indent)
 {
 	indent_print(out, indent);
@@ -690,9 +700,7 @@ void _mes_statement_print(struct mes_statement *stmt, struct port *out, int inde
 		break;
 	case MES_STMT_UTIL:
 		// TODO: interpret first parameter as function name
-		port_puts(out, "util");
-		mes_parameter_list_print(stmt->UTIL.params, out);
-		port_puts(out, ";\n");
+		stmt_util_print(stmt, out);
 		break;
 	case MES_STMT_LINE:
 		port_printf(out, "line %u;\n", (unsigned)stmt->LINE.arg);

@@ -284,8 +284,13 @@ mes_parameter_list mes_resolve_syscall(mes_qname name, int *no)
 			.type = MES_PARAM_EXPRESSION,
 			.expr = xcalloc(1, sizeof(struct mes_expression))
 		};
-		param.expr->op = MES_EXPR_IMM;
-		param.expr->arg8 = part->number;
+		if (part->number > 127) {
+			param.expr->op = MES_EXPR_IMM16;
+			param.expr->arg16 = part->number;
+		} else {
+			param.expr->op = MES_EXPR_IMM;
+			param.expr->arg8 = part->number;
+		}
 		vector_push(struct mes_parameter, params, param);
 	}
 
@@ -304,7 +309,7 @@ static struct mes_path_component *get_child(struct mes_path_component *parent, u
 	return parent->children[no];
 }
 
-static string _mes_get_syscall_name(string name, struct mes_path_component *parent,
+static string get_name(string name, struct mes_path_component *parent,
 		mes_parameter_list params, unsigned *skip_params)
 {
 	if (vector_length(params) <= *skip_params)
@@ -312,18 +317,25 @@ static string _mes_get_syscall_name(string name, struct mes_path_component *pare
 	if (parent->nr_children == 0 || vector_A(params, *skip_params).type != MES_PARAM_EXPRESSION)
 		return name;
 	struct mes_expression *expr = vector_A(params, 0).expr;
-	if (expr->op != MES_EXPR_IMM)
+	unsigned no = 0;
+	if (expr->op == MES_EXPR_IMM)
+		no = expr->arg8;
+	else if (expr->op == MES_EXPR_IMM16)
+		no = expr->arg16;
+	else if (expr->op == MES_EXPR_IMM32)
+		no = expr->arg32;
+	else
 		return name;
 
 	(*skip_params)++;
 
-	struct mes_path_component *child = get_child(parent, expr->arg8);
+	struct mes_path_component *child = get_child(parent, no);
 	if (!child) {
-		return string_concat_fmt(name, ".function[%u]", expr->arg8);
+		return string_concat_fmt(name, ".function[%u]", no);
 	}
 
 	name = string_concat_fmt(name, ".%s", child->name);
-	return _mes_get_syscall_name(name, child, params, skip_params);
+	return get_name(name, child, params, skip_params);
 }
 
 string mes_get_syscall_name(unsigned no, mes_parameter_list params, unsigned *skip_params)
@@ -336,7 +348,7 @@ string mes_get_syscall_name(unsigned no, mes_parameter_list params, unsigned *sk
 	}
 
 	name = string_concat_fmt(name, ".%s", sys->name);
-	return _mes_get_syscall_name(name, sys, params, skip_params);
+	return get_name(name, sys, params, skip_params);
 }
 
 const char *mes_system_var16_names[MES_NR_SYSTEM_VARIABLES] = {
@@ -386,4 +398,100 @@ int mes_resolve_sysvar(string name, bool *dword)
 		}
 	}
 	return -1;
+}
+
+LEAF(util, fade);
+LEAF(util, pixelate);
+LEAF(util, get_time);
+LEAF(util, check_cursor);
+LEAF(util, delay);
+LEAF(util, save_animation);
+LEAF(util, restore_animation);
+LEAF(util, copy_progressive);
+LEAF(util, fade_progressive);
+LEAF(util, anim_is_running);
+LEAF(util, set_monochrome);
+LEAF(util, bgm_play);
+LEAF(util, get_ticks);
+LEAF(util, wait_until);
+LEAF(util, bgm_is_fading);
+
+static struct mes_path_component *util_children[] = {
+	[10] = &util_fade,
+	[12] = &util_pixelate,
+	[14] = &util_get_time,
+	[15] = &util_check_cursor,
+	[16] = &util_delay,
+	[17] = &util_save_animation,
+	[18] = &util_restore_animation,
+	[20] = &util_copy_progressive,
+	[21] = &util_fade_progressive,
+	[22] = &util_anim_is_running,
+	[100] = &util_set_monochrome,
+	[201] = &util_bgm_play,
+	[210] = &util_get_ticks,
+	[211] = &util_wait_until,
+	[214] = &util_bgm_is_fading,
+};
+
+static struct mes_path_component utils = {
+	.name = "Util",
+	.nr_children = ARRAY_SIZE(util_children),
+	.children = util_children
+};
+
+mes_parameter_list mes_resolve_util(mes_qname name)
+{
+	mes_parameter_list params = vector_initializer;
+
+	if (vector_length(name) < 1)
+		goto error;
+
+	struct mes_path_component *ctx = &utils;
+
+	// resolve identifiers
+	for (int i = 0; i < vector_length(name); i++) {
+		int part_no;
+		struct mes_qname_part *part = &kv_A(name, i);
+		ctx = _resolve_qname(ctx, part, &part_no);
+		if (part_no < 0)
+			goto error;
+		if (part->type == MES_QNAME_IDENT) {
+			string_free(part->ident);
+		}
+		part->type = MES_QNAME_NUMBER;
+		part->number = part_no;
+	}
+
+	// create parameter list from resolved identifiers
+	for (int i = 0; i < vector_length(name); i++) {
+		struct mes_qname_part *part = &kv_A(name, i);
+		if (part->type == MES_QNAME_IDENT)
+			goto error;
+		struct mes_parameter param = {
+			.type = MES_PARAM_EXPRESSION,
+			.expr = xcalloc(1, sizeof(struct mes_expression))
+		};
+		if (part->number > 127) {
+			param.expr->op = MES_EXPR_IMM16;
+			param.expr->arg16 = part->number;
+		} else {
+			param.expr->op = MES_EXPR_IMM;
+			param.expr->arg8 = part->number;
+		}
+		vector_push(struct mes_parameter, params, param);
+	}
+
+	mes_qname_free(name);
+	return params;
+error:
+	vector_destroy(params);
+	return (mes_parameter_list)vector_initializer;
+}
+
+string mes_get_util_name(mes_parameter_list params, unsigned *skip_params)
+{
+	*skip_params = 0;
+	string name = string_new("Util");
+	return get_name(name, &utils, params, skip_params);
 }
