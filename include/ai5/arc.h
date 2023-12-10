@@ -65,7 +65,8 @@ struct archive_data {
 	uint8_t *data;
 	unsigned int ref : 16;      // reference count
 	unsigned int mapped : 1;    // true if `data` is a pointer into mmapped region
-	unsigned int reserved : 15; // reserved for future flags
+	unsigned int allocated : 1; // true if archive_data object needs to be freed
+	unsigned int reserved : 14; // reserved for future flags
 	struct archive *archive;
 };
 

@@ -370,5 +370,7 @@ void archive_data_release(struct archive_data *data)
 			free(data->data);
 		data->data = NULL;
 		data->size = 0;
+		if (data->allocated)
+			free(data);
 	}
 }
