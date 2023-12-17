@@ -308,7 +308,9 @@ static void set_opcode_tables(struct opcode_tables *tables)
 static struct opcode_tables *get_opcode_tables(enum ai5_game_id id)
 {
 	switch (id) {
-	case GAME_ELF_CLASSICS:
+	case GAME_SHANGRLIA:
+	case GAME_SHANGRLIA2:
+	case GAME_YUNO:
 		return &elf_classics_tables;
 	default:
 		return &default_tables;

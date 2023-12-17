@@ -18,6 +18,7 @@
 
 #include "ai5/game.h"
 #include "ai5/mes.h"
+#include "ai5/s4.h"
 
 enum ai5_game_id ai5_target_game;
 
@@ -27,8 +28,10 @@ struct ai5_game ai5_games[] = {
 	{ "doukyuusei", GAME_DOUKYUUSEI,   "同級生 Windows版" },
 	{ "isaku",      GAME_ISAKU,        "遺作 リニューアル" },
 	{ "koihime",    GAME_KOIHIME,      "恋姫" },
+	{ "shangrlia",  GAME_SHANGRLIA,    "" },
+	{ "shangrlia2", GAME_SHANGRLIA2,   "" },
 	{ "yukinojou",  GAME_YUKINOJOU,    "あしたの雪之丞" },
-	{ "yuno",       GAME_ELF_CLASSICS, "この世の果てで恋を唄う少女YU-NO (エルフclassics)" },
+	{ "yuno",       GAME_YUNO        , "この世の果てで恋を唄う少女YU-NO (エルフclassics)" },
 };
 
 enum ai5_game_id ai5_parse_game_id(const char *str)
@@ -47,5 +50,7 @@ enum ai5_game_id ai5_parse_game_id(const char *str)
 
 void ai5_set_game(const char *name)
 {
-	mes_set_game((ai5_target_game = ai5_parse_game_id(name)));
+	ai5_target_game = ai5_parse_game_id(name);
+	mes_set_game(ai5_target_game);
+	s4_set_game(ai5_target_game);
 }

@@ -17,7 +17,22 @@
 #include "nulib.h"
 #include "nulib/buffer.h"
 #include "nulib/port.h"
+#include "ai5/game.h"
 #include "ai5/s4.h"
+
+unsigned s4_draw_call_size = 33;
+
+void s4_set_game(enum ai5_game_id game)
+{
+	switch (game) {
+	case GAME_SHANGRLIA:
+		s4_draw_call_size = 10;
+		break;
+	default:
+		s4_draw_call_size = 33;
+		break;
+	}
+}
 
 static void parse_color(struct buffer *in, struct s4_color *out)
 {
@@ -81,14 +96,14 @@ static bool parse_draw_call(struct buffer *in, struct s4_draw_call *out)
 		return false;
 	}
 
-	buffer_seek(in, start + S4_DRAW_CALL_SIZE);
+	buffer_seek(in, start + s4_draw_call_size);
 	return true;
 }
 
 bool s4_parse_draw_call(uint8_t *data, struct s4_draw_call *out)
 {
 	struct buffer b;
-	buffer_init(&b, data, S4_DRAW_CALL_SIZE);
+	buffer_init(&b, data, s4_draw_call_size);
 	return parse_draw_call(&b, out);
 }
 

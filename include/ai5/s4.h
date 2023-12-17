@@ -24,6 +24,8 @@ struct port;
 
 #define S4_DRAW_CALL_SIZE 33
 
+extern unsigned s4_draw_call_size;
+
 enum s4_opcode {
 #define S4_OP_DRAW (-1)
 	// stall 1 cycle
@@ -124,6 +126,9 @@ struct s4 {
 	s4_draw_call_list draw_calls;
 };
 
+enum ai5_game_id;
+
+void s4_set_game(enum ai5_game_id game);
 struct s4 *s4_parse(uint8_t *data, size_t data_size);
 bool s4_parse_draw_call(uint8_t *data, struct s4_draw_call *out);
 void s4_print(struct port *out, struct s4 *s4);

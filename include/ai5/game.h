@@ -19,7 +19,9 @@
 
 enum ai5_game_id {
 	GAME_YUKINOJOU,    // 2001-08-31 release
-	GAME_ELF_CLASSICS, // 2000-12-22 release
+	GAME_YUNO,         // 2000-12-22 release (elf classics)
+	GAME_SHANGRLIA,    // 2000-12-22 release (elf classics)
+	GAME_SHANGRLIA2,   // 2000-12-22 release (elf classics)
 	GAME_BEYOND,       // 2000-07-19 release
 	GAME_AI_SHIMAI,    // 2000-05-26 release (windows 98/2k version)
 	GAME_KOIHIME,      // 1999-12-24 release
