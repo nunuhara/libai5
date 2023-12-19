@@ -20,6 +20,7 @@
 #include <stdint.h>
 #include <stdio.h>
 
+#include "nulib.h"
 #include "nulib/vector.h"
 
 typedef char *string;
@@ -61,8 +62,9 @@ enum mes_statement_op {
 	MES_STMT_MENUS = 0x15,
 	MES_STMT_SETRD = 0x16,
 };
+#define MES_STMT_OP_MAX (MES_STMT_SETRD+1)
 
-#define MES_STMT_INVALID 0xFF
+#define MES_CODE_INVALID 0xFF
 
 enum mes_expression_op {
 	MES_EXPR_IMM = 0x00, // not a real op
@@ -96,6 +98,7 @@ enum mes_expression_op {
 	MES_EXPR_VAR32 = 0xF8,
 	MES_EXPR_END = 0xFF
 };
+#define MES_EXPR_OP_MAX (MES_EXPR_END+1)
 
 enum mes_system_var16 {
 	MES_SYS_VAR_DST_SURFACE = 1,
@@ -118,6 +121,7 @@ enum mes_system_var16 {
 	MES_SYS_VAR_CG_W = 19,
 	MES_SYS_VAR_CG_H = 20,
 	MES_SYS_VAR_NR_MENU_ENTRIES = 21,
+	MES_SYS_VAR_MENU_NO = 22,
 	MES_SYS_VAR_MASK_COLOR = 23,
 };
 
@@ -130,6 +134,8 @@ enum mes_system_var32 {
 	MES_SYS_VAR_DATA_OFFSET = 2,
 	// pointer to palette
 	MES_SYS_VAR_PALETTE = 5,
+	// offset to A6 file in file_data
+	MES_SYS_VAR_A6_OFFSET = 6,
 	// pointer to file_data
 	MES_SYS_VAR_FILE_DATA = 7,
 	// pointer to menu_entry_addresses
@@ -139,6 +145,123 @@ enum mes_system_var32 {
 };
 
 #define MES_NR_SYSTEM_VARIABLES 26
+
+struct mes_code_tables {
+	uint8_t stmt_op_to_int[MES_STMT_OP_MAX];
+	enum mes_statement_op int_to_stmt_op[MES_STMT_OP_MAX];
+
+	uint8_t expr_op_to_int[MES_EXPR_OP_MAX];
+	enum mes_expression_op int_to_expr_op[MES_EXPR_OP_MAX];
+
+	uint8_t sysvar16_to_int[MES_NR_SYSTEM_VARIABLES];
+	enum mes_system_var16 int_to_sysvar16[MES_NR_SYSTEM_VARIABLES];
+
+	uint8_t sysvar32_to_int[MES_NR_SYSTEM_VARIABLES];
+	enum mes_system_var32 int_to_sysvar32[MES_NR_SYSTEM_VARIABLES];
+};
+extern struct mes_code_tables mes_code_tables;
+
+// aliases for system variable codes
+#define mes_sysvar16_dst_surface (mes_code_tables.sysvar16_to_int[MES_SYS_VAR_DST_SURFACE])
+#define mes_sysvar16_flags (mes_code_tables.sysvar16_to_int[MES_SYS_VAR_FLAGS])
+#define mes_sysvar16_cursor_x (mes_code_tables.sysvar16_to_int[MES_SYS_VAR_CURSOR_X])
+#define mes_sysvar16_cursor_y (mes_code_tables.sysvar16_to_int[MES_SYS_VAR_CURSOR_Y])
+#define mes_sysvar16_text_start_x (mes_code_tables.sysvar16_to_int[MES_SYS_VAR_TEXT_START_X])
+#define mes_sysvar16_text_start_y (mes_code_tables.sysvar16_to_int[MES_SYS_VAR_TEXT_START_Y])
+#define mes_sysvar16_text_end_x (mes_code_tables.sysvar16_to_int[MES_SYS_VAR_TEXT_END_X])
+#define mes_sysvar16_text_end_y (mes_code_tables.sysvar16_to_int[MES_SYS_VAR_TEXT_END_Y])
+#define mes_sysvar16_text_cursor_x (mes_code_tables.sysvar16_to_int[MES_SYS_VAR_TEXT_CURSOR_X])
+#define mes_sysvar16_text_cursor_y (mes_code_tables.sysvar16_to_int[MES_SYS_VAR_TEXT_CURSOR_Y])
+#define mes_sysvar16_font_width (mes_code_tables.sysvar16_to_int[MES_SYS_VAR_FONT_WIDTH])
+#define mes_sysvar16_font_height (mes_code_tables.sysvar16_to_int[MES_SYS_VAR_FONT_HEIGHT])
+#define mes_sysvar16_font_weight (mes_code_tables.sysvar16_to_int[MES_SYS_VAR_FONT_WEIGHT])
+#define mes_sysvar16_char_space (mes_code_tables.sysvar16_to_int[MES_SYS_VAR_CHAR_SPACE])
+#define mes_sysvar16_line_space (mes_code_tables.sysvar16_to_int[MES_SYS_VAR_LINE_SPACE])
+#define mes_sysvar16_cg_x (mes_code_tables.sysvar16_to_int[MES_SYS_VAR_CG_X])
+#define mes_sysvar16_cg_y (mes_code_tables.sysvar16_to_int[MES_SYS_VAR_CG_Y])
+#define mes_sysvar16_cg_w (mes_code_tables.sysvar16_to_int[MES_SYS_VAR_CG_W])
+#define mes_sysvar16_cg_h (mes_code_tables.sysvar16_to_int[MES_SYS_VAR_CG_H])
+#define mes_sysvar16_nr_menu_entries (mes_code_tables.sysvar16_to_int[MES_SYS_VAR_NR_MENU_ENTRIES])
+#define mes_sysvar16_menu_no (mes_code_tables.sysvar16_to_int[MES_SYS_VAR_MENU_NO])
+#define mes_sysvar16_mask_color (mes_code_tables.sysvar16_to_int[MES_SYS_VAR_MASK_COLOR])
+#define mes_sysvar32_memory (mes_code_tables.sysvar32_to_int[MES_SYS_VAR_MEMORY])
+#define mes_sysvar32_cg_offset (mes_code_tables.sysvar32_to_int[MES_SYS_VAR_CG_OFFSET])
+#define mes_sysvar32_data_offset (mes_code_tables.sysvar32_to_int[MES_SYS_VAR_DATA_OFFSET])
+#define mes_sysvar32_palette (mes_code_tables.sysvar32_to_int[MES_SYS_VAR_PALETTE])
+#define mes_sysvar32_a6_offset (mes_code_tables.sysvar32_to_int[MES_SYS_VAR_A6_OFFSET])
+#define mes_sysvar32_file_data (mes_code_tables.sysvar32_to_int[MES_SYS_VAR_FILE_DATA])
+#define mes_sysvar32_menu_entry_addresses (mes_code_tables.sysvar32_to_int[MES_SYS_VAR_MENU_ENTRY_ADDRESSES])
+#define mes_sysvar32_menu_entry_numbers (mes_code_tables.sysvar32_to_int[MES_SYS_VAR_MENU_ENTRY_NUMBERS])
+
+/*
+ * Convert a game-specific statement opcode to a virtual opcode.
+ */
+static inline enum mes_statement_op mes_opcode_to_stmt(uint8_t op)
+{
+	if (unlikely(op >= ARRAY_SIZE(mes_code_tables.int_to_stmt_op)))
+		return MES_CODE_INVALID;
+	return mes_code_tables.int_to_stmt_op[op];
+}
+
+/*
+ * Convert a game-specific expression opcode to a virtual expression opcode.
+ */
+static inline enum mes_expression_op mes_opcode_to_expr(uint8_t op)
+{
+	return mes_code_tables.int_to_expr_op[op];
+}
+
+/*
+ * Convert a game-specific index to a mes_system_var16.
+ */
+static inline enum mes_system_var16 mes_index_to_sysvar16(uint8_t i)
+{
+	if (unlikely(i >= ARRAY_SIZE(mes_code_tables.int_to_sysvar16)))
+		return MES_CODE_INVALID;
+	return mes_code_tables.int_to_sysvar16[i];
+}
+
+/*
+ * Convert a game-specific index to a mes_system_var16.
+ */
+static inline enum mes_system_var32 mes_index_to_sysvar32(uint8_t i)
+{
+	if (unlikely(i >= ARRAY_SIZE(mes_code_tables.int_to_sysvar32)))
+		return MES_CODE_INVALID;
+	return mes_code_tables.int_to_sysvar32[i];
+}
+/*
+ * Convert a virtual statement opcode to a game-specific opcode.
+ */
+static inline uint8_t mes_stmt_opcode(enum mes_statement_op op)
+{
+	return mes_code_tables.stmt_op_to_int[op];
+}
+
+/*
+ * Convert a virtual expression opcode to a game-specific opcode.
+ */
+static inline uint8_t mes_expr_opcode(enum mes_expression_op op)
+{
+	return mes_code_tables.expr_op_to_int[op];
+}
+
+/*
+ * Convert a mes_system_var16 to a game-specific index.
+ */
+static inline uint8_t mes_sysvar16_index(enum mes_system_var16 v)
+{
+	return mes_code_tables.sysvar16_to_int[v];
+}
+
+/*
+ * Convert a mes_system_var32 to a game-specific index.
+ */
+static inline uint8_t mes_sysvar32_index(enum mes_system_var32 v)
+{
+	return mes_code_tables.sysvar32_to_int[v];
+}
+
 extern const char *mes_system_var16_names[MES_NR_SYSTEM_VARIABLES];
 extern const char *mes_system_var32_names[MES_NR_SYSTEM_VARIABLES];
 
@@ -282,12 +405,8 @@ void mes_parameter_list_free(mes_parameter_list list);
 void mes_statement_free(struct mes_statement *stmt);
 void mes_statement_list_free(mes_statement_list list);
 
-enum game_id;
+enum ai5_game_id;
 void mes_set_game(enum ai5_game_id id);
-uint8_t mes_stmt_opcode(enum mes_statement_op op);
-uint8_t mes_expr_opcode(enum mes_expression_op op);
-enum mes_statement_op mes_opcode_to_stmt(uint8_t op);
-enum mes_expression_op mes_opcode_to_expr(uint8_t op);
 
 /* print.c */
 void mes_expression_print(struct mes_expression *expr, struct port *out);

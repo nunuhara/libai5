@@ -378,6 +378,7 @@ const char *mes_system_var16_names[MES_NR_SYSTEM_VARIABLES] = {
 	[MES_SYS_VAR_CG_W] = "cg_w",
 	[MES_SYS_VAR_CG_W] = "cg_w",
 	[MES_SYS_VAR_NR_MENU_ENTRIES] = "nr_menu_entries",
+	[MES_SYS_VAR_MENU_NO] = "menu_no",
 	[MES_SYS_VAR_MASK_COLOR] = "mask_color",
 };
 
@@ -386,6 +387,7 @@ const char *mes_system_var32_names[MES_NR_SYSTEM_VARIABLES] = {
 	[MES_SYS_VAR_CG_OFFSET] = "cg_offset",
 	[MES_SYS_VAR_DATA_OFFSET] = "data_offset",
 	[MES_SYS_VAR_PALETTE] = "palette",
+	[MES_SYS_VAR_A6_OFFSET] = "a6_offset",
 	[MES_SYS_VAR_FILE_DATA] = "file_data",
 	[MES_SYS_VAR_MENU_ENTRY_ADDRESSES] = "menu_entry_addresses",
 	[MES_SYS_VAR_MENU_ENTRY_NUMBERS] = "menu_entry_numbers",

@@ -162,8 +162,9 @@ static void mes_binary_expression_print(enum mes_expression_op op, struct mes_ex
 
 static const char *system_var16_name(uint8_t no)
 {
-	if (no < MES_NR_SYSTEM_VARIABLES)
-		return mes_system_var16_names[no];
+	enum mes_system_var16 v = mes_index_to_sysvar16(no);
+	if (v < MES_NR_SYSTEM_VARIABLES)
+		return mes_system_var16_names[v];
 	return NULL;
 }
 
@@ -195,8 +196,9 @@ static void op_array16_get16_print(struct mes_expression *expr, struct port *out
 
 static const char *system_var32_name(uint8_t no)
 {
-	if (no < MES_NR_SYSTEM_VARIABLES)
-		return mes_system_var32_names[no];
+	enum mes_system_var32 v = mes_index_to_sysvar32(no);
+	if (v < MES_NR_SYSTEM_VARIABLES)
+		return mes_system_var32_names[v];
 	return NULL;
 }
 
