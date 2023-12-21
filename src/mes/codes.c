@@ -20,6 +20,15 @@
 #include "ai5/mes.h"
 #include "ai5/game.h"
 
+// system.c
+extern struct mes_path_component mes_sys_none;
+extern struct mes_path_component mes_sys_isaku;
+extern struct mes_path_component mes_sys_classics;
+extern struct mes_path_component mes_util_none;
+extern struct mes_path_component mes_util_isaku;
+extern struct mes_path_component mes_util_shangrlia;
+extern struct mes_path_component mes_util_yuno;
+
 // default opcode tables {{{
 #define DEFAULT_STMT_OP_TO_INT { \
 	[MES_STMT_END]     = 0x00, \
@@ -190,7 +199,7 @@
 #define DEFAULT_SYSVAR32_TO_INT { \
 	[MES_SYS_VAR_MEMORY] = 0, \
 	[MES_SYS_VAR_CG_OFFSET] = 1, \
-	[MES_SYS_VAR_DATA_OFFSET] = MES_CODE_INVALID, \
+	[MES_SYS_VAR_DATA_OFFSET] = 2, \
 	[MES_SYS_VAR_PALETTE] = MES_CODE_INVALID, \
 	[MES_SYS_VAR_A6_OFFSET] = 6, \
 	[MES_SYS_VAR_FILE_DATA] = 7, \
@@ -471,12 +480,9 @@ struct mes_code_tables mes_code_tables = {
 	.int_to_sysvar16 = DEFAULT_INT_TO_SYSVAR16,
 	.sysvar32_to_int = DEFAULT_SYSVAR32_TO_INT,
 	.int_to_sysvar32 = DEFAULT_INT_TO_SYSVAR32,
+	.system = &mes_sys_none,
+	.util = &mes_util_none,
 };
-
-static void set_code_tables(struct mes_code_tables *tables)
-{
-	memcpy(&mes_code_tables, tables, sizeof(mes_code_tables));
-}
 
 static struct mes_code_tables *get_code_tables(enum ai5_game_id id)
 {
@@ -490,7 +496,29 @@ static struct mes_code_tables *get_code_tables(enum ai5_game_id id)
 	}
 }
 
+static mes_namespace_t get_system_namespace(enum ai5_game_id id)
+{
+	switch (id) {
+	case GAME_ISAKU:     return &mes_sys_isaku;
+	case GAME_SHANGRLIA: return &mes_sys_classics;
+	case GAME_YUNO:      return &mes_sys_classics;
+	default:             return &mes_sys_none;
+	}
+}
+
+static mes_namespace_t get_util_namespace(enum ai5_game_id id)
+{
+	switch (id) {
+	case GAME_ISAKU:     return &mes_util_isaku;
+	case GAME_SHANGRLIA: return &mes_util_shangrlia;
+	case GAME_YUNO:      return &mes_util_yuno;
+	default:             return &mes_util_none;
+	}
+}
+
 void mes_set_game(enum ai5_game_id id)
 {
-	set_code_tables(get_code_tables(id));
+	memcpy(&mes_code_tables, get_code_tables(id), sizeof(mes_code_tables));
+	mes_code_tables.system = get_system_namespace(id);
+	mes_code_tables.util = get_util_namespace(id);
 }

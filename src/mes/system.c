@@ -29,13 +29,15 @@ struct mes_path_component {
 
 #define LEAF(pre, _name) static struct mes_path_component pre##_##_name = { .name = #_name }
 
-#define NODE(ident, _name, ...) \
+#define _NODE(linkage, ident, _name, ...) \
 	static struct mes_path_component * ident##_children[] = { __VA_ARGS__ }; \
-	static struct mes_path_component ident = { \
+	linkage struct mes_path_component ident = { \
 		.name = #_name, \
 		.nr_children = ARRAY_SIZE(ident##_children), \
 		.children = ident##_children \
 	}
+#define NODE(...) _NODE(static, __VA_ARGS__)
+#define PUBLIC_NODE(...) _NODE(,__VA_ARGS__)
 
 // System.set_font_size
 LEAF(sys, set_font_size);
@@ -51,7 +53,7 @@ LEAF(sys_cursor, set_pos);
 LEAF(sys_cursor, load);
 LEAF(sys_cursor, show);
 LEAF(sys_cursor, hide);
-NODE(sys_cursor, Cursor,
+NODE(sys_cursor_classics, Cursor,
 	[0] = &sys_cursor_reload,
 	[1] = &sys_cursor_unload,
 	[2] = &sys_cursor_save_pos,
@@ -59,6 +61,13 @@ NODE(sys_cursor, Cursor,
 	[4] = &sys_cursor_load,
 	[5] = &sys_cursor_show,
 	[6] = &sys_cursor_hide,
+);
+NODE(sys_cursor_isaku, Cursor,
+	[0] = &sys_cursor_reload,
+	[1] = &sys_cursor_unload,
+	[2] = &sys_cursor_save_pos,
+	[3] = &sys_cursor_set_pos,
+	[4] = &sys_cursor_load,
 );
 
 // System.Anim
@@ -89,7 +98,8 @@ LEAF(sys_savedata, load_var4_slice);
 LEAF(sys_savedata, save_var4_slice);
 LEAF(sys_savedata, copy);
 LEAF(sys_savedata, set_mes_name);
-NODE(sys_savedata, SaveData,
+LEAF(sys_savedata, clear_var4);
+NODE(sys_savedata_classics, SaveData,
 	[0] = &sys_savedata_resume_load,
 	[1] = &sys_savedata_resume_save,
 	[2] = &sys_savedata_load,
@@ -102,19 +112,32 @@ NODE(sys_savedata, SaveData,
 	[9] = &sys_savedata_copy,
 	[13] = &sys_savedata_set_mes_name,
 );
+NODE(sys_savedata_isaku, SaveData,
+	[0] = &sys_savedata_resume_load,
+	[1] = &sys_savedata_resume_save,
+	[2] = &sys_savedata_load,
+	[3] = &sys_savedata_save_union_var4,
+	[4] = NULL, // load 50 dwords @ &System.var32[11]
+	[5] = NULL, // save 50 dwords @ &System.var32[11]
+	[6] = &sys_savedata_clear_var4,
+);
 
 // System.Audio
 LEAF(sys_audio, bgm_play);
+LEAF(sys_audio, bgm_play_sync);
 LEAF(sys_audio, bgm_stop);
-LEAF(sys_audio, se_play);
-LEAF(sys_audio, bgm_fade_sync);
 LEAF(sys_audio, bgm_set_volume);
 LEAF(sys_audio, bgm_fade);
-LEAF(sys_audio, bgm_fade_out_sync);
+LEAF(sys_audio, bgm_fade_sync);
 LEAF(sys_audio, bgm_fade_out);
+LEAF(sys_audio, bgm_fade_out_sync);
+LEAF(sys_audio, bgm_restore);
+LEAF(sys_audio, se_play);
 LEAF(sys_audio, se_stop);
-LEAF(sys_audio, bgm_stop2);
-NODE(sys_audio, Audio,
+LEAF(sys_audio, se_fade_out);
+LEAF(sys_audio, se_fade_out_sync);
+LEAF(sys_audio, se_fade_out_sync_nocancel);
+NODE(sys_audio_classics, Audio,
 	[0] = &sys_audio_bgm_play,
 	[2] = &sys_audio_bgm_stop,
 	[3] = &sys_audio_se_play,
@@ -124,7 +147,29 @@ NODE(sys_audio, Audio,
 	[9] = &sys_audio_bgm_fade_out_sync,
 	[10] = &sys_audio_bgm_fade_out,
 	[12] = &sys_audio_se_stop,
-	[18] = &sys_audio_bgm_stop2,
+	[18] = &sys_audio_bgm_restore,
+);
+NODE(sys_audio_isaku, Audio,
+	[0] = &sys_audio_bgm_play,
+	[1] = &sys_audio_bgm_fade_out,
+	[2] = &sys_audio_bgm_stop,
+	[3] = &sys_audio_se_play,
+	[4] = &sys_audio_se_stop,
+	[5] = &sys_audio_se_fade_out,
+	[6] = &sys_audio_bgm_play_sync,
+	[7] = &sys_audio_bgm_fade_out_sync,
+	[8] = &sys_audio_se_fade_out_sync,
+	[9] = &sys_audio_se_fade_out_sync_nocancel,
+);
+
+// System.Voice
+LEAF(sys_voice, play);
+LEAF(sys_voice, stop);
+LEAF(sys_voice, play_sync);
+NODE(sys_voice, Voice,
+	[0] = &sys_voice_play,
+	[1] = &sys_voice_stop,
+	[2] = &sys_voice_play_sync,
 );
 
 // System.File
@@ -134,6 +179,9 @@ NODE(sys_file, File,
 	[0] = &sys_file_read,
 	[1] = &sys_file_write,
 );
+
+// System.load_file
+LEAF(sys, load_file);
 
 // System.load_image
 LEAF(sys, load_image);
@@ -158,18 +206,27 @@ LEAF(sys_image, copy_masked);
 LEAF(sys_image, fill_bg);
 LEAF(sys_image, copy_swap);
 LEAF(sys_image, swap_bg_fg);
-LEAF(sys_image, copy_sprite_bg);
+LEAF(sys_image, compose);
 LEAF(sys_image, invert_colors);
 LEAF(sys_image, copy_progressive);
-NODE(sys_image, Image,
+NODE(sys_image_classics, Image,
 	[0] = &sys_image_copy,
 	[1] = &sys_image_copy_masked,
 	[2] = &sys_image_fill_bg,
 	[3] = &sys_image_copy_swap,
 	[4] = &sys_image_swap_bg_fg,
-	[5] = &sys_image_copy_sprite_bg,
+	[5] = &sys_image_compose,
 	[6] = &sys_image_invert_colors,
 	[20] = &sys_image_copy_progressive,
+);
+NODE(sys_image_isaku, Image,
+	[0] = &sys_image_copy,
+	[1] = &sys_image_copy_masked,
+	[2] = &sys_image_fill_bg,
+	[3] = &sys_image_copy_swap,
+	[4] = &sys_image_swap_bg_fg,
+	[5] = &sys_image_copy_progressive,
+	[6] = &sys_image_compose,
 );
 
 // System.wait
@@ -205,17 +262,40 @@ LEAF(sys, strlen);
 // System.set_screen_surface
 LEAF(sys, set_screen_surface);
 
-static struct mes_path_component *system_children[] = {
+PUBLIC_NODE(mes_sys_classics, System,
 	[0] = &sys_set_font_size,
 	[1] = &sys_display_number,
-	[2] = &sys_cursor,
+	[2] = &sys_cursor_classics,
 	[3] = &sys_anim,
-	[4] = &sys_savedata,
-	[5] = &sys_audio,
+	[4] = &sys_savedata_classics,
+	[5] = &sys_audio_classics,
 	[7] = &sys_file,
 	[8] = &sys_load_image,
 	[9] = &sys_palette,
-	[10] = &sys_image,
+	[10] = &sys_image_classics,
+	[11] = &sys_wait,
+	[12] = &sys_set_text_colors,
+	[13] = &sys_farcall,
+	[14] = &sys_get_cursor_segment,
+	[15] = &sys_get_menu_no,
+	[16] = &sys_get_time,
+	[17] = &sys_noop,
+	[18] = &sys_check_input,
+	[21] = &sys_strlen,
+	[23] = &sys_set_screen_surface,
+);
+
+PUBLIC_NODE(mes_sys_isaku, System,
+	[0] = &sys_set_font_size,
+	[1] = &sys_display_number,
+	[2] = &sys_cursor_isaku,
+	[3] = &sys_anim,
+	[4] = &sys_savedata_isaku,
+	[5] = &sys_audio_isaku,
+	[6] = &sys_voice,
+	[7] = &sys_load_file,
+	[8] = &sys_load_image,
+	[10] = &sys_image_isaku,
 	[11] = &sys_wait,
 	[12] = &sys_set_text_colors,
 	[13] = &sys_farcall,
@@ -225,15 +305,9 @@ static struct mes_path_component *system_children[] = {
 	[17] = &sys_noop,
 	[18] = &sys_check_input,
 	[20] = &sys_noop2,
-	[21] = &sys_strlen,
-	[23] = &sys_set_screen_surface,
-};
+);
 
-static struct mes_path_component syscalls = {
-	.name = "System",
-	.nr_children = ARRAY_SIZE(system_children),
-	.children = system_children
-};
+PUBLIC_NODE(mes_sys_none, System,);
 
 static struct mes_path_component *_resolve_qname(struct mes_path_component *ctx,
 		struct mes_qname_part *part, int *no)
@@ -264,7 +338,7 @@ mes_parameter_list mes_resolve_syscall(mes_qname name, int *no)
 	if (vector_length(name) < 1)
 		goto error;
 
-	struct mes_path_component *ctx = _resolve_qname(&syscalls, &kv_A(name, 0), no);
+	struct mes_path_component *ctx = _resolve_qname(mes_code_tables.system, &kv_A(name, 0), no);
 	if (*no < 0)
 		goto error;
 
@@ -348,7 +422,7 @@ string mes_get_syscall_name(unsigned no, mes_parameter_list params, unsigned *sk
 {
 	*skip_params = 0;
 	string name = string_new("System");
-	struct mes_path_component *sys = get_child(&syscalls, no);
+	struct mes_path_component *sys = get_child(mes_code_tables.system, no);
 	if (!sys) {
 		return string_concat_fmt(name, ".function[%u]", no);
 	}
@@ -408,6 +482,17 @@ int mes_resolve_sysvar(string name, bool *dword)
 	return -1;
 }
 
+LEAF(util, offset_screen);
+LEAF(util, blend);
+LEAF(util, ending1);
+LEAF(util, ending2);
+LEAF(util, ending3);
+
+LEAF(util, get_text_colors);
+LEAF(util, noop3);
+LEAF(util, blink_fade);
+LEAF(util, scale_h);
+LEAF(util, invert_colors);
 LEAF(util, fade);
 LEAF(util, pixelate);
 LEAF(util, get_time);
@@ -424,7 +509,24 @@ LEAF(util, get_ticks);
 LEAF(util, wait_until);
 LEAF(util, bgm_is_fading);
 
-static struct mes_path_component *util_children[] = {
+PUBLIC_NODE(mes_util_isaku, Isaku,
+	[0]  = &util_offset_screen,
+	[6]  = &util_copy_progressive, // ...probably?
+	[7]  = &util_delay,
+	[8]  = &util_blend,
+	[9]  = &util_ending1,
+	[10] = &util_ending2,
+	[13] = &util_ending3,
+);
+
+PUBLIC_NODE(mes_util_shangrlia, Shangrlia, );
+
+PUBLIC_NODE(mes_util_yuno, YUNO,
+	[1]  = &util_get_text_colors,
+	[3]  = &util_noop3,
+	[5]  = &util_blink_fade,
+	[6]  = &util_scale_h,
+	[8]  = &util_invert_colors,
 	[10] = &util_fade,
 	[12] = &util_pixelate,
 	[14] = &util_get_time,
@@ -440,13 +542,9 @@ static struct mes_path_component *util_children[] = {
 	[210] = &util_get_ticks,
 	[211] = &util_wait_until,
 	[214] = &util_bgm_is_fading,
-};
+);
 
-static struct mes_path_component utils = {
-	.name = "Util",
-	.nr_children = ARRAY_SIZE(util_children),
-	.children = util_children
-};
+PUBLIC_NODE(mes_util_none, Empty, );
 
 mes_parameter_list mes_resolve_util(mes_qname name)
 {
@@ -455,7 +553,7 @@ mes_parameter_list mes_resolve_util(mes_qname name)
 	if (vector_length(name) < 1)
 		goto error;
 
-	struct mes_path_component *ctx = &utils;
+	struct mes_path_component *ctx = mes_code_tables.util;
 
 	// resolve identifiers
 	for (int i = 0; i < vector_length(name); i++) {
@@ -501,5 +599,5 @@ string mes_get_util_name(mes_parameter_list params, unsigned *skip_params)
 {
 	*skip_params = 0;
 	string name = string_new("Util");
-	return get_name(name, &utils, params, skip_params);
+	return get_name(name, mes_code_tables.util, params, skip_params);
 }

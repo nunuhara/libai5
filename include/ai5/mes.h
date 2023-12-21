@@ -146,6 +146,8 @@ enum mes_system_var32 {
 
 #define MES_NR_SYSTEM_VARIABLES 26
 
+typedef struct mes_path_component *mes_namespace_t;
+
 struct mes_code_tables {
 	uint8_t stmt_op_to_int[MES_STMT_OP_MAX];
 	enum mes_statement_op int_to_stmt_op[MES_STMT_OP_MAX];
@@ -158,6 +160,9 @@ struct mes_code_tables {
 
 	uint8_t sysvar32_to_int[MES_NR_SYSTEM_VARIABLES];
 	enum mes_system_var32 int_to_sysvar32[MES_NR_SYSTEM_VARIABLES];
+
+	mes_namespace_t system;
+	mes_namespace_t util;
 };
 extern struct mes_code_tables mes_code_tables;
 
