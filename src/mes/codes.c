@@ -210,7 +210,7 @@ extern struct mes_path_component mes_util_yuno;
 #define DEFAULT_INT_TO_SYSVAR32 { \
 	[0]  = MES_SYS_VAR_MEMORY, \
 	[1]  = MES_SYS_VAR_CG_OFFSET, \
-	[2]  = MES_CODE_INVALID, \
+	[2]  = MES_SYS_VAR_DATA_OFFSET, \
 	[3]  = MES_CODE_INVALID, \
 	[4]  = MES_CODE_INVALID, \
 	[5]  = MES_CODE_INVALID, \

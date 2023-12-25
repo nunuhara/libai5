@@ -23,11 +23,21 @@
 
 struct mes_path_component {
 	const char *name;
+	const char *name_noargs;
 	int nr_children;
 	struct mes_path_component **children;
 };
 
-#define LEAF(pre, _name) static struct mes_path_component pre##_##_name = { .name = #_name }
+#define LEAF(pre, _name) \
+	static struct mes_path_component pre##_##_name = { \
+		.name = #_name \
+	}
+
+#define LEAF2(pre, _name, _name_noargs) \
+	static struct mes_path_component pre##_##_name##_##_name_noargs = { \
+		.name = #_name, \
+		.name_noargs = #_name_noargs \
+	}
 
 #define _NODE(linkage, ident, _name, ...) \
 	static struct mes_path_component * ident##_children[] = { __VA_ARGS__ }; \
@@ -63,8 +73,8 @@ NODE(sys_cursor_classics, Cursor,
 	[6] = &sys_cursor_hide,
 );
 NODE(sys_cursor_isaku, Cursor,
-	[0] = &sys_cursor_reload,
-	[1] = &sys_cursor_unload,
+	[0] = &sys_cursor_show,
+	[1] = &sys_cursor_hide,
 	[2] = &sys_cursor_save_pos,
 	[3] = &sys_cursor_set_pos,
 	[4] = &sys_cursor_load,
@@ -200,6 +210,15 @@ NODE(sys_palette, Palette,
 	[4] = &sys_palette_unhide,
 );
 
+LEAF2(sys_display, freeze, unfreeze);
+LEAF2(sys_display, fade_out, fade_in);
+LEAF2(sys_display, scan_out, scan_in);
+NODE(sys_display, Display,
+	[0] = &sys_display_freeze_unfreeze,
+	[1] = &sys_display_fade_out_fade_in,
+	[2] = &sys_display_scan_out_scan_in,
+);
+
 // System.Image
 LEAF(sys_image, copy);
 LEAF(sys_image, copy_masked);
@@ -250,6 +269,9 @@ LEAF(sys, get_time);
 // System.noop
 LEAF(sys, noop);
 
+NODE(sys_dungeon, Dungeon,
+);
+
 // System.input_state
 LEAF(sys, check_input);
 
@@ -281,6 +303,7 @@ PUBLIC_NODE(mes_sys_classics, System,
 	[16] = &sys_get_time,
 	[17] = &sys_noop,
 	[18] = &sys_check_input,
+	[20] = &sys_noop2,
 	[21] = &sys_strlen,
 	[23] = &sys_set_screen_surface,
 );
@@ -295,6 +318,7 @@ PUBLIC_NODE(mes_sys_isaku, System,
 	[6] = &sys_voice,
 	[7] = &sys_load_file,
 	[8] = &sys_load_image,
+	[9] = &sys_display,
 	[10] = &sys_image_isaku,
 	[11] = &sys_wait,
 	[12] = &sys_set_text_colors,
@@ -304,10 +328,19 @@ PUBLIC_NODE(mes_sys_isaku, System,
 	[16] = &sys_get_time,
 	[17] = &sys_noop,
 	[18] = &sys_check_input,
-	[20] = &sys_noop2,
+	[20] = &sys_dungeon,
 );
 
 PUBLIC_NODE(mes_sys_none, System,);
+
+static bool component_name_equals(struct mes_path_component *c, const char *name)
+{
+	if (!strcmp(c->name, name))
+		return true;
+	if (c->name_noargs && !strcmp(c->name_noargs, name))
+		return true;
+	return false;
+}
 
 static struct mes_path_component *_resolve_qname(struct mes_path_component *ctx,
 		struct mes_qname_part *part, int *no)
@@ -321,7 +354,7 @@ static struct mes_path_component *_resolve_qname(struct mes_path_component *ctx,
 	for (int i = 0; i < ctx->nr_children; i++) {
 		if (!ctx->children[i])
 			continue;
-		if (!strcmp(ctx->children[i]->name, part->ident)) {
+		if (component_name_equals(ctx->children[i], part->ident)) {
 			*no = i;
 			return ctx->children[i];
 		}
@@ -414,7 +447,11 @@ static string get_name(string name, struct mes_path_component *parent,
 		return string_concat_fmt(name, ".function[%u]", no);
 	}
 
-	name = string_concat_fmt(name, ".%s", child->name);
+	if (*skip_params == vector_length(params) && child->name_noargs) {
+		name = string_concat_fmt(name, ".%s", child->name_noargs);
+	} else {
+		name = string_concat_fmt(name, ".%s", child->name);
+	}
 	return get_name(name, child, params, skip_params);
 }
 
