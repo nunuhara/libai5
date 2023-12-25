@@ -469,6 +469,7 @@ string mes_get_syscall_name(unsigned no, mes_parameter_list params, unsigned *sk
 }
 
 const char *mes_system_var16_names[MES_NR_SYSTEM_VARIABLES] = {
+	[MES_SYS_VAR_HEAP] = "heap",
 	[MES_SYS_VAR_DST_SURFACE] = "dst_surface",
 	[MES_SYS_VAR_FLAGS] = "flags",
 	[MES_SYS_VAR_CURSOR_X] = "cursor_x",
@@ -479,6 +480,8 @@ const char *mes_system_var16_names[MES_NR_SYSTEM_VARIABLES] = {
 	[MES_SYS_VAR_TEXT_END_Y] = "text_end_y",
 	[MES_SYS_VAR_TEXT_CURSOR_X] = "text_cursor_x",
 	[MES_SYS_VAR_TEXT_CURSOR_Y] = "text_cursor_y",
+	[MES_SYS_VAR_BG_COLOR] = "bg_color",
+	[MES_SYS_VAR_FG_COLOR] = "fg_color",
 	[MES_SYS_VAR_FONT_WIDTH] = "font_width",
 	[MES_SYS_VAR_FONT_HEIGHT] = "font_height",
 	[MES_SYS_VAR_FONT_WEIGHT] = "font_weight",
@@ -487,7 +490,7 @@ const char *mes_system_var16_names[MES_NR_SYSTEM_VARIABLES] = {
 	[MES_SYS_VAR_CG_X] = "cg_x",
 	[MES_SYS_VAR_CG_Y] = "cg_y",
 	[MES_SYS_VAR_CG_W] = "cg_w",
-	[MES_SYS_VAR_CG_W] = "cg_w",
+	[MES_SYS_VAR_CG_H] = "cg_h",
 	[MES_SYS_VAR_NR_MENU_ENTRIES] = "nr_menu_entries",
 	[MES_SYS_VAR_MENU_NO] = "menu_no",
 	[MES_SYS_VAR_MASK_COLOR] = "mask_color",
@@ -502,6 +505,7 @@ const char *mes_system_var32_names[MES_NR_SYSTEM_VARIABLES] = {
 	[MES_SYS_VAR_FILE_DATA] = "file_data",
 	[MES_SYS_VAR_MENU_ENTRY_ADDRESSES] = "menu_entry_addresses",
 	[MES_SYS_VAR_MENU_ENTRY_NUMBERS] = "menu_entry_numbers",
+	[MES_SYS_VAR_MAP_OFFSET] = "map_offset",
 };
 
 int mes_resolve_sysvar(string name, bool *dword)

@@ -143,6 +143,7 @@ extern struct mes_path_component mes_util_yuno;
 }
 
 #define DEFAULT_SYSVAR16_TO_INT { \
+	[MES_SYS_VAR_HEAP] = 0, \
 	[MES_SYS_VAR_DST_SURFACE] = 1, \
 	[MES_SYS_VAR_FLAGS] = 2, \
 	[MES_SYS_VAR_CURSOR_X] = 3, \
@@ -153,6 +154,8 @@ extern struct mes_path_component mes_util_yuno;
 	[MES_SYS_VAR_TEXT_END_Y] = 8, \
 	[MES_SYS_VAR_TEXT_CURSOR_X] = 9, \
 	[MES_SYS_VAR_TEXT_CURSOR_Y] = 10, \
+	[MES_SYS_VAR_BG_COLOR] = 11, \
+	[MES_SYS_VAR_FG_COLOR] = 12, \
 	[MES_SYS_VAR_FONT_WIDTH] = 14, \
 	[MES_SYS_VAR_FONT_HEIGHT] = 15, \
 	[MES_SYS_VAR_FONT_WEIGHT] = 16, \
@@ -168,7 +171,7 @@ extern struct mes_path_component mes_util_yuno;
 }
 
 #define DEFAULT_INT_TO_SYSVAR16 { \
-	[0]  = MES_CODE_INVALID, \
+	[0]  = MES_SYS_VAR_HEAP, \
 	[1]  = MES_SYS_VAR_DST_SURFACE, \
 	[2]  = MES_SYS_VAR_FLAGS, \
 	[3]  = MES_SYS_VAR_CURSOR_X, \
@@ -179,8 +182,8 @@ extern struct mes_path_component mes_util_yuno;
 	[8]  = MES_SYS_VAR_TEXT_END_Y, \
 	[9]  = MES_SYS_VAR_TEXT_CURSOR_X, \
 	[10] = MES_SYS_VAR_TEXT_CURSOR_Y, \
-	[11] = MES_CODE_INVALID, \
-	[12] = MES_CODE_INVALID, \
+	[11] = MES_SYS_VAR_BG_COLOR, \
+	[12] = MES_SYS_VAR_FG_COLOR, \
 	[13] = MES_CODE_INVALID, \
 	[14] = MES_SYS_VAR_FONT_WIDTH, \
 	[15] = MES_SYS_VAR_FONT_HEIGHT, \
@@ -205,6 +208,7 @@ extern struct mes_path_component mes_util_yuno;
 	[MES_SYS_VAR_FILE_DATA] = 7, \
 	[MES_SYS_VAR_MENU_ENTRY_ADDRESSES] = 8, \
 	[MES_SYS_VAR_MENU_ENTRY_NUMBERS] = 9, \
+	[MES_SYS_VAR_MAP_OFFSET] = 10, \
 }
 
 #define DEFAULT_INT_TO_SYSVAR32 { \
@@ -218,7 +222,7 @@ extern struct mes_path_component mes_util_yuno;
 	[7]  = MES_SYS_VAR_FILE_DATA, \
 	[8]  = MES_SYS_VAR_MENU_ENTRY_ADDRESSES, \
 	[9]  = MES_SYS_VAR_MENU_ENTRY_NUMBERS, \
-	[10] = MES_CODE_INVALID, \
+	[10] = MES_SYS_VAR_MAP_OFFSET, \
 	[11] = MES_CODE_INVALID, \
 	[12] = MES_CODE_INVALID, \
 	[13] = MES_CODE_INVALID, \
@@ -366,6 +370,7 @@ struct mes_code_tables default_tables = {
 }
 
 #define CLASSICS_SYSVAR16_TO_INT { \
+	[MES_SYS_VAR_HEAP] = 0, \
 	[MES_SYS_VAR_DST_SURFACE] = 1, \
 	[MES_SYS_VAR_FLAGS] = 2, \
 	[MES_SYS_VAR_CURSOR_X] = 3, \
@@ -376,6 +381,8 @@ struct mes_code_tables default_tables = {
 	[MES_SYS_VAR_TEXT_END_Y] = 8, \
 	[MES_SYS_VAR_TEXT_CURSOR_X] = 9, \
 	[MES_SYS_VAR_TEXT_CURSOR_Y] = 10, \
+	[MES_SYS_VAR_BG_COLOR] = MES_CODE_INVALID, \
+	[MES_SYS_VAR_FG_COLOR] = MES_CODE_INVALID, \
 	[MES_SYS_VAR_FONT_WIDTH] = 12, \
 	[MES_SYS_VAR_FONT_HEIGHT] = 13, \
 	[MES_SYS_VAR_FONT_WEIGHT] = 14, \
@@ -391,7 +398,7 @@ struct mes_code_tables default_tables = {
 }
 
 #define CLASSICS_INT_TO_SYSVAR16 { \
-	[0]  = MES_CODE_INVALID, \
+	[0]  = MES_SYS_VAR_HEAP, \
 	[1]  = MES_SYS_VAR_DST_SURFACE, \
 	[2]  = MES_SYS_VAR_FLAGS, \
 	[3]  = MES_SYS_VAR_CURSOR_X, \
@@ -428,6 +435,7 @@ struct mes_code_tables default_tables = {
 	[MES_SYS_VAR_FILE_DATA] = 7, \
 	[MES_SYS_VAR_MENU_ENTRY_ADDRESSES] = 8, \
 	[MES_SYS_VAR_MENU_ENTRY_NUMBERS] = 9, \
+	[MES_SYS_VAR_MAP_OFFSET] = MES_CODE_INVALID, \
 }
 
 #define CLASSICS_INT_TO_SYSVAR32 { \

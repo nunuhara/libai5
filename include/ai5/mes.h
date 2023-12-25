@@ -101,47 +101,64 @@ enum mes_expression_op {
 #define MES_EXPR_OP_MAX (MES_EXPR_END+1)
 
 enum mes_system_var16 {
-	MES_SYS_VAR_DST_SURFACE = 1,
-	MES_SYS_VAR_FLAGS = 2,
-	MES_SYS_VAR_CURSOR_X = 3,
-	MES_SYS_VAR_CURSOR_Y = 4,
-	MES_SYS_VAR_TEXT_START_X = 5,
-	MES_SYS_VAR_TEXT_START_Y = 6,
-	MES_SYS_VAR_TEXT_END_X = 7,
-	MES_SYS_VAR_TEXT_END_Y = 8,
-	MES_SYS_VAR_TEXT_CURSOR_X = 9,
-	MES_SYS_VAR_TEXT_CURSOR_Y = 10,
-	MES_SYS_VAR_FONT_WIDTH = 12,
-	MES_SYS_VAR_FONT_HEIGHT = 13,
-	MES_SYS_VAR_FONT_WEIGHT = 14,
-	MES_SYS_VAR_CHAR_SPACE = 15,
-	MES_SYS_VAR_LINE_SPACE = 16,
-	MES_SYS_VAR_CG_X = 17,
-	MES_SYS_VAR_CG_Y = 18,
-	MES_SYS_VAR_CG_W = 19,
-	MES_SYS_VAR_CG_H = 20,
-	MES_SYS_VAR_NR_MENU_ENTRIES = 21,
-	MES_SYS_VAR_MENU_NO = 22,
-	MES_SYS_VAR_MASK_COLOR = 23,
+	// offset to usable heap memory
+	MES_SYS_VAR_HEAP,
+	// destination surface for graphics operations
+	MES_SYS_VAR_DST_SURFACE,
+	// VM flags
+	MES_SYS_VAR_FLAGS,
+	// cursor location
+	MES_SYS_VAR_CURSOR_X,
+	MES_SYS_VAR_CURSOR_Y,
+	// text area
+	MES_SYS_VAR_TEXT_START_X,
+	MES_SYS_VAR_TEXT_START_Y,
+	MES_SYS_VAR_TEXT_END_X,
+	MES_SYS_VAR_TEXT_END_Y,
+	// text cursor location
+	MES_SYS_VAR_TEXT_CURSOR_X,
+	MES_SYS_VAR_TEXT_CURSOR_Y,
+	// text colors (bgr555)
+	MES_SYS_VAR_BG_COLOR,
+	MES_SYS_VAR_FG_COLOR,
+	// font parameters
+	MES_SYS_VAR_FONT_WIDTH,
+	MES_SYS_VAR_FONT_HEIGHT,
+	MES_SYS_VAR_FONT_WEIGHT,
+	MES_SYS_VAR_CHAR_SPACE,
+	MES_SYS_VAR_LINE_SPACE,
+	// CG rectangle
+	MES_SYS_VAR_CG_X,
+	MES_SYS_VAR_CG_Y,
+	MES_SYS_VAR_CG_W,
+	MES_SYS_VAR_CG_H,
+	// number of menu entries
+	MES_SYS_VAR_NR_MENU_ENTRIES,
+	// return value of System.menu_get_no
+	MES_SYS_VAR_MENU_NO,
+	// mask color for graphics operations
+	MES_SYS_VAR_MASK_COLOR,
 };
 
 enum mes_system_var32 {
 	// pointer to memory
-	MES_SYS_VAR_MEMORY = 0,
+	MES_SYS_VAR_MEMORY,
 	// offset to CG file in file_data
-	MES_SYS_VAR_CG_OFFSET = 1,
+	MES_SYS_VAR_CG_OFFSET,
 	// offset to data file in file_data
-	MES_SYS_VAR_DATA_OFFSET = 2,
+	MES_SYS_VAR_DATA_OFFSET,
 	// pointer to palette
-	MES_SYS_VAR_PALETTE = 5,
+	MES_SYS_VAR_PALETTE,
 	// offset to A6 file in file_data
-	MES_SYS_VAR_A6_OFFSET = 6,
+	MES_SYS_VAR_A6_OFFSET,
 	// pointer to file_data
-	MES_SYS_VAR_FILE_DATA = 7,
+	MES_SYS_VAR_FILE_DATA,
 	// pointer to menu_entry_addresses
-	MES_SYS_VAR_MENU_ENTRY_ADDRESSES = 8,
+	MES_SYS_VAR_MENU_ENTRY_ADDRESSES,
 	// pointer to menu_entry_numbers
-	MES_SYS_VAR_MENU_ENTRY_NUMBERS = 9,
+	MES_SYS_VAR_MENU_ENTRY_NUMBERS,
+	// offset to map file (dungeon)
+	MES_SYS_VAR_MAP_OFFSET,
 };
 
 #define MES_NR_SYSTEM_VARIABLES 26
