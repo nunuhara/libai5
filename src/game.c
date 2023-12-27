@@ -16,9 +16,9 @@
 
 #include <string.h>
 
+#include "ai5/anim.h"
 #include "ai5/game.h"
 #include "ai5/mes.h"
-#include "ai5/s4.h"
 
 enum ai5_game_id ai5_target_game;
 
@@ -52,5 +52,5 @@ void ai5_set_game(const char *name)
 {
 	ai5_target_game = ai5_parse_game_id(name);
 	mes_set_game(ai5_target_game);
-	s4_set_game(ai5_target_game);
+	anim_set_game(ai5_target_game);
 }
