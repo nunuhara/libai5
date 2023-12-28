@@ -121,6 +121,8 @@ enum mes_system_var16 {
 	// text colors (bgr555)
 	MES_SYS_VAR_BG_COLOR,
 	MES_SYS_VAR_FG_COLOR,
+	// System.display_number flags
+	MES_SYS_VAR_DISPLAY_NUMBER_FLAGS,
 	// font parameters
 	MES_SYS_VAR_FONT_WIDTH,
 	MES_SYS_VAR_FONT_HEIGHT,
@@ -194,6 +196,9 @@ extern struct mes_code_tables mes_code_tables;
 #define mes_sysvar16_text_end_y (mes_code_tables.sysvar16_to_int[MES_SYS_VAR_TEXT_END_Y])
 #define mes_sysvar16_text_cursor_x (mes_code_tables.sysvar16_to_int[MES_SYS_VAR_TEXT_CURSOR_X])
 #define mes_sysvar16_text_cursor_y (mes_code_tables.sysvar16_to_int[MES_SYS_VAR_TEXT_CURSOR_Y])
+#define mes_sysvar16_bg_color (mes_code_tables.sysvar16_to_int[MES_SYS_VAR_BG_COLOR])
+#define mes_sysvar16_fg_color (mes_code_tables.sysvar16_to_int[MES_SYS_VAR_FG_COLOR])
+#define mes_sysvar16_display_number_flags (mes_code_tables.sysvar16_to_int[MES_SYS_VAR_DISPLAY_NUMBER_FLAGS])
 #define mes_sysvar16_font_width (mes_code_tables.sysvar16_to_int[MES_SYS_VAR_FONT_WIDTH])
 #define mes_sysvar16_font_height (mes_code_tables.sysvar16_to_int[MES_SYS_VAR_FONT_HEIGHT])
 #define mes_sysvar16_font_weight (mes_code_tables.sysvar16_to_int[MES_SYS_VAR_FONT_WEIGHT])

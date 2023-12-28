@@ -146,7 +146,7 @@ LEAF(sys_audio, se_play);
 LEAF(sys_audio, se_stop);
 LEAF(sys_audio, se_fade_out);
 LEAF(sys_audio, se_fade_out_sync);
-LEAF(sys_audio, se_fade_out_sync_nocancel);
+LEAF(sys_audio, se_play_sync);
 NODE(sys_audio_classics, Audio,
 	[0] = &sys_audio_bgm_play,
 	[2] = &sys_audio_bgm_stop,
@@ -169,7 +169,7 @@ NODE(sys_audio_isaku, Audio,
 	[6] = &sys_audio_bgm_play_sync,
 	[7] = &sys_audio_bgm_fade_out_sync,
 	[8] = &sys_audio_se_fade_out_sync,
-	[9] = &sys_audio_se_fade_out_sync_nocancel,
+	[9] = &sys_audio_se_play_sync,
 );
 
 // System.Voice
@@ -284,6 +284,59 @@ LEAF(sys, strlen);
 // System.set_screen_surface
 LEAF(sys, set_screen_surface);
 
+LEAF(sys_itemwindow, init);
+LEAF(sys_itemwindow, open);
+LEAF(sys_itemwindow, is_open);
+LEAF(sys_itemwindow, get_pos);
+LEAF(sys_itemwindow, get_cursor_pos);
+LEAF(sys_itemwindow, enable);
+LEAF(sys_itemwindow, disable);
+LEAF(sys_itemwindow, update);
+NODE(sys_itemwindow, ItemWindow,
+	[0] = &sys_itemwindow_init,
+	[1] = &sys_itemwindow_open,
+	[2] = &sys_itemwindow_is_open,
+	[3] = &sys_itemwindow_get_pos,
+	[4] = &sys_itemwindow_get_cursor_pos,
+	[5] = &sys_itemwindow_enable,
+	[6] = &sys_itemwindow_disable,
+	[7] = NULL,
+	[8] = &sys_itemwindow_update,
+	[9] = NULL,
+	[10] = NULL,
+);
+
+LEAF(sys_savemenu, open);
+LEAF(sys_savemenu, enable);
+LEAF(sys_savemenu, clear);
+LEAF(sys_savemenu, check);
+NODE(sys_savemenu, SaveMenu,
+	[0] = &sys_savemenu_open,
+	[1] = &sys_savemenu_enable,
+	[2] = &sys_savemenu_clear,
+	[3] = &sys_savemenu_check,
+);
+
+LEAF(sys_loadmenu, open);
+LEAF(sys_loadmenu, enable);
+LEAF(sys_loadmenu, clear);
+LEAF(sys_loadmenu, check);
+NODE(sys_loadmenu, LoadMenu,
+	[0] = &sys_loadmenu_open,
+	[1] = &sys_loadmenu_enable,
+	[2] = &sys_loadmenu_clear,
+	[3] = &sys_loadmenu_check,
+);
+
+LEAF(sys_msg, enable_clear);
+LEAF(sys_msg, disable_clear);
+LEAF(sys_msg, clear);
+NODE(sys_msg, Message,
+	[0] = &sys_msg_enable_clear,
+	[1] = &sys_msg_disable_clear,
+	[2] = &sys_msg_clear,
+);
+
 PUBLIC_NODE(mes_sys_classics, System,
 	[0] = &sys_set_font_size,
 	[1] = &sys_display_number,
@@ -329,6 +382,11 @@ PUBLIC_NODE(mes_sys_isaku, System,
 	[17] = &sys_noop,
 	[18] = &sys_check_input,
 	[20] = &sys_dungeon,
+	[22] = &sys_itemwindow,
+	[24] = &sys_strlen,
+	[25] = &sys_savemenu,
+	[26] = &sys_loadmenu,
+	[27] = &sys_msg,
 );
 
 PUBLIC_NODE(mes_sys_none, System,);
