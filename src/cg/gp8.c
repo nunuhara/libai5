@@ -41,10 +41,12 @@ struct cg *gp8_decode(uint8_t *data, size_t size)
 		WARNING("Unexpected size for GP8 pixel data (expected %u; got %u)",
 				(unsigned)cg->metrics.w * cg->metrics.h,
 				(unsigned)px_size);
-		free(cg->palette);
-		free(cg->pixels);
-		free(cg);
-		return NULL;
+		if (px_size < cg->metrics.w * cg->metrics.h) {
+			free(cg->palette);
+			free(cg->pixels);
+			free(cg);
+			return NULL;
+		}
 	}
 
 	cg->pixels = xmalloc(cg->metrics.w * cg->metrics.h);
