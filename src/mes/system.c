@@ -540,6 +540,7 @@ const char *mes_system_var16_names[MES_NR_SYSTEM_VARIABLES] = {
 	[MES_SYS_VAR_TEXT_CURSOR_Y] = "text_cursor_y",
 	[MES_SYS_VAR_BG_COLOR] = "bg_color",
 	[MES_SYS_VAR_FG_COLOR] = "fg_color",
+	[MES_SYS_VAR_DISPLAY_NUMBER_FLAGS] = "display_number_flags",
 	[MES_SYS_VAR_FONT_WIDTH] = "font_width",
 	[MES_SYS_VAR_FONT_HEIGHT] = "font_height",
 	[MES_SYS_VAR_FONT_WEIGHT] = "font_weight",
