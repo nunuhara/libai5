@@ -20,7 +20,14 @@
 #include <errno.h>
 #include <unistd.h>
 #include <fcntl.h>
+
+#ifdef _WIN32
+#define mmap(...) (ERROR("mmap not supported on Windows"), NULL)
+#define munmap(...) (ERROR("munmap not supported on Windows"), -1)
+#define MAP_FAILED 0
+#else
 #include <sys/mman.h>
+#endif
 
 #include "nulib.h"
 #include "nulib/file.h"
@@ -189,6 +196,9 @@ static bool archive_read_index(FILE *fp, struct archive *arc)
 
 struct archive *archive_open(const char *path, unsigned flags)
 {
+#ifdef _WIN32
+	flags &= ~ARCHIVE_MMAP;
+#endif
 	FILE *fp = NULL;
 	struct archive *arc = xcalloc(1, sizeof(struct archive));
 

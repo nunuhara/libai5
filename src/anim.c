@@ -202,7 +202,7 @@ static bool anim_parse_s4_instruction(struct buffer *in, struct anim *anim,
 		break;
 	default:
 		if (op < 20 || op - 20 >= vector_length(anim->draw_calls)) {
-			WARNING("at %zx", in->index-1);
+			WARNING("at %x", (unsigned)in->index-1);
 			WARNING("Invalid draw call index: %d", (int)op - 20);
 			out->op = ANIM_OP_NOOP;
 			break;
@@ -235,7 +235,7 @@ static bool anim_parse_a_instruction(struct buffer *in, struct anim *anim,
 		break;
 	default:
 		if (op < 20 || op - 20 >= vector_length(anim->draw_calls)) {
-			WARNING("at %zx", in->index-1);
+			WARNING("at %x", (unsigned)in->index-1);
 			WARNING("Invalid draw call index: %d", (int)op - 20);
 			out->op = ANIM_OP_NOOP;
 			break;
@@ -264,6 +264,10 @@ struct anim *anim_s4_parse(struct buffer *in)
 	uint8_t nr_streams = buffer_read_u8(in);
 	if (nr_streams > ANIM_MAX_STREAMS) {
 		WARNING("Too many streams in animation file");
+		return NULL;
+	}
+	if (!nr_streams) {
+		WARNING("No streams in animation file");
 		return NULL;
 	}
 
