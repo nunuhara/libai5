@@ -172,7 +172,7 @@ static bool mes_parse_expression_list(struct buffer *mes, mes_expression_list *e
 		vector_push(struct mes_expression*, *exprs, expr);
 	} while (buffer_read_u8(mes));
 	return true;
-error:
+error: ;
 	struct mes_expression *expr;
 	vector_foreach(expr, *exprs) {
 		mes_expression_free(expr);
@@ -254,7 +254,7 @@ static bool mes_parse_parameter_list(struct buffer *mes, mes_parameter_list *par
 		}
 	}
 	return true;
-error:
+error: ;
 	struct mes_parameter *p;
 	vector_foreach_p(p, *params) {
 		if (p->type == MES_PARAM_EXPRESSION && p->expr)
@@ -590,7 +590,7 @@ bool mes_parse_statements(uint8_t *data, size_t data_size, mes_statement_list *s
 
 	tag_jump_targets(*statements);
 	return true;
-error:
+error: ;
 	struct mes_statement *stmt;
 	vector_foreach(stmt, *statements) {
 		mes_statement_free(stmt);
