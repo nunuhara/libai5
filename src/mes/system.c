@@ -109,6 +109,8 @@ LEAF(sys_savedata, save_var4_slice);
 LEAF(sys_savedata, copy);
 LEAF(sys_savedata, set_mes_name);
 LEAF(sys_savedata, clear_var4);
+LEAF(sys_savedata, load_heap);
+LEAF(sys_savedata, save_heap);
 NODE(sys_savedata_classics, SaveData,
 	[0] = &sys_savedata_resume_load,
 	[1] = &sys_savedata_resume_save,
@@ -131,6 +133,17 @@ NODE(sys_savedata_isaku, SaveData,
 	[5] = NULL, // save 50 dwords @ &System.var32[11]
 	[6] = &sys_savedata_clear_var4,
 );
+NODE(sys_savedata_ai_shimai, SaveData,
+	[0] = &sys_savedata_resume_load,
+	[1] = &sys_savedata_resume_save,
+	[2] = &sys_savedata_load_var4,
+	[3] = &sys_savedata_save_union_var4,
+	[4] = NULL, // load 50 dwords @ &System.var32[11]
+	[5] = NULL, // save 50 dwords @ &System.var32[11]
+	[6] = &sys_savedata_clear_var4,
+	[7] = &sys_savedata_load_heap,
+	[8] = &sys_savedata_save_heap,
+);
 
 // System.Audio
 LEAF(sys_audio, bgm_play);
@@ -147,6 +160,12 @@ LEAF(sys_audio, se_stop);
 LEAF(sys_audio, se_fade_out);
 LEAF(sys_audio, se_fade_out_sync);
 LEAF(sys_audio, se_play_sync);
+LEAF(sys_audio, bgm_set_next);
+LEAF(sys_audio, bgm_play_next);
+LEAF(sys_audio, play);
+LEAF(sys_audio, stop);
+LEAF(sys_audio, fade_out);
+LEAF(sys_audio, fade_out_sync);
 NODE(sys_audio_classics, Audio,
 	[0] = &sys_audio_bgm_play,
 	[2] = &sys_audio_bgm_stop,
@@ -170,6 +189,19 @@ NODE(sys_audio_isaku, Audio,
 	[7] = &sys_audio_bgm_fade_out_sync,
 	[8] = &sys_audio_se_fade_out_sync,
 	[9] = &sys_audio_se_play_sync,
+);
+NODE(sys_audio_ai_shimai, Audio,
+	[0] = &sys_audio_bgm_play,
+	[1] = &sys_audio_bgm_stop,
+	[2] = &sys_audio_bgm_fade_out,
+	[3] = &sys_audio_bgm_fade_out_sync,
+	[4] = &sys_audio_bgm_set_next,
+	[5] = &sys_audio_bgm_play_next,
+	// audio type (bgm/se/voice) is parameter for these functions
+	[6] = &sys_audio_play,
+	[7] = &sys_audio_stop,
+	[8] = &sys_audio_fade_out,
+	[9] = &sys_audio_fade_out_sync,
 );
 
 // System.Voice
@@ -219,6 +251,13 @@ NODE(sys_display, Display,
 	[2] = &sys_display_scan_out_scan_in,
 );
 
+LEAF(sys_display, hide);
+LEAF(sys_display, show);
+NODE(sys_display_ai_shimai, Display,
+	[0] = &sys_display_hide,
+	[1] = &sys_display_show,
+);
+
 // System.Image
 LEAF(sys_image, copy);
 LEAF(sys_image, copy_masked);
@@ -228,6 +267,7 @@ LEAF(sys_image, swap_bg_fg);
 LEAF(sys_image, compose);
 LEAF(sys_image, invert_colors);
 LEAF(sys_image, copy_progressive);
+LEAF(sys_image, blend);
 NODE(sys_image_classics, Image,
 	[0] = &sys_image_copy,
 	[1] = &sys_image_copy_masked,
@@ -246,6 +286,16 @@ NODE(sys_image_isaku, Image,
 	[4] = &sys_image_swap_bg_fg,
 	[5] = &sys_image_copy_progressive,
 	[6] = &sys_image_compose,
+);
+NODE(sys_image_ai_shimai, Image,
+	[0] = &sys_image_copy,
+	[1] = &sys_image_copy_masked,
+	[2] = &sys_image_fill_bg,
+	// [3] = unused?
+	[4] = &sys_image_swap_bg_fg,
+	// [5] = unused?
+	[6] = &sys_image_blend,
+	// [7] = TODO
 );
 
 // System.wait
@@ -387,6 +437,33 @@ PUBLIC_NODE(mes_sys_isaku, System,
 	[25] = &sys_savemenu,
 	[26] = &sys_loadmenu,
 	[27] = &sys_msg,
+);
+
+PUBLIC_NODE(mes_sys_ai_shimai, System,
+	[0] = &sys_set_font_size,
+	[1] = &sys_display_number,
+	[2] = &sys_cursor_isaku,
+	[3] = &sys_anim,
+	[4] = &sys_savedata_ai_shimai,
+	[5] = &sys_audio_ai_shimai,
+	[6] = &sys_voice,
+	[7] = &sys_file,
+	[8] = &sys_load_image,
+	[9] = &sys_display_ai_shimai,
+	[10] = &sys_image_ai_shimai,
+	[11] = &sys_wait,
+	[12] = &sys_set_text_colors,
+	[13] = &sys_farcall,
+	[14] = &sys_get_cursor_segment,
+	[15] = &sys_get_menu_no,
+	[16] = &sys_get_time,
+	[17] = &sys_noop,
+	[18] = &sys_check_input,
+	// [19] = TODO
+	[20] = &sys_noop2,
+	[21] = &sys_strlen,
+	//[22] = TODO
+	//[23] = TODO
 );
 
 PUBLIC_NODE(mes_sys_none, System,);
