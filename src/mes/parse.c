@@ -129,6 +129,13 @@ static struct mes_expression *_mes_parse_expression(struct buffer *mes)
 			break;
 		case MES_EXPR_END:
 			if (unlikely(stack_ptr != 1)) {
+				if (stack_ptr == 0) {
+					// XXX: allstars NAMESELECT.MES triggers this
+					DC_WARNING(mes->index-1, "Empty expression");
+					expr->op = MES_EXPR_IMM;
+					expr->arg8 = 0;
+					return expr;
+				}
 				DC_ERROR(mes->index-1, "Invalid stack size at END expression");
 				goto error;
 			}

@@ -24,6 +24,7 @@ enum ai5_game_id {
 	GAME_SHANGRLIA2,   // 2000-12-22 release (elf classics)
 	GAME_BEYOND,       // 2000-07-19 release
 	GAME_AI_SHIMAI,    // 2000-05-26 release (windows 98/2k version)
+	GAME_ALLSTARS,     // 2020-03-30 release
 	GAME_KOIHIME,      // 1999-12-24 release
 	GAME_DOUKYUUSEI,   // 1999-08-27 release (windows edition)
 	GAME_ISAKU,        // 1999-02-26 release (renewal version)

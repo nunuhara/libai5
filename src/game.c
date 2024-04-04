@@ -24,6 +24,7 @@ enum ai5_game_id ai5_target_game;
 
 struct ai5_game ai5_games[] = {
 	{ "aishimai",   GAME_AI_SHIMAI,    "愛姉妹 ～二人の果実～" },
+	{ "allstars",   GAME_ALLSTARS,     "エルフオールスターズ脱衣雀" },
 	{ "beyond",     GAME_BEYOND,       "ビ・ ヨンド ～黒大将に見られてる～" },
 	{ "doukyuusei", GAME_DOUKYUUSEI,   "同級生 Windows版" },
 	{ "isaku",      GAME_ISAKU,        "遺作 リニューアル" },

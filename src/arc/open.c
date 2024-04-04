@@ -38,6 +38,7 @@
 #include "nulib/utfsjis.h"
 #include "nulib/vector.h"
 #include "ai5/arc.h"
+#include "ai5/game.h"
 
 #define MAX_SANE_FILES 100000
 
@@ -271,6 +272,9 @@ void archive_close(struct archive *arc)
  */
 static bool data_decompress(struct archive_data *data)
 {
+	if (ai5_target_game == GAME_ALLSTARS)
+		return true;
+
 	const char *ext = file_extension(data->name);
 	static const char *compressed_ext[] = { "mes", "lib", "a", "a4", "a6", "msk", "s4", "x", "dat" };
 	for (unsigned i = 0; i < ARRAY_SIZE(compressed_ext); i++) {
