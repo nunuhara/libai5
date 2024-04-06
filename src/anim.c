@@ -28,6 +28,8 @@ void anim_set_game(enum ai5_game_id game)
 	switch (game) {
 	case GAME_ISAKU:
 	case GAME_DOUKYUUSEI:
+	case GAME_AI_SHIMAI:
+	case GAME_ALLSTARS:
 		anim_draw_call_size = 17;
 		anim_type = ANIM_A;
 		break;
