@@ -162,10 +162,10 @@ LEAF(sys_audio, se_fade_out_sync);
 LEAF(sys_audio, se_play_sync);
 LEAF(sys_audio, bgm_set_next);
 LEAF(sys_audio, bgm_play_next);
-LEAF(sys_audio, play);
-LEAF(sys_audio, stop);
-LEAF(sys_audio, fade_out);
-LEAF(sys_audio, fade_out_sync);
+LEAF(sys_audio, aux_play);
+LEAF(sys_audio, aux_stop);
+LEAF(sys_audio, aux_fade_out);
+LEAF(sys_audio, aux_fade_out_sync);
 NODE(sys_audio_classics, Audio,
 	[0] = &sys_audio_bgm_play,
 	[2] = &sys_audio_bgm_stop,
@@ -197,11 +197,11 @@ NODE(sys_audio_ai_shimai, Audio,
 	[3] = &sys_audio_bgm_fade_out_sync,
 	[4] = &sys_audio_bgm_set_next,
 	[5] = &sys_audio_bgm_play_next,
-	// audio type (bgm/se/voice) is parameter for these functions
-	[6] = &sys_audio_play,
-	[7] = &sys_audio_stop,
-	[8] = &sys_audio_fade_out,
-	[9] = &sys_audio_fade_out_sync,
+	// channel number (0-2) is parameter for these functions
+	[6] = &sys_audio_aux_play,
+	[7] = &sys_audio_aux_stop,
+	[8] = &sys_audio_aux_fade_out,
+	[9] = &sys_audio_aux_fade_out_sync,
 );
 
 // System.Voice
@@ -251,11 +251,10 @@ NODE(sys_display, Display,
 	[2] = &sys_display_scan_out_scan_in,
 );
 
-LEAF(sys_display, hide);
-LEAF(sys_display, show);
+LEAF2(sys_display, hide, unhide);
 NODE(sys_display_ai_shimai, Display,
-	[0] = &sys_display_hide,
-	[1] = &sys_display_show,
+	[0] = &sys_display_hide_unhide,
+	[1] = &sys_display_fade_out_fade_in,
 );
 
 // System.Image
