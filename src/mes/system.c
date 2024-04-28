@@ -267,6 +267,7 @@ LEAF(sys_image, compose);
 LEAF(sys_image, invert_colors);
 LEAF(sys_image, copy_progressive);
 LEAF(sys_image, blend);
+LEAF(sys_image, blend_masked);
 NODE(sys_image_classics, Image,
 	[0] = &sys_image_copy,
 	[1] = &sys_image_copy_masked,
@@ -294,7 +295,7 @@ NODE(sys_image_ai_shimai, Image,
 	[4] = &sys_image_swap_bg_fg,
 	// [5] = unused?
 	[6] = &sys_image_blend,
-	// [7] = TODO
+	[7] = &sys_image_blend_masked,
 );
 
 // System.wait
