@@ -212,6 +212,7 @@ extern struct mes_path_component mes_util_yuno;
 	[MES_SYS_VAR_MENU_ENTRY_ADDRESSES] = 8, \
 	[MES_SYS_VAR_MENU_ENTRY_NUMBERS] = 9, \
 	[MES_SYS_VAR_MAP_OFFSET] = 10, \
+	[MES_SYS_VAR_MASK_COLOR24] = 11, \
 }
 
 #define DEFAULT_INT_TO_SYSVAR32 { \
@@ -226,7 +227,7 @@ extern struct mes_path_component mes_util_yuno;
 	[8]  = MES_SYS_VAR_MENU_ENTRY_ADDRESSES, \
 	[9]  = MES_SYS_VAR_MENU_ENTRY_NUMBERS, \
 	[10] = MES_SYS_VAR_MAP_OFFSET, \
-	[11] = MES_CODE_INVALID, \
+	[11] = MES_SYS_VAR_MASK_COLOR24, \
 	[12] = MES_CODE_INVALID, \
 	[13] = MES_CODE_INVALID, \
 	[14] = MES_CODE_INVALID, \
