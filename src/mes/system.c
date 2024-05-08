@@ -63,6 +63,8 @@ LEAF(sys_cursor, set_pos);
 LEAF(sys_cursor, load);
 LEAF(sys_cursor, show);
 LEAF(sys_cursor, hide);
+LEAF(sys_cursor, clear_wheel);
+LEAF(sys_cursor, get_wheel);
 NODE(sys_cursor_classics, Cursor,
 	[0] = &sys_cursor_reload,
 	[1] = &sys_cursor_unload,
@@ -79,14 +81,25 @@ NODE(sys_cursor_isaku, Cursor,
 	[3] = &sys_cursor_set_pos,
 	[4] = &sys_cursor_load,
 );
+NODE(sys_cursor_ai_shimai, Cursor,
+	[0] = &sys_cursor_show,
+	[1] = &sys_cursor_hide,
+	[2] = &sys_cursor_save_pos,
+	[3] = &sys_cursor_set_pos,
+	[4] = &sys_cursor_load,
+	[5] = &sys_cursor_clear_wheel,
+	[6] = &sys_cursor_get_wheel,
+);
 
 // System.Anim
 LEAF(sys_anim, init);
 LEAF(sys_anim, start);
 LEAF(sys_anim, stop);
 LEAF(sys_anim, halt);
+LEAF(sys_anim, wait);
 LEAF(sys_anim, stop_all);
 LEAF(sys_anim, halt_all);
+LEAF(sys_anim, reset_all);
 NODE(sys_anim, Anim,
 	[0] = &sys_anim_init,
 	[1] = &sys_anim_start,
@@ -94,6 +107,17 @@ NODE(sys_anim, Anim,
 	[3] = &sys_anim_halt,
 	[5] = &sys_anim_stop_all,
 	[6] = &sys_anim_halt_all,
+);
+NODE(sys_anim_ai_shimai, Anim,
+	[0] = &sys_anim_init,
+	[1] = &sys_anim_start,
+	[2] = &sys_anim_stop,
+	[3] = &sys_anim_halt,
+	[4] = &sys_anim_wait,
+	[5] = &sys_anim_stop_all,
+	[6] = &sys_anim_halt_all,
+	[7] = &sys_anim_reset_all,
+	[8] = NULL,
 );
 
 // System.SaveData
@@ -208,10 +232,21 @@ NODE(sys_audio_ai_shimai, Audio,
 LEAF(sys_voice, play);
 LEAF(sys_voice, stop);
 LEAF(sys_voice, play_sync);
+LEAF(sys_voice, prepare);
+LEAF(sys_voice, play_prepared);
+LEAF(sys_voice, is_playing);
 NODE(sys_voice, Voice,
 	[0] = &sys_voice_play,
 	[1] = &sys_voice_stop,
 	[2] = &sys_voice_play_sync,
+);
+NODE(sys_voice_ai_shimai, Voice,
+	[0] = &sys_voice_play,
+	[1] = &sys_voice_stop,
+	[2] = &sys_voice_play_sync,
+	[3] = &sys_voice_prepare,
+	[4] = &sys_voice_play_prepared,
+	[5] = &sys_voice_is_playing,
 );
 
 // System.File
@@ -325,6 +360,21 @@ NODE(sys_dungeon, Dungeon,
 // System.input_state
 LEAF(sys, check_input);
 
+LEAF(sys_backlog, clear);
+LEAF(sys_backlog, prepare);
+LEAF(sys_backlog, commit);
+LEAF(sys_backlog, get_count);
+LEAF(sys_backlog, get_pointer);
+LEAF(sys_backlog, has_voice);
+NODE(sys_backlog, Backlog,
+	[0] = &sys_backlog_clear,
+	[1] = &sys_backlog_prepare,
+	[2] = &sys_backlog_commit,
+	[3] = &sys_backlog_get_count,
+	[4] = &sys_backlog_get_pointer,
+	[5] = &sys_backlog_has_voice,
+);
+
 // System.noop2
 LEAF(sys, noop2);
 
@@ -387,6 +437,34 @@ NODE(sys_msg, Message,
 	[2] = &sys_msg_clear,
 );
 
+LEAF(sys_overlay, update_text);
+LEAF(sys_overlay, clear_text);
+NODE(sys_overlay, Overlay,
+	[0] = NULL,
+	[1] = &sys_overlay_update_text,
+	[2] = &sys_overlay_clear_text,
+	[3] = NULL,
+);
+
+LEAF(sys_ime, enable);
+LEAF(sys_ime, disable);
+LEAF(sys_ime, get_composition_started);
+LEAF(sys_ime, get_text);
+LEAF(sys_ime, get_cursor_inside);
+LEAF(sys_ime, get_cursor_pos);
+LEAF(sys_ime, strcmp);
+LEAF(sys_ime, get_composition_state);
+NODE(sys_ime, IME,
+	[0] = &sys_ime_enable,
+	[1] = &sys_ime_disable,
+	[2] = &sys_ime_get_composition_started,
+	[3] = &sys_ime_get_text,
+	[4] = &sys_ime_get_cursor_inside,
+	[5] = &sys_ime_get_cursor_pos,
+	[6] = &sys_ime_strcmp,
+	[7] = &sys_ime_get_composition_state,
+);
+
 PUBLIC_NODE(mes_sys_classics, System,
 	[0] = &sys_set_font_size,
 	[1] = &sys_display_number,
@@ -442,11 +520,11 @@ PUBLIC_NODE(mes_sys_isaku, System,
 PUBLIC_NODE(mes_sys_ai_shimai, System,
 	[0] = &sys_set_font_size,
 	[1] = &sys_display_number,
-	[2] = &sys_cursor_isaku,
-	[3] = &sys_anim,
+	[2] = &sys_cursor_ai_shimai,
+	[3] = &sys_anim_ai_shimai,
 	[4] = &sys_savedata_ai_shimai,
 	[5] = &sys_audio_ai_shimai,
-	[6] = &sys_voice,
+	[6] = &sys_voice_ai_shimai,
 	[7] = &sys_file,
 	[8] = &sys_load_image,
 	[9] = &sys_display_ai_shimai,
@@ -459,11 +537,11 @@ PUBLIC_NODE(mes_sys_ai_shimai, System,
 	[16] = &sys_get_time,
 	[17] = &sys_noop,
 	[18] = &sys_check_input,
-	// [19] = TODO
+	[19] = &sys_backlog,
 	[20] = &sys_noop2,
 	[21] = &sys_strlen,
-	//[22] = TODO
-	//[23] = TODO
+	[22] = &sys_overlay,
+	[23] = &sys_ime,
 );
 
 PUBLIC_NODE(mes_sys_none, System,);
@@ -719,6 +797,43 @@ PUBLIC_NODE(mes_util_yuno, YUNO,
 	[210] = &util_get_ticks,
 	[211] = &util_wait_until,
 	[214] = &util_bgm_is_fading,
+);
+
+LEAF(util, shift_screen);
+LEAF(util, copy_to_surface_7);
+LEAF(util, strcpy);
+LEAF(util, strcpy2);
+LEAF(util, location_index);
+LEAF(util, location_zoom);
+LEAF(util, get_MESS);
+LEAF(util, write_backlog_header);
+LEAF(util, line);
+LEAF(util, save_voice);
+LEAF(util, quit);
+LEAF(util, get_IMODE);
+LEAF(util, set_prepared_voice);
+LEAF(util, cgmode_zoom);
+LEAF(util, scroll);
+LEAF(util, get_CUT);
+
+PUBLIC_NODE(mes_util_aishimai, AiShimai,
+	[0] = &util_shift_screen,
+	[1] = &util_copy_to_surface_7,
+	[2] = &util_strcpy,
+	[3] = &util_strcpy2,
+	[4] = &util_location_index,
+	[5] = &util_location_zoom,
+	[6] = &util_get_MESS,
+	[7] = &util_write_backlog_header,
+	[8] = &util_line,
+	[9] = &util_save_voice,
+	[10] = &util_quit,
+	[11] = &util_get_IMODE,
+	[12] = &util_set_prepared_voice,
+	[13] = &util_cgmode_zoom,
+	[14] = &util_scroll,
+	[15] = NULL,
+	[16] = &util_get_CUT,
 );
 
 PUBLIC_NODE(mes_util_none, Empty, );
