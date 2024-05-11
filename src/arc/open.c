@@ -267,34 +267,54 @@ void archive_close(struct archive *arc)
 	free(arc);
 }
 
+bool archive_file_compressed(const char *name)
+{
+	if (ai5_target_game == GAME_ALLSTARS)
+		return false;
+
+	static const char *compressed_ext[] = {
+		"a",
+		"a4",
+		"a6",
+		"dat",
+		"fnt",
+		"mes",
+		"msk",
+		"pal",
+		"lib",
+		"s4",
+		"tbl",
+		"x",
+	};
+	const char *ext = file_extension(name);
+	for (unsigned i = 0; i < ARRAY_SIZE(compressed_ext); i++) {
+		if (!strcasecmp(ext, compressed_ext[i]))
+			return true;
+	}
+	return false;
+}
+
 /*
  * Decompress compressed file types.
  */
 static bool data_decompress(struct archive_data *data)
 {
-	if (ai5_target_game == GAME_ALLSTARS)
+	if (!archive_file_compressed(data->name))
 		return true;
 
-	const char *ext = file_extension(data->name);
-	static const char *compressed_ext[] = { "mes", "lib", "a", "a4", "a6", "fnt", "msk", "tbl", "pal", "s4", "x", "dat" };
-	for (unsigned i = 0; i < ARRAY_SIZE(compressed_ext); i++) {
-		if (strcasecmp(ext, compressed_ext[i]))
-			continue;
-		size_t decompressed_size;
-		uint8_t *tmp = lzss_decompress(data->data, data->raw_size, &decompressed_size);
-		if (!data->mapped)
-			free(data->data);
-		data->mapped = false;
-		if (!tmp) {
-			WARNING("lzss_decompress failed");
-			data->data = NULL;
-			data->size = 0;
-			return false;
-		}
-		data->data = tmp;
-		data->size = decompressed_size;
-		break;
+	size_t decompressed_size;
+	uint8_t *tmp = lzss_decompress(data->data, data->raw_size, &decompressed_size);
+	if (!data->mapped)
+		free(data->data);
+	data->mapped = false;
+	if (!tmp) {
+		WARNING("lzss_decompress failed");
+		data->data = NULL;
+		data->size = 0;
+		return false;
 	}
+	data->data = tmp;
+	data->size = decompressed_size;
 	return true;
 }
 
