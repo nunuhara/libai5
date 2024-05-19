@@ -149,6 +149,10 @@ enum mes_system_var32 {
 	MES_SYS_VAR_CG_OFFSET,
 	// offset to data file in file_data
 	MES_SYS_VAR_DATA_OFFSET,
+	// offsets to map files
+	MES_SYS_VAR_MPX_OFFSET,
+	MES_SYS_VAR_CCD_OFFSET,
+	MES_SYS_VAR_EVE_OFFSET,
 	// pointer to palette
 	MES_SYS_VAR_PALETTE,
 	// offset to A6 file in file_data
@@ -216,6 +220,9 @@ extern struct mes_code_tables mes_code_tables;
 #define mes_sysvar32_memory (mes_code_tables.sysvar32_to_int[MES_SYS_VAR_MEMORY])
 #define mes_sysvar32_cg_offset (mes_code_tables.sysvar32_to_int[MES_SYS_VAR_CG_OFFSET])
 #define mes_sysvar32_data_offset (mes_code_tables.sysvar32_to_int[MES_SYS_VAR_DATA_OFFSET])
+#define mes_sysvar32_mpx_offset (mes_code_tables.sysvar32_to_int[MES_SYS_VAR_MPX_OFFSET])
+#define mes_sysvar32_ccd_offset (mes_code_tables.sysvar32_to_int[MES_SYS_VAR_CCD_OFFSET])
+#define mes_sysvar32_eve_offset (mes_code_tables.sysvar32_to_int[MES_SYS_VAR_EVE_OFFSET])
 #define mes_sysvar32_palette (mes_code_tables.sysvar32_to_int[MES_SYS_VAR_PALETTE])
 #define mes_sysvar32_a6_offset (mes_code_tables.sysvar32_to_int[MES_SYS_VAR_A6_OFFSET])
 #define mes_sysvar32_file_data (mes_code_tables.sysvar32_to_int[MES_SYS_VAR_FILE_DATA])

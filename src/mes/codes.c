@@ -23,6 +23,7 @@
 // system.c
 extern struct mes_path_component mes_sys_none;
 extern struct mes_path_component mes_sys_isaku;
+extern struct mes_path_component mes_sys_allstars;
 extern struct mes_path_component mes_sys_ai_shimai;
 extern struct mes_path_component mes_sys_classics;
 extern struct mes_path_component mes_util_none;
@@ -206,6 +207,9 @@ extern struct mes_path_component mes_util_yuno;
 	[MES_SYS_VAR_MEMORY] = 0, \
 	[MES_SYS_VAR_CG_OFFSET] = 1, \
 	[MES_SYS_VAR_DATA_OFFSET] = 2, \
+	[MES_SYS_VAR_MPX_OFFSET] = 3, \
+	[MES_SYS_VAR_CCD_OFFSET] = 4, \
+	[MES_SYS_VAR_EVE_OFFSET] = 5, \
 	[MES_SYS_VAR_PALETTE] = MES_CODE_INVALID, \
 	[MES_SYS_VAR_A6_OFFSET] = 6, \
 	[MES_SYS_VAR_FILE_DATA] = 7, \
@@ -219,9 +223,9 @@ extern struct mes_path_component mes_util_yuno;
 	[0]  = MES_SYS_VAR_MEMORY, \
 	[1]  = MES_SYS_VAR_CG_OFFSET, \
 	[2]  = MES_SYS_VAR_DATA_OFFSET, \
-	[3]  = MES_CODE_INVALID, \
-	[4]  = MES_CODE_INVALID, \
-	[5]  = MES_CODE_INVALID, \
+	[3]  = MES_SYS_VAR_MPX_OFFSET, \
+	[4]  = MES_SYS_VAR_CCD_OFFSET, \
+	[5]  = MES_SYS_VAR_EVE_OFFSET, \
 	[6]  = MES_SYS_VAR_A6_OFFSET, \
 	[7]  = MES_SYS_VAR_FILE_DATA, \
 	[8]  = MES_SYS_VAR_MENU_ENTRY_ADDRESSES, \
@@ -327,6 +331,76 @@ struct mes_code_tables ai_shimai_tables = {
 };
 
 // aishimai }}}
+// allstars {{{
+
+#define ALLSTARS_SYSVAR16_TO_INT { \
+	[MES_SYS_VAR_HEAP] = 0, \
+	[MES_SYS_VAR_DST_SURFACE] = 1, \
+	[MES_SYS_VAR_FLAGS] = 2, \
+	[MES_SYS_VAR_CURSOR_X] = 3, \
+	[MES_SYS_VAR_CURSOR_Y] = 4, \
+	[MES_SYS_VAR_TEXT_START_X] = 5, \
+	[MES_SYS_VAR_TEXT_START_Y] = 6, \
+	[MES_SYS_VAR_TEXT_END_X] = 7, \
+	[MES_SYS_VAR_TEXT_END_Y] = 8, \
+	[MES_SYS_VAR_TEXT_CURSOR_X] = 9, \
+	[MES_SYS_VAR_TEXT_CURSOR_Y] = 10, \
+	[MES_SYS_VAR_BG_COLOR] = MES_CODE_INVALID, \
+	[MES_SYS_VAR_FG_COLOR] = MES_CODE_INVALID, \
+	[MES_SYS_VAR_DISPLAY_NUMBER_FLAGS] = 11, \
+	[MES_SYS_VAR_FONT_WIDTH] = 12, \
+	[MES_SYS_VAR_FONT_HEIGHT] = 13, \
+	[MES_SYS_VAR_FONT_WEIGHT] = 14, \
+	[MES_SYS_VAR_CHAR_SPACE] = 15, \
+	[MES_SYS_VAR_LINE_SPACE] = 16, \
+	[MES_SYS_VAR_CG_X] = 17, \
+	[MES_SYS_VAR_CG_Y] = 18, \
+	[MES_SYS_VAR_CG_W] = 19, \
+	[MES_SYS_VAR_CG_H] = 20, \
+	[MES_SYS_VAR_NR_MENU_ENTRIES] = 21, \
+	[MES_SYS_VAR_MENU_NO] = 22, \
+	[MES_SYS_VAR_MASK_COLOR] = 23, \
+}
+
+#define ALLSTARS_INT_TO_SYSVAR16 { \
+	[0]  = MES_SYS_VAR_HEAP, \
+	[1]  = MES_SYS_VAR_DST_SURFACE, \
+	[2]  = MES_SYS_VAR_FLAGS, \
+	[3]  = MES_SYS_VAR_CURSOR_X, \
+	[4]  = MES_SYS_VAR_CURSOR_Y, \
+	[5]  = MES_SYS_VAR_TEXT_START_X, \
+	[6]  = MES_SYS_VAR_TEXT_START_Y, \
+	[7]  = MES_SYS_VAR_TEXT_END_X, \
+	[8]  = MES_SYS_VAR_TEXT_END_Y, \
+	[9]  = MES_SYS_VAR_TEXT_CURSOR_X, \
+	[10] = MES_SYS_VAR_TEXT_CURSOR_Y, \
+	[11] = MES_SYS_VAR_DISPLAY_NUMBER_FLAGS, \
+	[12] = MES_SYS_VAR_FONT_WIDTH, \
+	[13] = MES_SYS_VAR_FONT_HEIGHT, \
+	[14] = MES_SYS_VAR_FONT_WEIGHT, \
+	[15] = MES_SYS_VAR_CHAR_SPACE, \
+	[16] = MES_SYS_VAR_LINE_SPACE, \
+	[17] = MES_SYS_VAR_CG_X, \
+	[18] = MES_SYS_VAR_CG_Y, \
+	[19] = MES_SYS_VAR_CG_W, \
+	[20] = MES_SYS_VAR_CG_H, \
+	[21] = MES_SYS_VAR_NR_MENU_ENTRIES, \
+	[22] = MES_SYS_VAR_MENU_NO, \
+	[23] = MES_SYS_VAR_MASK_COLOR, \
+}
+
+struct mes_code_tables allstars_tables = {
+	.stmt_op_to_int = DEFAULT_STMT_OP_TO_INT,
+	.int_to_stmt_op = DEFAULT_INT_TO_STMT_OP,
+	.expr_op_to_int = DEFAULT_EXPR_OP_TO_INT,
+	.int_to_expr_op = DEFAULT_INT_TO_EXPR_OP,
+	.sysvar16_to_int = AI_SHIMAI_SYSVAR16_TO_INT,
+	.int_to_sysvar16 = AI_SHIMAI_INT_TO_SYSVAR16,
+	.sysvar32_to_int = DEFAULT_SYSVAR32_TO_INT,
+	.int_to_sysvar32 = DEFAULT_INT_TO_SYSVAR32,
+};
+
+// allstars }}}
 // elf_classics {{{
 #define CLASSICS_STMT_OP_TO_INT { \
 	[MES_STMT_END]     = 0x00, \
@@ -578,6 +652,8 @@ static struct mes_code_tables *get_code_tables(enum ai5_game_id id)
 		return &elf_classics_tables;
 	case GAME_AI_SHIMAI:
 		return &ai_shimai_tables;
+	case GAME_ALLSTARS:
+		return &allstars_tables;
 	default:
 		return &default_tables;
 	}
@@ -587,6 +663,7 @@ static mes_namespace_t get_system_namespace(enum ai5_game_id id)
 {
 	switch (id) {
 	case GAME_ISAKU:     return &mes_sys_isaku;
+	case GAME_ALLSTARS:  return &mes_sys_allstars;
 	case GAME_AI_SHIMAI: return &mes_sys_ai_shimai;
 	case GAME_SHANGRLIA: return &mes_sys_classics;
 	case GAME_YUNO:      return &mes_sys_classics;

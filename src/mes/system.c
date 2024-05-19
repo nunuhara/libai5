@@ -90,6 +90,13 @@ NODE(sys_cursor_ai_shimai, Cursor,
 	[5] = &sys_cursor_clear_wheel,
 	[6] = &sys_cursor_get_wheel,
 );
+NODE(sys_cursor_allstars, Cursor,
+	[0] = &sys_cursor_show,
+	[1] = &sys_cursor_hide,
+	[2] = &sys_cursor_save_pos,
+	[3] = &sys_cursor_set_pos,
+	[4] = &sys_cursor_load,
+);
 
 // System.Anim
 LEAF(sys_anim, init);
@@ -118,6 +125,18 @@ NODE(sys_anim_ai_shimai, Anim,
 	[6] = &sys_anim_halt_all,
 	[7] = &sys_anim_reset_all,
 	[8] = NULL,
+);
+NODE(sys_anim_allstars, Anim,
+	[0] = &sys_anim_init,
+	[1] = &sys_anim_start,
+	[2] = &sys_anim_stop,
+	[3] = &sys_anim_halt,
+	[4] = &sys_anim_wait,
+	[5] = &sys_anim_stop_all,
+	[6] = &sys_anim_halt_all,
+	[7] = &sys_anim_reset_all,
+	[8] = NULL,
+	[9] = NULL,
 );
 
 // System.SaveData
@@ -168,6 +187,19 @@ NODE(sys_savedata_ai_shimai, SaveData,
 	[7] = &sys_savedata_load_heap,
 	[8] = &sys_savedata_save_heap,
 );
+NODE(sys_savedata_allstars, SaveData,
+	[0] = &sys_savedata_resume_load,
+	[1] = &sys_savedata_resume_save,
+	[2] = NULL, // load var4 + 50 dwords @ &System.var32[12]
+	[3] = &sys_savedata_save_union_var4,
+	[4] = NULL, // load 50 dwords @ &System.var32[12]
+	[5] = NULL, // save 50 dwords @ &System.var32[12]
+	[6] = &sys_savedata_clear_var4,
+	[7] = &sys_savedata_load_heap,
+	[8] = &sys_savedata_save_heap,
+	[9] = NULL, // in memory: save var4 + 50 dwords @ &System.var32[12]
+	[10] = NULL, // in memory: restore saved var4 + 50 dwords @ &System.var32[12]
+);
 
 // System.Audio
 LEAF(sys_audio, bgm_play);
@@ -190,6 +222,7 @@ LEAF(sys_audio, aux_play);
 LEAF(sys_audio, aux_stop);
 LEAF(sys_audio, aux_fade_out);
 LEAF(sys_audio, aux_fade_out_sync);
+LEAF(sys_audio, bgm_is_playing);
 NODE(sys_audio_classics, Audio,
 	[0] = &sys_audio_bgm_play,
 	[2] = &sys_audio_bgm_stop,
@@ -227,6 +260,19 @@ NODE(sys_audio_ai_shimai, Audio,
 	[8] = &sys_audio_aux_fade_out,
 	[9] = &sys_audio_aux_fade_out_sync,
 );
+NODE(sys_audio_allstars, Audio,
+	[0] = &sys_audio_bgm_play,
+	[1] = &sys_audio_bgm_stop,
+	[2] = &sys_audio_bgm_fade_out,
+	[3] = &sys_audio_bgm_fade_out_sync,
+	[4] = &sys_audio_aux_play,
+	[5] = &sys_audio_aux_stop,
+	[6] = &sys_audio_aux_fade_out,
+	[7] = &sys_audio_aux_fade_out_sync,
+	[8] = &sys_audio_bgm_set_volume,
+	[9] = &sys_audio_bgm_restore,
+	[10] = &sys_audio_bgm_is_playing,
+);
 
 // System.Voice
 LEAF(sys_voice, play);
@@ -235,6 +281,8 @@ LEAF(sys_voice, play_sync);
 LEAF(sys_voice, prepare);
 LEAF(sys_voice, play_prepared);
 LEAF(sys_voice, is_playing);
+LEAF(sys_voice, set_volume);
+LEAF(sys_voice, restore_volume);
 NODE(sys_voice, Voice,
 	[0] = &sys_voice_play,
 	[1] = &sys_voice_stop,
@@ -247,6 +295,14 @@ NODE(sys_voice_ai_shimai, Voice,
 	[3] = &sys_voice_prepare,
 	[4] = &sys_voice_play_prepared,
 	[5] = &sys_voice_is_playing,
+);
+NODE(sys_voice_allstars, Voice,
+	[0] = &sys_voice_play,
+	[1] = &sys_voice_stop,
+	[2] = &sys_voice_play_sync,
+	[3] = &sys_voice_is_playing,
+	[4] = &sys_voice_set_volume,
+	[5] = &sys_voice_restore_volume,
 );
 
 // System.File
@@ -277,17 +333,21 @@ NODE(sys_palette, Palette,
 	[4] = &sys_palette_unhide,
 );
 
+// System.Display
 LEAF2(sys_display, freeze, unfreeze);
 LEAF2(sys_display, fade_out, fade_in);
 LEAF2(sys_display, scan_out, scan_in);
+LEAF2(sys_display, hide, unhide);
 NODE(sys_display, Display,
 	[0] = &sys_display_freeze_unfreeze,
 	[1] = &sys_display_fade_out_fade_in,
 	[2] = &sys_display_scan_out_scan_in,
 );
-
-LEAF2(sys_display, hide, unhide);
 NODE(sys_display_ai_shimai, Display,
+	[0] = &sys_display_hide_unhide,
+	[1] = &sys_display_fade_out_fade_in,
+);
+NODE(sys_display_allstars, Display,
 	[0] = &sys_display_hide_unhide,
 	[1] = &sys_display_fade_out_fade_in,
 );
@@ -303,6 +363,9 @@ LEAF(sys_image, invert_colors);
 LEAF(sys_image, copy_progressive);
 LEAF(sys_image, blend);
 LEAF(sys_image, blend_masked);
+LEAF(sys_image, disintegrate);
+LEAF(sys_image, blend_half);
+LEAF(sys_image, blend_with_mask_color);
 NODE(sys_image_classics, Image,
 	[0] = &sys_image_copy,
 	[1] = &sys_image_copy_masked,
@@ -332,6 +395,19 @@ NODE(sys_image_ai_shimai, Image,
 	[6] = &sys_image_blend,
 	[7] = &sys_image_blend_masked,
 );
+NODE(sys_image_allstars, Image,
+	[0] = &sys_image_copy,
+	[1] = &sys_image_copy_masked,
+	[2] = &sys_image_fill_bg,
+	[3] = &sys_image_copy_swap,
+	[4] = NULL, // unused?
+	[5] = &sys_image_disintegrate,
+	[6] = NULL, // unused?
+	[7] = &sys_image_blend,
+	[8] = &sys_image_blend_half,
+	[9] = NULL, // unused?
+	[10] = &sys_image_blend_with_mask_color,
+);
 
 // System.wait
 LEAF(sys, wait);
@@ -351,15 +427,66 @@ LEAF(sys, get_menu_no);
 // System.get_time
 LEAF(sys, get_time);
 
+// System.Map
+LEAF(sys_map, load_tilemap);
+LEAF(sys_map, load_sprite);
+LEAF(sys_map, load_tiles);
+LEAF(sys_map, load_sprite_scripts);
+LEAF(sys_map, set_sprite_script);
+LEAF(sys_map, place_sprites);
+LEAF(sys_map, set_sprite_state);
+LEAF(sys_map, tick_and_redraw);
+LEAF(sys_map, tick);
+LEAF(sys_map, draw_tiles);
+LEAF(sys_map, draw_tiles2);
+LEAF(sys_map, set_location_mode);
+LEAF(sys_map, get_location);
+LEAF(sys_map, move_sprite);
+LEAF(sys_map, path_sprite);
+LEAF(sys_map, cancel_sprite_pathing);
+LEAF(sys_map, rewind_sprite_pos);
+LEAF(sys_map, load_palette);
+LEAF(sys_map, load_bitmap);
+NODE(sys_map_allstars, Map,
+	[0] = &sys_map_load_tilemap,
+	[1] = &sys_map_load_sprite,
+	[2] = &sys_map_load_tiles,
+	[3] = NULL, // unused?
+	[4] = &sys_map_load_sprite_scripts,
+	[5] = &sys_map_set_sprite_script,
+	[6] = &sys_map_place_sprites,
+	[7] = &sys_map_set_sprite_state,
+	[8] = &sys_map_tick_and_redraw,
+	[9] = &sys_map_tick,
+	[10] = &sys_map_draw_tiles,
+	[11] = &sys_map_draw_tiles2,
+	[12] = &sys_map_set_location_mode,
+	[13] = &sys_map_get_location,
+	[14] = &sys_map_move_sprite,
+	[15] = &sys_map_path_sprite,
+	[16] = &sys_map_cancel_sprite_pathing,
+	[17] = NULL, // unused?
+	[18] = NULL, // unused?
+	[19] = NULL, // unused?
+	[20] = &sys_map_rewind_sprite_pos,
+	[21] = NULL, // unused?
+	[22] = NULL, // unused?
+	[23] = NULL, // unused?
+	[24] = &sys_map_load_palette,
+	[25] = &sys_map_load_bitmap,
+);
+
 // System.noop
 LEAF(sys, noop);
 
+// System.Dungeon
 NODE(sys_dungeon, Dungeon,
 );
 
 // System.input_state
 LEAF(sys, check_input);
 
+// System.Backlog
 LEAF(sys_backlog, clear);
 LEAF(sys_backlog, prepare);
 LEAF(sys_backlog, commit);
@@ -384,6 +511,7 @@ LEAF(sys, strlen);
 // System.set_screen_surface
 LEAF(sys, set_screen_surface);
 
+// System.ItemWindow
 LEAF(sys_itemwindow, init);
 LEAF(sys_itemwindow, open);
 LEAF(sys_itemwindow, is_open);
@@ -406,6 +534,7 @@ NODE(sys_itemwindow, ItemWindow,
 	[10] = NULL,
 );
 
+// System.SaveMenu
 LEAF(sys_savemenu, open);
 LEAF(sys_savemenu, enable);
 LEAF(sys_savemenu, clear);
@@ -417,6 +546,7 @@ NODE(sys_savemenu, SaveMenu,
 	[3] = &sys_savemenu_check,
 );
 
+// System.LoadMenu
 LEAF(sys_loadmenu, open);
 LEAF(sys_loadmenu, enable);
 LEAF(sys_loadmenu, clear);
@@ -428,6 +558,7 @@ NODE(sys_loadmenu, LoadMenu,
 	[3] = &sys_loadmenu_check,
 );
 
+// System.Message
 LEAF(sys_msg, enable_clear);
 LEAF(sys_msg, disable_clear);
 LEAF(sys_msg, clear);
@@ -437,6 +568,7 @@ NODE(sys_msg, Message,
 	[2] = &sys_msg_clear,
 );
 
+// System.Overlay
 LEAF(sys_overlay, update_text);
 LEAF(sys_overlay, clear_text);
 NODE(sys_overlay, Overlay,
@@ -446,6 +578,7 @@ NODE(sys_overlay, Overlay,
 	[3] = NULL,
 );
 
+// System.IME
 LEAF(sys_ime, enable);
 LEAF(sys_ime, disable);
 LEAF(sys_ime, get_composition_started);
@@ -464,6 +597,16 @@ NODE(sys_ime, IME,
 	[6] = &sys_ime_strcmp,
 	[7] = &sys_ime_get_composition_state,
 );
+
+// System.FaceWindow (allstars)
+NODE(sys_face_window, FaceWindow,
+	[0] = NULL, // unused?
+	[1] = NULL, // unused?
+	[2] = NULL,
+);
+
+// System.run_mahjong (allstars)
+LEAF(sys, run_mahjong);
 
 PUBLIC_NODE(mes_sys_classics, System,
 	[0] = &sys_set_font_size,
@@ -542,6 +685,34 @@ PUBLIC_NODE(mes_sys_ai_shimai, System,
 	[21] = &sys_strlen,
 	[22] = &sys_overlay,
 	[23] = &sys_ime,
+);
+
+PUBLIC_NODE(mes_sys_allstars, System,
+	[0] = &sys_set_font_size,
+	[1] = &sys_display_number,
+	[2] = &sys_cursor_allstars,
+	[3] = &sys_anim_allstars,
+	[4] = &sys_savedata_allstars,
+	[5] = &sys_audio_allstars,
+	[6] = &sys_voice_allstars,
+	[7] = &sys_load_file,
+	[8] = &sys_load_image,
+	[9] = &sys_display_allstars,
+	[10] = &sys_image_allstars,
+	[11] = &sys_wait,
+	[12] = &sys_set_text_colors,
+	[13] = &sys_farcall,
+	[14] = &sys_get_cursor_segment,
+	[15] = &sys_get_menu_no,
+	[16] = &sys_get_time,
+	[17] = &sys_map_allstars,
+	[18] = &sys_check_input,
+	[19] = NULL, // unused?
+	[20] = NULL, // unused?
+	[21] = &sys_strlen,
+	//[22] = overlay?
+	[23] = &sys_face_window,
+	[24] = &sys_run_mahjong,
 );
 
 PUBLIC_NODE(mes_sys_none, System,);
@@ -714,6 +885,9 @@ const char *mes_system_var32_names[MES_NR_SYSTEM_VARIABLES] = {
 	[MES_SYS_VAR_MEMORY] = "memory",
 	[MES_SYS_VAR_CG_OFFSET] = "cg_offset",
 	[MES_SYS_VAR_DATA_OFFSET] = "data_offset",
+	[MES_SYS_VAR_MPX_OFFSET] = "mpx_offset",
+	[MES_SYS_VAR_CCD_OFFSET] = "ccd_offset",
+	[MES_SYS_VAR_EVE_OFFSET] = "eve_offset",
 	[MES_SYS_VAR_PALETTE] = "palette",
 	[MES_SYS_VAR_A6_OFFSET] = "a6_offset",
 	[MES_SYS_VAR_FILE_DATA] = "file_data",
