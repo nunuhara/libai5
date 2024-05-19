@@ -25,6 +25,7 @@ ai5_sources = [
   'src/a6.c',
   'src/anim.c',
   'src/arc/open.c',
+  'src/ccd.c',
   'src/cg/cg.c',
   'src/cg/gp4.c',
   'src/cg/gp8.c',
