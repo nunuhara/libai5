@@ -23,6 +23,7 @@
 // system.c
 extern struct mes_path_component mes_sys_none;
 extern struct mes_path_component mes_sys_isaku;
+extern struct mes_path_component mes_sys_doukyuusei;
 extern struct mes_path_component mes_sys_allstars;
 extern struct mes_path_component mes_sys_ai_shimai;
 extern struct mes_path_component mes_sys_classics;
@@ -662,12 +663,13 @@ static struct mes_code_tables *get_code_tables(enum ai5_game_id id)
 static mes_namespace_t get_system_namespace(enum ai5_game_id id)
 {
 	switch (id) {
-	case GAME_ISAKU:     return &mes_sys_isaku;
-	case GAME_ALLSTARS:  return &mes_sys_allstars;
-	case GAME_AI_SHIMAI: return &mes_sys_ai_shimai;
-	case GAME_SHANGRLIA: return &mes_sys_classics;
-	case GAME_YUNO:      return &mes_sys_classics;
-	default:             return &mes_sys_none;
+	case GAME_ISAKU:      return &mes_sys_isaku;
+	case GAME_DOUKYUUSEI: return &mes_sys_doukyuusei;
+	case GAME_ALLSTARS:   return &mes_sys_allstars;
+	case GAME_AI_SHIMAI:  return &mes_sys_ai_shimai;
+	case GAME_SHANGRLIA:  return &mes_sys_classics;
+	case GAME_YUNO:       return &mes_sys_classics;
+	default:              return &mes_sys_none;
 	}
 }
 
