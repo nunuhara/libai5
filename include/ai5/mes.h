@@ -164,7 +164,7 @@ enum mes_system_var32 {
 	// pointer to menu_entry_numbers
 	MES_SYS_VAR_MENU_ENTRY_NUMBERS,
 	// offset to map file (dungeon)
-	MES_SYS_VAR_MAP_OFFSET,
+	MES_SYS_VAR_MAP_DATA,
 	// 24-bit mask color
 	MES_SYS_VAR_MASK_COLOR24,
 };
@@ -228,7 +228,7 @@ extern struct mes_code_tables mes_code_tables;
 #define mes_sysvar32_file_data (mes_code_tables.sysvar32_to_int[MES_SYS_VAR_FILE_DATA])
 #define mes_sysvar32_menu_entry_addresses (mes_code_tables.sysvar32_to_int[MES_SYS_VAR_MENU_ENTRY_ADDRESSES])
 #define mes_sysvar32_menu_entry_numbers (mes_code_tables.sysvar32_to_int[MES_SYS_VAR_MENU_ENTRY_NUMBERS])
-#define mes_sysvar32_map_offset (mes_code_tables.sysvar32_to_int[MES_SYS_VAR_MAP_OFFSET])
+#define mes_sysvar32_map_data (mes_code_tables.sysvar32_to_int[MES_SYS_VAR_MAP_DATA])
 #define mes_sysvar32_mask_color (mes_code_tables.sysvar32_to_int[MES_SYS_VAR_MASK_COLOR24])
 
 /*

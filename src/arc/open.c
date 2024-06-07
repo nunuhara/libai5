@@ -279,6 +279,7 @@ bool archive_file_compressed(const char *name)
 		"bmp",
 		"ccd",
 		"dat",
+		"eve",
 		"fnt",
 		"mes",
 		"mpx",

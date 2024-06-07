@@ -52,8 +52,13 @@ struct ccd {
 	vector_t(struct ccd_spawn) spawns;
 };
 
+// runtime API (unsafe)
+struct ccd_sprite ccd_load_sprite(unsigned no, uint8_t *data);
+struct ccd_spawn ccd_load_spawn(unsigned no, uint8_t *data);
+
 struct ccd *ccd_parse(uint8_t *data, size_t size);
 void ccd_free(struct ccd *ccd);
+
 void ccd_print(struct port *out, struct ccd *ccd);
 
 #endif // AI5_CCD_H

@@ -36,6 +36,26 @@ static bool sprite_list_end(struct buffer *in)
 	return true;
 }
 
+struct ccd_sprite ccd_load_sprite(unsigned no, uint8_t *data)
+{
+	uint16_t sp_off = le_get16(data, 0) + 14 * no;
+	struct ccd_sprite sp;
+	sp.state = data[sp_off];
+	if (sp.state == 0xff)
+		return sp;
+	sp.no = data[sp_off + 1];
+	sp.w = data[sp_off + 2];
+	sp.h = data[sp_off + 3];
+	sp.x = le_get16(data, sp_off + 4);
+	sp.y = le_get16(data, sp_off + 6);
+	sp.frame = data[sp_off + 8];
+	sp.script_index = data[sp_off + 9];
+	sp.script_cmd = data[sp_off + 10];
+	sp.script_repetitions = data[sp_off + 11];
+	sp.script_ptr = le_get16(data, sp_off + 12);
+	return sp;
+}
+
 static void parse_sprites(struct ccd *ccd, struct buffer *in)
 {
 	while (!sprite_list_end(in)) {
@@ -95,6 +115,17 @@ static bool spawn_list_end(struct buffer *in)
 	if (rem > 0)
 		WARNING("Junk at end of spawns section?");
 	return true;
+}
+
+struct ccd_spawn ccd_load_spawn(unsigned no, uint8_t *data)
+{
+	uint16_t off = le_get16(data, 4) + 4 * no;
+	struct ccd_spawn spawn;
+	spawn.screen_x = data[off];
+	spawn.screen_y = data[off + 1];
+	spawn.sprite_x = data[off + 2];
+	spawn.sprite_y = data[off + 3];
+	return spawn;
 }
 
 static void parse_spawns(struct ccd *ccd, struct buffer *in)

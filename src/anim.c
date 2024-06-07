@@ -20,6 +20,7 @@
 #include "ai5/game.h"
 #include "ai5/anim.h"
 
+static unsigned anim_a_src = 1;
 unsigned anim_draw_call_size = 33;
 enum anim_type anim_type = ANIM_S4;
 
@@ -41,6 +42,9 @@ void anim_set_game(enum ai5_game_id game)
 		anim_draw_call_size = 33;
 		anim_type = ANIM_S4;
 		break;
+	}
+	if (game == GAME_DOUKYUUSEI) {
+		anim_a_src = 9;
 	}
 }
 
@@ -144,7 +148,7 @@ static bool parse_a_draw_call(struct buffer *in, struct anim_draw_call *out)
 	case ANIM_DRAW_OP_COPY:
 	case ANIM_DRAW_OP_COPY_MASKED:
 	case ANIM_DRAW_OP_SWAP:
-		out->copy.src.i = 1;
+		out->copy.src.i = anim_a_src;
 		out->copy.dst.i = 0;
 		out->copy.src.x = buffer_read_u16(in);
 		out->copy.src.y = buffer_read_u16(in);
@@ -155,7 +159,7 @@ static bool parse_a_draw_call(struct buffer *in, struct anim_draw_call *out)
 		break;
 	case ANIM_DRAW_OP_COMPOSE:
 		out->compose.bg.i = 2;
-		out->compose.fg.i = 1;
+		out->compose.fg.i = anim_a_src;
 		out->compose.dst.i = 0;
 		out->compose.fg.x = buffer_read_u16(in);
 		out->compose.fg.y = buffer_read_u16(in);

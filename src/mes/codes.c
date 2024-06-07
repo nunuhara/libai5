@@ -216,7 +216,7 @@ extern struct mes_path_component mes_util_yuno;
 	[MES_SYS_VAR_FILE_DATA] = 7, \
 	[MES_SYS_VAR_MENU_ENTRY_ADDRESSES] = 8, \
 	[MES_SYS_VAR_MENU_ENTRY_NUMBERS] = 9, \
-	[MES_SYS_VAR_MAP_OFFSET] = 10, \
+	[MES_SYS_VAR_MAP_DATA] = 10, \
 	[MES_SYS_VAR_MASK_COLOR24] = 11, \
 }
 
@@ -231,7 +231,7 @@ extern struct mes_path_component mes_util_yuno;
 	[7]  = MES_SYS_VAR_FILE_DATA, \
 	[8]  = MES_SYS_VAR_MENU_ENTRY_ADDRESSES, \
 	[9]  = MES_SYS_VAR_MENU_ENTRY_NUMBERS, \
-	[10] = MES_SYS_VAR_MAP_OFFSET, \
+	[10] = MES_SYS_VAR_MAP_DATA, \
 	[11] = MES_SYS_VAR_MASK_COLOR24, \
 	[12] = MES_CODE_INVALID, \
 	[13] = MES_CODE_INVALID, \
@@ -587,7 +587,7 @@ struct mes_code_tables allstars_tables = {
 	[MES_SYS_VAR_FILE_DATA] = 7, \
 	[MES_SYS_VAR_MENU_ENTRY_ADDRESSES] = 8, \
 	[MES_SYS_VAR_MENU_ENTRY_NUMBERS] = 9, \
-	[MES_SYS_VAR_MAP_OFFSET] = MES_CODE_INVALID, \
+	[MES_SYS_VAR_MAP_DATA] = MES_CODE_INVALID, \
 }
 
 #define CLASSICS_INT_TO_SYSVAR32 { \

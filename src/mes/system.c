@@ -1041,7 +1041,7 @@ const char *mes_system_var32_names[MES_NR_SYSTEM_VARIABLES] = {
 	[MES_SYS_VAR_FILE_DATA] = "file_data",
 	[MES_SYS_VAR_MENU_ENTRY_ADDRESSES] = "menu_entry_addresses",
 	[MES_SYS_VAR_MENU_ENTRY_NUMBERS] = "menu_entry_numbers",
-	[MES_SYS_VAR_MAP_OFFSET] = "map_offset",
+	[MES_SYS_VAR_MAP_DATA] = "map_offset",
 };
 
 int mes_resolve_sysvar(string name, bool *dword)
