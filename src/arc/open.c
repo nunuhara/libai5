@@ -77,20 +77,28 @@ static bool read_u8_at(FILE *fp, off_t offset, uint8_t *out)
 	return true;
 }
 
-bool archive_get_metadata(FILE *fp, struct arc_metadata *meta_out)
+static off_t get_file_size(FILE *fp)
+{
+	// get size of archive
+	if (fseek(fp, 0, SEEK_END)) {
+		WARNING("fseek: %s", strerror(errno));
+		return 0;
+	}
+	off_t r = ftell(fp);
+	if (fseek(fp, 0, SEEK_SET)) {
+		WARNING("fseek: %s", strerror(errno));
+		return 0;
+	}
+	return r;
+}
+
+static bool arc_get_metadata(FILE *fp, struct arc_metadata *meta_out)
 {
 	struct arc_metadata meta = {0};
 
 	// get size of archive
-	if (fseek(fp, 0, SEEK_END)) {
-		WARNING("fseek: %s", strerror(errno));
+	if (!(meta.arc_size = get_file_size(fp)))
 		return false;
-	}
-	meta.arc_size = ftell(fp);
-	if (fseek(fp, 0, SEEK_SET)) {
-		WARNING("fseek: %s", strerror(errno));
-		return false;
-	}
 
 	if (!read_u32(fp, &meta.nr_files))
 		return false;
@@ -130,14 +138,39 @@ bool archive_get_metadata(FILE *fp, struct arc_metadata *meta_out)
 	return true;
 }
 
-static bool archive_read_index(FILE *fp, struct archive *arc)
+static bool dat_get_metadata(FILE *fp, struct arc_metadata *meta_out)
 {
-	const struct arc_metadata *meta = &arc->meta;
-	if (fseek(fp, 4, SEEK_SET)) {
-		WARNING("fseek: %s", strerror(errno));
+	struct arc_metadata meta = {0};
+
+	// get size of archive
+	if (!(meta.arc_size = get_file_size(fp)))
+		return false;
+
+	uint32_t key;
+	if (!read_u32_at(fp, 4, &key))
+		return false;
+	meta.offset_key = key;
+	meta.size_key = key;
+
+	if (!read_u32_at(fp, 0, &meta.nr_files))
+		return false;
+	meta.nr_files ^= key;
+	if (meta.nr_files > MAX_SANE_FILES) {
+		WARNING("archive file count is not sane: %u", meta.nr_files);
 		return false;
 	}
+	if (!read_u8_at(fp, 0x23, &meta.name_key))
+		return false;
 
+	meta.name_length = 20;
+	*meta_out = meta;
+	return true;
+}
+
+static bool read_index(FILE *fp, struct archive *arc, unsigned size_off, unsigned offset_off,
+		unsigned name_off)
+{
+	const struct arc_metadata *meta = &arc->meta;
 	const size_t buf_len = (size_t)meta->nr_files * (meta->name_length + 8);
 	size_t buf_pos = 0;
 	uint8_t *buf = xmalloc(buf_len);
@@ -152,15 +185,15 @@ static bool archive_read_index(FILE *fp, struct archive *arc)
 	for (int i = 0; i < meta->nr_files; i++) {
 		// decode file name
 		for (int j = 0; j < meta->name_length; j++) {
-			buf[buf_pos + j] ^= meta->name_key;
-			if (buf[buf_pos + j] == 0)
+			buf[buf_pos + name_off + j] ^= meta->name_key;
+			if (buf[buf_pos + name_off + j] == 0)
 				break;
 		}
-		buf[buf_pos + meta->name_length - 1] = 0;
+		buf[buf_pos + name_off + (meta->name_length - 1)] = 0;
 
-		uint32_t offset = le_get32(buf, buf_pos + meta->name_length + 4) ^ meta->offset_key;
-		uint32_t raw_size = le_get32(buf, buf_pos + meta->name_length) ^ meta->size_key;
-		string name = sjis_cstring_to_utf8((char*)buf + buf_pos, 0);
+		uint32_t offset = le_get32(buf, buf_pos + offset_off) ^ meta->offset_key;
+		uint32_t raw_size = le_get32(buf, buf_pos + size_off) ^ meta->size_key;
+		string name = sjis_cstring_to_utf8((char*)buf + buf_pos + name_off, 0);
 		if (offset + raw_size > meta->arc_size) {
 			ERROR("%s @ %u + %u extends beyond EOF (%u)", name, offset, raw_size,
 					(unsigned)meta->arc_size);
@@ -195,6 +228,24 @@ static bool archive_read_index(FILE *fp, struct archive *arc)
 	return true;
 }
 
+static bool arc_read_index(FILE *fp, struct archive *arc)
+{
+	if (fseek(fp, 4, SEEK_SET)) {
+		WARNING("fseek: %s", strerror(errno));
+		return false;
+	}
+	return read_index(fp, arc, arc->meta.name_length, arc->meta.name_length + 4, 0);
+}
+
+static bool dat_read_index(FILE *fp, struct archive *arc)
+{
+	if (fseek(fp, 8, SEEK_SET)) {
+		WARNING("fseek: %s", strerror(errno));
+		return false;
+	}
+	return read_index(fp, arc, 0, 4, 8);
+}
+
 struct archive *archive_open(const char *path, unsigned flags)
 {
 #ifdef _WIN32
@@ -209,13 +260,22 @@ struct archive *archive_open(const char *path, unsigned flags)
 		goto error;
 	}
 
-	if (!archive_get_metadata(fp, &arc->meta)) {
-		WARNING("failed to ared archive metadata");
-		goto error;
-	}
-
-	if (!archive_read_index(fp, arc)) {
-		goto error;
+	if (!strcasecmp(file_extension(path), "dat")) {
+		if (!dat_get_metadata(fp, &arc->meta)) {
+			WARNING("failed to read archive metadata");
+			goto error;
+		}
+		if (!dat_read_index(fp, arc)) {
+			goto error;
+		}
+	} else {
+		if (!arc_get_metadata(fp, &arc->meta)) {
+			WARNING("failed to read archive metadata");
+			goto error;
+		}
+		if (!arc_read_index(fp, arc)) {
+			goto error;
+		}
 	}
 
 	// store either mmap ptr/size or FILE* depending on flags
