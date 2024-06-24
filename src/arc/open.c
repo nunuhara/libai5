@@ -214,6 +214,12 @@ static bool read_index(FILE *fp, struct archive *arc, unsigned size_off, unsigne
 
 	// create index
 	for (int i = 0; i < vector_length(arc->files); i++) {
+		// upcase filename
+		char *name = vector_A(arc->files, i).name;
+		for (int i = 0; name[i]; i++) {
+			name[i] = toupper(name[i]);
+		}
+
 		int ret;
 		hashtable_iter_t k = hashtable_put(arcindex, &arc->index,
 				vector_A(arc->files, i).name,
