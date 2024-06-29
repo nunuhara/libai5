@@ -29,15 +29,23 @@
 declare_hashtable_string_type(arcindex, int);
 
 enum {
-	ARCHIVE_MMAP = 1, // map archive in memory
-	ARCHIVE_RAW  = 2, // skip decompression when loading files
+	ARCHIVE_MMAP = 1,   // map archive in memory
+	ARCHIVE_RAW  = 2,   // skip decompression when loading files
+	ARCHIVE_STEREO = 4, // raw PCM is stereo (AWD/AWF archives)
+};
+
+enum archive_scheme {
+	// archive index is encrypted with XOR cipher
+	ARCHIVE_SCHEME_TYPICAL,
+	// archive index is encrypted with game-specific cipher
+	ARCHIVE_SCHEME_GAME_SPECIFIC,
 };
 
 enum archive_type {
-	// archive index is encrypted with XOR cipher
-	ARCHIVE_TYPE_TYPICAL,
-	// archive index is encrypted with game-specific cipher
-	ARCHIVE_TYPE_GAME_SPECIFIC,
+	ARCHIVE_TYPE_ARC,
+	ARCHIVE_TYPE_DAT,
+	ARCHIVE_TYPE_AWD,
+	ARCHIVE_TYPE_AWF,
 };
 
 struct arc_metadata {
@@ -55,6 +63,7 @@ struct arc_metadata {
 	unsigned size_off;
 	unsigned name_off;
 
+	enum archive_scheme scheme;
 	enum archive_type type;
 };
 

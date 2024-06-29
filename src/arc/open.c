@@ -87,12 +87,10 @@ static bool get_offset_and_size_key(
 	return true;
 }
 
-bool arc_get_metadata(FILE *fp, struct arc_metadata *meta_out)
+static bool arc_get_size_and_count(FILE *fp, struct arc_metadata *meta)
 {
-	struct arc_metadata meta = {0};
-
 	// get size of archive
-	if (!(meta.arc_size = get_file_size(fp)))
+	if (!(meta->arc_size = get_file_size(fp)))
 		return false;
 
 	// get number of files in archive
@@ -101,19 +99,29 @@ bool arc_get_metadata(FILE *fp, struct arc_metadata *meta_out)
 		WARNING("fread: %s", strerror(errno));
 		return false;
 	}
-	if ((meta.nr_files = le_get32(nr_files_buf, 0)) > MAX_SANE_FILES) {
-		WARNING("archive file count is not sane: %u", meta.nr_files);
+	if ((meta->nr_files = le_get32(nr_files_buf, 0)) > MAX_SANE_FILES) {
+		WARNING("archive file count is not sane: %u", meta->nr_files);
 		return false;
 	}
+	return true;
+}
 
-	meta.index_off = 4;
+static bool arc_get_metadata(FILE *fp, struct arc_metadata *meta_out)
+{
+	struct arc_metadata meta = {
+		.index_off = 4,
+		.type = ARCHIVE_TYPE_ARC,
+	};
+
+	if (!arc_get_size_and_count(fp, &meta))
+		return false;
 
 	// check for game-specific cipher
 	switch (ai5_target_game) {
 	case GAME_DOUKYUUSEI2_DL:
 		meta.entry_size = 39;
 		meta.name_length = 31;
-		meta.type = ARCHIVE_TYPE_GAME_SPECIFIC;
+		meta.scheme = ARCHIVE_SCHEME_GAME_SPECIFIC;
 		*meta_out = meta;
 		return true;
 	default:
@@ -189,14 +197,23 @@ next:
 		return false;
 
 	meta.entry_size = meta.name_length + 8;
-	meta.type = ARCHIVE_TYPE_TYPICAL;
+	meta.scheme = ARCHIVE_SCHEME_TYPICAL;
 	*meta_out = meta;
 	return true;
 }
 
 static bool dat_get_metadata(FILE *fp, struct arc_metadata *meta_out)
 {
-	struct arc_metadata meta = {0};
+	struct arc_metadata meta = {
+		.index_off = 8,
+		.entry_size = 28,
+		.name_length = 20,
+		.offset_off = 4,
+		.size_off = 0,
+		.name_off = 8,
+		.scheme = ARCHIVE_SCHEME_TYPICAL,
+		.type = ARCHIVE_TYPE_DAT,
+	};
 
 	// get size of archive
 	if (!(meta.arc_size = get_file_size(fp)))
@@ -214,16 +231,45 @@ static bool dat_get_metadata(FILE *fp, struct arc_metadata *meta_out)
 		return false;
 	}
 
-	meta.index_off = 8;
 	meta.offset_key = key;
 	meta.size_key = key;
 	meta.name_key = buf[0x23];
-	meta.entry_size = 28;
-	meta.name_length = 20;
-	meta.offset_off = 4;
-	meta.size_off = 0;
-	meta.name_off = 8;
-	meta.type = ARCHIVE_TYPE_TYPICAL;
+	*meta_out = meta;
+	return true;
+}
+
+static bool awd_get_metadata(FILE *fp, struct arc_metadata *meta_out)
+{
+	struct arc_metadata meta = {
+		.index_off = 4,
+		.entry_size = 38,
+		.name_length = 16,
+		.name_off = 0,
+		.offset_off = 18,
+		.size_off = 22,
+		.scheme = ARCHIVE_SCHEME_TYPICAL,
+		.type = ARCHIVE_TYPE_AWD,
+	};
+	if (!arc_get_size_and_count(fp, &meta))
+		return false;
+	*meta_out = meta;
+	return true;
+}
+
+static bool awf_get_metadata(FILE *fp, struct arc_metadata *meta_out)
+{
+	struct arc_metadata meta = {
+		.index_off = 4,
+		.entry_size = 52,
+		.name_length = 32,
+		.name_off = 0,
+		.offset_off = 32,
+		.size_off = 36,
+		.scheme = ARCHIVE_SCHEME_TYPICAL,
+		.type = ARCHIVE_TYPE_AWF,
+	};
+	if (!arc_get_size_and_count(fp, &meta))
+		return false;
 	*meta_out = meta;
 	return true;
 }
@@ -374,7 +420,7 @@ static bool arc_read_index(FILE *fp, struct archive *arc)
 		return false;
 	}
 
-	if (arc->meta.type == ARCHIVE_TYPE_GAME_SPECIFIC) {
+	if (arc->meta.scheme == ARCHIVE_SCHEME_GAME_SPECIFIC) {
 		switch (ai5_target_game) {
 		case GAME_DOUKYUUSEI2_DL:
 			return read_index(fp, arc, doukyuusei_2_dl_read_entry);
@@ -401,17 +447,20 @@ struct archive *archive_open(const char *path, unsigned flags)
 		goto error;
 	}
 
+	bool meta_ok;
 	const char *ext = file_extension(path);
 	if (!strcasecmp(ext, "dat")) {
-		if (!dat_get_metadata(fp, &arc->meta)) {
-			WARNING("failed to read archive metadata");
-			goto error;
-		}
+		meta_ok = dat_get_metadata(fp, &arc->meta);
+	} else if (!strcasecmp(ext, "awd")) {
+		meta_ok = awd_get_metadata(fp, &arc->meta);
+	} else if (!strcasecmp(ext, "awf")) {
+		meta_ok = awf_get_metadata(fp, &arc->meta);
 	} else {
-		if (!arc_get_metadata(fp, &arc->meta)) {
-			WARNING("failed to read archive metadata");
-			goto error;
-		}
+		meta_ok = arc_get_metadata(fp, &arc->meta);
+	}
+	if (!meta_ok) {
+		WARNING("Failed to read archive metadata");
+		goto error;
 	}
 	if (!arc_read_index(fp, arc))
 		goto error;
@@ -496,27 +545,67 @@ bool archive_file_compressed(const char *name)
 	return false;
 }
 
+static uint8_t *pack_wav(uint8_t *data_in, size_t size_in, size_t *size_out, bool stereo)
+{
+	uint8_t *data = xmalloc(size_in + 44);
+	// master RIFF chunk
+	memcpy(data, "RIFF", 4);
+	le_put32(data, 4, size_in + 36);
+	memcpy(data + 8, "WAVE", 4);
+	// chunk describing the data format
+	memcpy(data + 12, "fmt ", 4);
+	le_put32(data, 16, 0x10);
+	le_put16(data, 20, 1); // format (PCM integer)
+	if (stereo) {
+		le_put16(data, 22, 2);      // channels
+		le_put32(data, 24, 44100);  // frequency
+		le_put32(data, 28, 176400); // bytes per second
+		le_put16(data, 32, 4);      // bytes per block
+	} else {
+		le_put16(data, 22, 1);     // channels
+		le_put32(data, 24, 44100); // frequency
+		le_put32(data, 28, 88200); // bytes per second
+		le_put16(data, 32, 2);     // bytes per block
+	}
+	le_put16(data, 34, 16); // bits per sample
+	// chunk containing the sampled data
+	memcpy(data + 36, "data", 4);
+	le_put32(data, 40, size_in);
+	memcpy(data + 44, data_in, size_in);
+	*size_out = size_in + 44;
+	return data;
+}
+
 /*
  * Decompress compressed file types.
  */
-static bool data_decompress(struct archive_data *data)
+static bool data_decompress(struct archive_data *file)
 {
-	if (!archive_file_compressed(data->name))
+	uint8_t *data;
+	size_t data_size;
+	if (file->archive->meta.type == ARCHIVE_TYPE_AWD
+			|| file->archive->meta.type == ARCHIVE_TYPE_AWF) {
+		// raw s16le PCM data: convert to WAV
+		bool stereo = file->archive->flags & ARCHIVE_STEREO;
+		data = pack_wav(file->data, file->raw_size, &data_size, stereo);
+	} else if (archive_file_compressed(file->name)) {
+		// LZSS compressed: decompress
+		data = lzss_decompress(file->data, file->raw_size, &data_size);
+	} else {
 		return true;
+	}
 
-	size_t decompressed_size;
-	uint8_t *tmp = lzss_decompress(data->data, data->raw_size, &decompressed_size);
-	if (!data->mapped)
-		free(data->data);
-	data->mapped = false;
-	if (!tmp) {
+	if (!file->mapped)
+		free(file->data);
+	file->mapped = false;
+	if (!data) {
 		WARNING("lzss_decompress failed");
-		data->data = NULL;
-		data->size = 0;
+		file->data = NULL;
+		file->size = 0;
 		return false;
 	}
-	data->data = tmp;
-	data->size = decompressed_size;
+	file->data = data;
+	file->size = data_size;
 	return true;
 }
 
