@@ -20,19 +20,20 @@
 #include "ai5/game.h"
 #include "ai5/mes.h"
 
-enum ai5_game_id ai5_target_game;
+enum ai5_game_id ai5_target_game = -1;
 
 struct ai5_game ai5_games[] = {
-	{ "aishimai",   GAME_AI_SHIMAI,    "愛姉妹 ～二人の果実～" },
-	{ "allstars",   GAME_ALLSTARS,     "エルフオールスターズ脱衣雀" },
-	{ "beyond",     GAME_BEYOND,       "ビ・ ヨンド ～黒大将に見られてる～" },
-	{ "doukyuusei", GAME_DOUKYUUSEI,   "同級生 Windows版" },
-	{ "isaku",      GAME_ISAKU,        "遺作 リニューアル" },
-	{ "koihime",    GAME_KOIHIME,      "恋姫" },
-	{ "shangrlia",  GAME_SHANGRLIA,    "" },
-	{ "shangrlia2", GAME_SHANGRLIA2,   "" },
-	{ "yukinojou",  GAME_YUKINOJOU,    "あしたの雪之丞" },
-	{ "yuno",       GAME_YUNO        , "この世の果てで恋を唄う少女YU-NO (エルフclassics)" },
+	{ "aishimai",       GAME_AI_SHIMAI,      "愛姉妹 ～二人の果実～" },
+	{ "allstars",       GAME_ALLSTARS,       "エルフオールスターズ脱衣雀" },
+	{ "beyond",         GAME_BEYOND,         "ビ・ ヨンド ～黒大将に見られてる～" },
+	{ "doukyuusei",     GAME_DOUKYUUSEI,     "同級生 Windows版" },
+	{ "doukyuusei2-dl", GAME_DOUKYUUSEI2_DL, "同級生２ ＤＬ版" },
+	{ "isaku",          GAME_ISAKU,          "遺作 リニューアル" },
+	{ "koihime",        GAME_KOIHIME,        "恋姫" },
+	{ "shangrlia",      GAME_SHANGRLIA,      "SHANGRLIA" },
+	{ "shangrlia2",     GAME_SHANGRLIA2,     "SHANGRLIA2" },
+	{ "yukinojou",      GAME_YUKINOJOU,      "あしたの雪之丞" },
+	{ "yuno",           GAME_YUNO,           "この世の果てで恋を唄う少女YU-NO (エルフclassics)" },
 };
 
 enum ai5_game_id ai5_parse_game_id(const char *str)
@@ -44,7 +45,7 @@ enum ai5_game_id ai5_parse_game_id(const char *str)
 	sys_warning("Unrecognized game name: %s\n", str);
 	sys_warning("Valid names are:\n");
 	for (unsigned i = 0; i < ARRAY_SIZE(ai5_games); i++) {
-		sys_warning("    %-11s - %s\n", ai5_games[i].name, ai5_games[i].description);
+		sys_warning("    %-14s - %s\n", ai5_games[i].name, ai5_games[i].description);
 	}
 	sys_exit(EXIT_FAILURE);
 }

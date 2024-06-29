@@ -44,39 +44,6 @@
 
 define_hashtable_string(arcindex, int);
 
-static bool read_u32(FILE *fp, uint32_t *out)
-{
-	uint8_t buf[4];
-	if (fread(buf, 4, 1, fp) != 1) {
-		WARNING("fread: %s", strerror(errno));
-		return false;
-	}
-	*out = le_get32(buf, 0);
-	return true;
-}
-
-static bool read_u32_at(FILE *fp, off_t offset, uint32_t *out)
-{
-	if (fseek(fp, offset, SEEK_SET)) {
-		WARNING("fseek: %s", strerror(errno));
-		return false;
-	}
-	return read_u32(fp, out);
-}
-
-static bool read_u8_at(FILE *fp, off_t offset, uint8_t *out)
-{
-	if (fseek(fp, offset, SEEK_SET)) {
-		WARNING("fseek: %s", strerror(errno));
-		return false;
-	}
-	if (fread(out, 1, 1, fp) != 1) {
-		WARNING("fread: %s", strerror(errno));
-		return false;
-	}
-	return true;
-}
-
 static off_t get_file_size(FILE *fp)
 {
 	// get size of archive
@@ -92,7 +59,35 @@ static off_t get_file_size(FILE *fp)
 	return r;
 }
 
-static bool arc_get_metadata(FILE *fp, struct arc_metadata *meta_out)
+static bool get_offset_and_size_key(
+		uint32_t off_enc, uint32_t off_next_enc, uint32_t off_next2_enc,
+		uint32_t size_enc, uint32_t size_next_enc, uint32_t size_next2_enc,
+		uint32_t off_guess, struct arc_metadata *meta)
+{
+	uint32_t off_key = off_enc ^ off_guess;
+	uint32_t off_next = off_next_enc ^ off_key;
+	if (off_next <= off_guess)
+		return false;
+
+	uint32_t size_guess = off_next - off_guess;
+	uint32_t size_key = size_enc ^ size_guess;
+	uint32_t size_next = size_next_enc ^ size_key;
+	if (off_guess + size_guess >= meta->arc_size || off_next + size_next >= meta->arc_size)
+		return false;
+
+	uint32_t off_next2 = off_next2_enc ^ off_key;
+	uint32_t size_next2 = size_next2_enc ^ size_key;
+	if (off_next + size_next != off_next2)
+		return false;
+	if (off_next2 + size_next2 >= meta->arc_size)
+		return false;
+
+	meta->offset_key = off_key;
+	meta->size_key = size_key;
+	return true;
+}
+
+bool arc_get_metadata(FILE *fp, struct arc_metadata *meta_out)
 {
 	struct arc_metadata meta = {0};
 
@@ -100,40 +95,101 @@ static bool arc_get_metadata(FILE *fp, struct arc_metadata *meta_out)
 	if (!(meta.arc_size = get_file_size(fp)))
 		return false;
 
-	if (!read_u32(fp, &meta.nr_files))
+	// get number of files in archive
+	uint8_t nr_files_buf[4];
+	if (fread(nr_files_buf, 4, 1, fp) != 1) {
+		WARNING("fread: %s", strerror(errno));
 		return false;
-	if (meta.nr_files > MAX_SANE_FILES) {
+	}
+	if ((meta.nr_files = le_get32(nr_files_buf, 0)) > MAX_SANE_FILES) {
 		WARNING("archive file count is not sane: %u", meta.nr_files);
 		return false;
 	}
 
-	const unsigned name_lengths[] = { 0x14, 0x1e, 0x20, 0x100 };
+	meta.index_off = 4;
+
+	// check for game-specific cipher
+	switch (ai5_target_game) {
+	case GAME_DOUKYUUSEI2_DL:
+		meta.entry_size = 39;
+		meta.name_length = 31;
+		meta.type = ARCHIVE_TYPE_GAME_SPECIFIC;
+		*meta_out = meta;
+		return true;
+	default:
+		break;
+	}
+
+	// read (at least) 3 entries
+	uint8_t entry[0x318];
+	if (fread(entry, 0x318, 1, fp) != 1) {
+		WARNING("fread: %s", strerror(errno));
+		return false;
+	}
+
+	// Most games use an XOR cipher where the name is XOR'd with an 8-bit
+	// key and the offset and size are XOR'd with 32-bit keys.
+	//
+	// We can trivially determine the name key if we know the length of the
+	// name field, since names are null-terminated.
+	//
+	// We know what the first offset should be (nr_files * entry_size),
+	// which allows us to determine the offset key.
+	//
+	// Once we have the offset key, we can get the first size by taking the
+	// difference of the first and second offsets, which allows us to
+	// determine the size key.
+	//
+	// Some games have the offset and size fields reversed, so we have to
+	// check both orders, and do a sanity-check against the third entry
+	// since the reversed order can generate false-positives.
+	const unsigned name_lengths[] = { 0x10, 0x14, 0x1e, 0x20, 0x100 };
 	for (int i = 0; i < ARRAY_SIZE(name_lengths); i++) {
-		uint32_t first_size, first_offset, second_offset;
-		if (!read_u8_at(fp, 3 + name_lengths[i], &meta.name_key))
-			return false;
-		if (!read_u32_at(fp, 4 + name_lengths[i], &first_size))
-			return false;
-		if (!read_u32_at(fp, 8 + name_lengths[i], &first_offset))
-			return false;
-		if (!read_u32_at(fp, (off_t)(8 + name_lengths[i]) * 2, &second_offset))
-			return false;
+		const unsigned len = name_lengths[i];
+		uint8_t name_key = entry[len - 1];
 
-		uint32_t data_offset = (name_lengths[i] + 8) * meta.nr_files + 4;
-		meta.offset_key = data_offset ^ first_offset;
-		second_offset ^= meta.offset_key;
-		if (second_offset < data_offset || second_offset >= meta.arc_size)
-			continue;
+		// check that name is valid with key
+		for (int i = 0; i < len && entry[i] != name_key; i++) {
+			if (!isprint(entry[i] ^ name_key))
+				goto next;
+		}
 
-		meta.size_key = (second_offset - data_offset) ^ first_size;
-		if (meta.offset_key && meta.size_key) {
-			meta.name_length = name_lengths[i];
+		uint8_t *entry2 = entry + len + 8;
+		uint8_t *entry3 = entry + (len + 8) * 2;
+
+		uint32_t fst_a = le_get32(entry, len);
+		uint32_t fst_b = le_get32(entry, len + 4);
+		uint32_t snd_a = le_get32(entry2, len);
+		uint32_t snd_b = le_get32(entry2, len + 4);
+		uint32_t thd_a = le_get32(entry3, len);
+		uint32_t thd_b = le_get32(entry3, len + 4);
+		uint32_t off_guess = 4 + meta.nr_files * (len + 8);
+
+		// name / size / offset
+		if (get_offset_and_size_key(fst_b, snd_b, thd_b, fst_a, snd_a, thd_a, off_guess, &meta)) {
+			meta.name_length = len;
+			meta.name_key = name_key;
+			meta.offset_off = len + 4;
+			meta.size_off = len;
+			meta.name_off = 0;
 			break;
 		}
+		// name / offset / size
+		if (get_offset_and_size_key(fst_a, snd_a, thd_a, fst_b, snd_b, thd_b, off_guess, &meta)) {
+			meta.name_length = len;
+			meta.name_key = name_key;
+			meta.offset_off = len;
+			meta.size_off = len + 4;
+			meta.name_off = 0;
+			break;
+		}
+next:
 	}
 	if (!meta.name_length)
 		return false;
 
+	meta.entry_size = meta.name_length + 8;
+	meta.type = ARCHIVE_TYPE_TYPICAL;
 	*meta_out = meta;
 	return true;
 }
@@ -146,73 +202,34 @@ static bool dat_get_metadata(FILE *fp, struct arc_metadata *meta_out)
 	if (!(meta.arc_size = get_file_size(fp)))
 		return false;
 
-	uint32_t key;
-	if (!read_u32_at(fp, 4, &key))
-		return false;
-	meta.offset_key = key;
-	meta.size_key = key;
-
-	if (!read_u32_at(fp, 0, &meta.nr_files))
-		return false;
-	meta.nr_files ^= key;
-	if (meta.nr_files > MAX_SANE_FILES) {
-		WARNING("archive file count is not sane: %u", meta.nr_files);
-		return false;
-	}
-	if (!read_u8_at(fp, 0x23, &meta.name_key))
-		return false;
-
-	meta.name_length = 20;
-	*meta_out = meta;
-	return true;
-}
-
-static bool read_index(FILE *fp, struct archive *arc, unsigned size_off, unsigned offset_off,
-		unsigned name_off)
-{
-	const struct arc_metadata *meta = &arc->meta;
-	const size_t buf_len = (size_t)meta->nr_files * (meta->name_length + 8);
-	size_t buf_pos = 0;
-	uint8_t *buf = xmalloc(buf_len);
-	if (fread(buf, buf_len, 1, fp) != 1) {
+	uint8_t buf[0x24];
+	if (fread(buf, 0x24, 1, fp) != 1) {
 		WARNING("fread: %s", strerror(errno));
 		return false;
 	}
 
-	// read file entries
-	vector_init(arc->files);
-	vector_resize(struct archive_data, arc->files, meta->nr_files);
-	for (int i = 0; i < meta->nr_files; i++) {
-		// decode file name
-		for (int j = 0; j < meta->name_length; j++) {
-			buf[buf_pos + name_off + j] ^= meta->name_key;
-			if (buf[buf_pos + name_off + j] == 0)
-				break;
-		}
-		buf[buf_pos + name_off + (meta->name_length - 1)] = 0;
-
-		uint32_t offset = le_get32(buf, buf_pos + offset_off) ^ meta->offset_key;
-		uint32_t raw_size = le_get32(buf, buf_pos + size_off) ^ meta->size_key;
-		string name = sjis_cstring_to_utf8((char*)buf + buf_pos + name_off, 0);
-		if (offset + raw_size > meta->arc_size) {
-			ERROR("%s @ %u + %u extends beyond EOF (%u)", name, offset, raw_size,
-					(unsigned)meta->arc_size);
-		}
-
-		// store entry
-		vector_A(arc->files, i) = (struct archive_data) {
-			.offset = offset,
-			.raw_size = raw_size,
-			.name = name,
-			.data = NULL,
-			.ref = 0,
-			.archive = arc
-		};
-		buf_pos += meta->name_length + 8;
+	uint32_t key = le_get32(buf, 4);
+	if ((meta.nr_files = le_get32(buf, 0) ^ key) > MAX_SANE_FILES) {
+		WARNING("archive file count is not sane: %u", meta.nr_files);
+		return false;
 	}
-	free(buf);
 
-	// create index
+	meta.index_off = 8;
+	meta.offset_key = key;
+	meta.size_key = key;
+	meta.name_key = buf[0x23];
+	meta.entry_size = 28;
+	meta.name_length = 20;
+	meta.offset_off = 4;
+	meta.size_off = 0;
+	meta.name_off = 8;
+	meta.type = ARCHIVE_TYPE_TYPICAL;
+	*meta_out = meta;
+	return true;
+}
+
+static void create_index(struct archive *arc)
+{
 	for (int i = 0; i < vector_length(arc->files); i++) {
 		// upcase filename
 		char *name = vector_A(arc->files, i).name;
@@ -230,26 +247,144 @@ static bool read_index(FILE *fp, struct archive *arc, unsigned size_off, unsigne
 		}
 		hashtable_val(&arc->index, k) = i;
 	}
+}
 
+static bool read_index(FILE *fp, struct archive *arc,
+		bool(*read_entry)(struct archive*,struct archive_data*,uint8_t*))
+{
+	const size_t buf_len = arc->meta.nr_files * arc->meta.entry_size;
+	size_t buf_pos = 0;
+	uint8_t *buf = xmalloc(buf_len);
+	if (fread(buf, buf_len, 1, fp) != 1) {
+		WARNING("fread: %s", strerror(errno));
+		free(buf);
+		return false;
+	}
+
+	// read file entries
+	vector_init(arc->files);
+	vector_resize(struct archive_data, arc->files, arc->meta.nr_files);
+	for (int i = 0; i < arc->meta.nr_files; i++, buf_pos += arc->meta.entry_size) {
+		struct archive_data *file = &vector_A(arc->files, i);
+		*file = (struct archive_data){0};
+		if (!read_entry(arc, file, buf + buf_pos))
+			ERROR("Failed to read archive entry %d", i);
+		file->archive = arc;
+	}
+
+	free(buf);
+	create_index(arc);
+	return true;
+}
+
+static bool typical_read_entry(struct archive *arc, struct archive_data *file, uint8_t *buf)
+{
+	const struct arc_metadata *meta = &arc->meta;
+
+	// decode file name
+	if (meta->name_key) {
+		for (int j = 0; j < meta->name_length; j++) {
+			buf[meta->name_off + j] ^= meta->name_key;
+			if (buf[meta->name_off + j] == 0)
+				break;
+		}
+		buf[meta->name_off + (meta->name_length - 1)] = 0;
+	}
+
+	file->offset = le_get32(buf, meta->offset_off) ^ meta->offset_key;
+	file->raw_size = le_get32(buf, meta->size_off) ^ meta->size_key;
+	file->name = sjis_cstring_to_utf8((char*)buf + meta->name_off, 0);
+
+	if (file->offset + file->raw_size > meta->arc_size) {
+		WARNING("%s @ %x + %x extends beyond eof (%x)", file->name, file->offset,
+				file->raw_size, (unsigned)meta->arc_size);
+		string_free(file->name);
+		return false;
+	}
+
+	return true;
+}
+
+static uint8_t doukyuusei_2_dl_sbox[256] = {
+	// 0
+	0x63, 0x93,  0xB, 0xCD, 0x51, 0x8A, 0x60, 0xC5,
+	0xB0, 0xF0, 0x26, 0xF6, 0xA5, 0x3D, 0x34, 0x9E,
+	0x84, 0xFB, 0x1D, 0xDA, 0x62, 0xD1, 0xDC, 0xE1,
+	0x24, 0x7C, 0xA3, 0x95, 0x48, 0xA1, 0x3B, 0xD9,
+	// 32
+	0x41, 0x1C, 0xEA, 0x90, 0xA9, 0xCE,  0x1, 0xF1,
+	0x45, 0xFF, 0x92, 0x1F, 0x61, 0x50, 0x2F, 0xF5,
+	0x8C, 0x85, 0x87, 0x71, 0x66, 0x8E, 0x17, 0x59,
+	0x9C, 0x91, 0x79, 0xEB, 0xF2, 0x68, 0x69, 0x7F,
+	// 64
+	0x52, 0x42, 0xB7, 0xED, 0x4F, 0x14, 0x35, 0x94,
+	0xAD, 0x4B, 0xCA, 0x4C, 0xA2, 0xD3, 0xD5,  0x9,
+	0x64, 0x19, 0x5D, 0x27, 0x76, 0x31, 0x22, 0xD4,
+	0xBB, 0xA6,  0xF,  0xD, 0x56, 0xDD, 0x80, 0x13,
+	// 96
+	0xBF, 0x72, 0x5B, 0xA4, 0x70, 0xF3, 0x4E, 0x53,
+	0xB9, 0xC0, 0x5C, 0xFE, 0x55, 0xA8, 0xE3,  0x7,
+	0xE,   0x0, 0x7E, 0xEF, 0x44, 0x20, 0x9F, 0xBE,
+	0x3C,  0xA, 0x2E, 0xC7, 0x28, 0xB8, 0xE0, 0x33,
+	// 128
+	0x3E, 0xD8, 0x7D, 0x32, 0x11, 0x6F, 0xB2, 0x67,
+	0x2C, 0x40, 0x1A, 0xE6, 0x8F, 0xB6, 0x49, 0x1B,
+	0x46, 0x6C, 0xE2, 0xDB, 0x75, 0x77, 0x6E, 0x2D,
+	0x89, 0xE8, 0x96, 0xA7, 0x97, 0x99, 0xE9, 0x47,
+	// 160
+	0x81, 0xD6, 0xFA, 0x36, 0xC3, 0xDE, 0x6D, 0xE4,
+	0x5E, 0x58,  0x2, 0xE5, 0x18, 0xCF, 0xCC, 0x65,
+	0xAB,  0x4, 0xF7, 0x54, 0x78, 0x30, 0x5A, 0xB3,
+	0xA0,  0xC,  0x6, 0xD0, 0xFC, 0xC6,  0x3, 0xD7,
+	// 192
+	0x74, 0x3A, 0xBD, 0xB5, 0xC8, 0xB1, 0x6B, 0x6A,
+	0x2B, 0x43, 0xC1, 0x8D, 0x12, 0x15, 0x8B, 0x88,
+	0xC4, 0xBA, 0xCB, 0xDF, 0x3F, 0x38, 0x73, 0xF4,
+	0x98, 0x23, 0x9D, 0x10, 0xD2, 0xAF, 0xEC, 0x7B,
+	// 224
+	0x1E, 0xF8, 0xB4, 0xC2, 0xF9, 0x82, 0x29, 0xEE,
+	0x9B, 0x2A, 0x5F, 0xBC, 0x4D, 0x16, 0xFD, 0x9A,
+	0x4A, 0xC9, 0xE7, 0x57, 0x21, 0x83,  0x5, 0x25,
+	0xAE, 0x39, 0x7A,  0x8, 0xAC, 0x86, 0x37, 0xAA
+};
+
+static bool doukyuusei_2_dl_read_entry(struct archive *arc, struct archive_data *file,
+		uint8_t *entry)
+{
+	// decode entry
+	for (int i = 0; i < 39; i++) {
+		uint8_t sbox_i = (uint8_t)41 - entry[i];
+		entry[i] = doukyuusei_2_dl_sbox[sbox_i];
+	}
+	if (entry[38]) {
+		WARNING("name is not null-terminated");
+		return false;
+	}
+
+	file->offset = le_get32(entry, 0);
+	file->raw_size = le_get32(entry, 4);
+	file->name = sjis_cstring_to_utf8((char*)entry + 8, 0);
 	return true;
 }
 
 static bool arc_read_index(FILE *fp, struct archive *arc)
 {
-	if (fseek(fp, 4, SEEK_SET)) {
+	if (fseek(fp, arc->meta.index_off, SEEK_SET)) {
 		WARNING("fseek: %s", strerror(errno));
 		return false;
 	}
-	return read_index(fp, arc, arc->meta.name_length, arc->meta.name_length + 4, 0);
-}
 
-static bool dat_read_index(FILE *fp, struct archive *arc)
-{
-	if (fseek(fp, 8, SEEK_SET)) {
-		WARNING("fseek: %s", strerror(errno));
-		return false;
+	if (arc->meta.type == ARCHIVE_TYPE_GAME_SPECIFIC) {
+		switch (ai5_target_game) {
+		case GAME_DOUKYUUSEI2_DL:
+			return read_index(fp, arc, doukyuusei_2_dl_read_entry);
+		default:
+			WARNING("Game-specific archive type but no game specified");
+			return false;
+		}
 	}
-	return read_index(fp, arc, 0, 4, 8);
+
+	return read_index(fp, arc, typical_read_entry);
 }
 
 struct archive *archive_open(const char *path, unsigned flags)
@@ -266,12 +401,10 @@ struct archive *archive_open(const char *path, unsigned flags)
 		goto error;
 	}
 
-	if (!strcasecmp(file_extension(path), "dat")) {
+	const char *ext = file_extension(path);
+	if (!strcasecmp(ext, "dat")) {
 		if (!dat_get_metadata(fp, &arc->meta)) {
 			WARNING("failed to read archive metadata");
-			goto error;
-		}
-		if (!dat_read_index(fp, arc)) {
 			goto error;
 		}
 	} else {
@@ -279,10 +412,9 @@ struct archive *archive_open(const char *path, unsigned flags)
 			WARNING("failed to read archive metadata");
 			goto error;
 		}
-		if (!arc_read_index(fp, arc)) {
-			goto error;
-		}
 	}
+	if (!arc_read_index(fp, arc))
+		goto error;
 
 	// store either mmap ptr/size or FILE* depending on flags
 	if (flags & ARCHIVE_MMAP) {

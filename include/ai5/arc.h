@@ -33,13 +33,29 @@ enum {
 	ARCHIVE_RAW  = 2, // skip decompression when loading files
 };
 
+enum archive_type {
+	// archive index is encrypted with XOR cipher
+	ARCHIVE_TYPE_TYPICAL,
+	// archive index is encrypted with game-specific cipher
+	ARCHIVE_TYPE_GAME_SPECIFIC,
+};
+
 struct arc_metadata {
 	off_t arc_size;
 	uint32_t nr_files;
+	unsigned index_off;
+	unsigned entry_size;
 	unsigned name_length;
+
 	uint32_t offset_key;
 	uint32_t size_key;
 	uint8_t name_key;
+
+	unsigned offset_off;
+	unsigned size_off;
+	unsigned name_off;
+
+	enum archive_type type;
 };
 
 struct archive {
