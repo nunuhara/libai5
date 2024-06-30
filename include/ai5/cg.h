@@ -28,6 +28,7 @@ enum cg_type {
 	CG_TYPE_G16,
 	CG_TYPE_G24,
 	CG_TYPE_G32,
+	CG_TYPE_GCC,
 	CG_TYPE_PNG,
 	//CG_TYPE_BMP,
 };
