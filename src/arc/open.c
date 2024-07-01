@@ -151,7 +151,7 @@ static bool arc_get_metadata(FILE *fp, struct arc_metadata *meta_out)
 	// Some games have the offset and size fields reversed, so we have to
 	// check both orders, and do a sanity-check against the third entry
 	// since the reversed order can generate false-positives.
-	const unsigned name_lengths[] = { 0x10, 0x14, 0x1e, 0x20, 0x100 };
+	const unsigned name_lengths[] = { 0xc, 0x10, 0x14, 0x1e, 0x20, 0x100 };
 	for (int i = 0; i < ARRAY_SIZE(name_lengths); i++) {
 		const unsigned len = name_lengths[i];
 		uint8_t name_key = entry[len - 1];
@@ -327,19 +327,20 @@ static bool typical_read_entry(struct archive *arc, struct archive_data *file, u
 {
 	const struct arc_metadata *meta = &arc->meta;
 
+	int name_len;
+	uint8_t *name = buf + meta->name_off;
+
 	// decode file name
-	if (meta->name_key) {
-		for (int j = 0; j < meta->name_length; j++) {
-			buf[meta->name_off + j] ^= meta->name_key;
-			if (buf[meta->name_off + j] == 0)
-				break;
-		}
-		buf[meta->name_off + (meta->name_length - 1)] = 0;
+	for (name_len = 0; name_len < meta->name_length; name_len++) {
+		name[name_len] ^= meta->name_key;
+		if (name[name_len] == 0)
+			break;
 	}
 
 	file->offset = le_get32(buf, meta->offset_off) ^ meta->offset_key;
 	file->raw_size = le_get32(buf, meta->size_off) ^ meta->size_key;
-	file->name = sjis_cstring_to_utf8((char*)buf + meta->name_off, 0);
+	// XXX: name is not necessarily null-terminated (happens in Kawa95)
+	file->name = string_new_len(name, name_len);
 
 	if (file->offset + file->raw_size > meta->arc_size) {
 		WARNING("%s @ %x + %x extends beyond eof (%x)", file->name, file->offset,
