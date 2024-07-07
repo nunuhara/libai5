@@ -23,6 +23,7 @@
 
 #include "nulib.h"
 #include "nulib/hashtable.h"
+#include "nulib/queue.h"
 #include "nulib/string.h"
 #include "nulib/vector.h"
 
@@ -32,6 +33,7 @@ enum {
 	ARCHIVE_MMAP = 1,   // map archive in memory
 	ARCHIVE_RAW  = 2,   // skip decompression when loading files
 	ARCHIVE_STEREO = 4, // raw PCM is stereo (AWD/AWF archives)
+	ARCHIVE_CACHE = 8,  // cache loaded files
 };
 
 enum archive_scheme {
@@ -69,6 +71,9 @@ struct arc_metadata {
 
 struct archive {
 	hashtable_t(arcindex) index;
+	TAILQ_HEAD(cache_head, archive_data) cache;
+	unsigned nr_cached;
+	unsigned cache_size;
 	vector_t(struct archive_data) files;
 	struct arc_metadata meta;
 	unsigned flags;
@@ -83,6 +88,7 @@ struct archive {
 };
 
 struct archive_data {
+	TAILQ_ENTRY(archive_data) entry;
 	uint32_t offset;
 	uint32_t raw_size; // size of file in archive
 	uint32_t size;     // size of data in `data` (uncompressed)
@@ -91,7 +97,8 @@ struct archive_data {
 	unsigned int ref : 16;      // reference count
 	unsigned int mapped : 1;    // true if `data` is a pointer into mmapped region
 	unsigned int allocated : 1; // true if archive_data object needs to be freed
-	unsigned int reserved : 14; // reserved for future flags
+	unsigned int cached : 1;
+	unsigned int reserved : 13; // reserved for future flags
 	struct archive *archive;
 };
 

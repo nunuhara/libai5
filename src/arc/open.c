@@ -41,6 +41,7 @@
 #include "ai5/game.h"
 
 #define MAX_SANE_FILES 100000
+#define DEFAULT_CACHE_SIZE 16
 
 define_hashtable_string(arcindex, int);
 
@@ -441,6 +442,9 @@ struct archive *archive_open(const char *path, unsigned flags)
 #endif
 	FILE *fp = NULL;
 	struct archive *arc = xcalloc(1, sizeof(struct archive));
+	TAILQ_INIT(&arc->cache);
+	if (flags & ARCHIVE_CACHE)
+		arc->cache_size = DEFAULT_CACHE_SIZE;
 
 	// open archive file
 	if (!(fp = file_open_utf8(path, "rb"))) {
@@ -610,13 +614,65 @@ static bool data_decompress(struct archive_data *file)
 	return true;
 }
 
+void archive_set_cache_size(struct archive *arc, unsigned cache_size)
+{
+	if (cache_size)
+		arc->flags |= ARCHIVE_CACHE;
+	else
+		arc->flags &= ~ARCHIVE_CACHE;
+
+	arc->cache_size = cache_size;
+	while (arc->nr_cached > cache_size) {
+		struct archive_data *evicted = TAILQ_LAST(&arc->cache, cache_head);
+		TAILQ_REMOVE(&arc->cache, evicted, entry);
+		evicted->cached = 0;
+		archive_data_release(evicted);
+		arc->nr_cached--;
+	}
+}
+
+static void archive_cache_add(struct archive_data *data)
+{
+	struct archive *arc = data->archive;
+	if (!arc || !(arc->flags & ARCHIVE_CACHE))
+		return;
+
+	// already cached: move to font
+	if (data->cached) {
+		assert(data->ref);
+		if (data != TAILQ_FIRST(&arc->cache)) {
+			TAILQ_REMOVE(&arc->cache, data, entry);
+			TAILQ_INSERT_HEAD(&arc->cache, data, entry);
+		}
+		return;
+	}
+
+	// evict least recently used file
+	if (arc->nr_cached == arc->cache_size) {
+		struct archive_data *evicted = TAILQ_LAST(&arc->cache, cache_head);
+		TAILQ_REMOVE(&arc->cache, evicted, entry);
+		evicted->cached = 0;
+		archive_data_release(evicted);
+	} else {
+		arc->nr_cached++;
+	}
+
+	// add to front of cache
+	TAILQ_INSERT_HEAD(&arc->cache, data, entry);
+	data->cached = 1;
+	data->ref++;
+}
+
 bool archive_data_load(struct archive_data *data)
 {
 	// data already loaded by another caller
 	if (data->ref) {
+		archive_cache_add(data);
 		data->ref++;
 		return true;
 	}
+	assert(!data->cached);
+	archive_cache_add(data);
 
 	assert(!data->data);
 
@@ -642,7 +698,7 @@ bool archive_data_load(struct archive_data *data)
 	if (!(data->archive->flags & ARCHIVE_RAW) && !data_decompress(data))
 		return false;
 
-	data->ref = 1;
+	data->ref++;
 	return true;
 }
 
