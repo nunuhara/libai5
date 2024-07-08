@@ -161,7 +161,7 @@ struct cg *gxx_decode(uint8_t *data, size_t size, unsigned bpp)
 	cg->metrics.bpp = bpp;
 	cg->metrics.has_alpha = false;
 
-	size_t px_size;
+	size_t px_size = cg->metrics.w * cg->metrics.h * (bpp / 8);
 	uint8_t *px_data = lzss_decompress(data+8, size-8, &px_size);
 
 	if (bpp == 16)

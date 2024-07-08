@@ -31,7 +31,7 @@ struct cg *gcc_decode(uint8_t *data, size_t size);
 bool gxx_write(struct cg *cg, FILE *out, unsigned bpp);
 bool png_write(struct cg *cg, FILE *out);
 
-struct cg *cg_load(uint8_t *data, size_t size, enum cg_type type)
+static struct cg *_cg_load(uint8_t *data, size_t size, enum cg_type type)
 {
 	switch (type) {
 	case CG_TYPE_GP4: return gp4_decode(data, size);
@@ -43,6 +43,14 @@ struct cg *cg_load(uint8_t *data, size_t size, enum cg_type type)
 	case CG_TYPE_PNG: return png_decode(data, size);
 	}
 	ERROR("invalid CG type: %d", type);
+}
+
+struct cg *cg_load(uint8_t *data, size_t size, enum cg_type type)
+{
+	struct cg *cg = _cg_load(data, size, type);
+	if (cg)
+		cg->ref = 1;
+	return cg;
 }
 
 enum cg_type cg_type_from_name(const char *name)
@@ -81,6 +89,7 @@ struct cg *cg_copy(struct cg *cg)
 		copy->pixels = xmalloc(cg->metrics.w * cg->metrics.h * 4);
 		memcpy(copy->pixels, cg->pixels, cg->metrics.w * cg->metrics.h * 4);
 	}
+	copy->ref = 1;
 	return copy;
 }
 
@@ -115,6 +124,7 @@ struct cg *cg_depalettize_copy(struct cg *cg)
 {
 	struct cg *copy = xmalloc(sizeof(struct cg));
 	*copy = *cg;
+	copy->ref = 1;
 
 	copy->pixels = _cg_depalettize(cg);
 	copy->palette = NULL;
@@ -151,7 +161,11 @@ void cg_free(struct cg *cg)
 {
 	if (!cg)
 		return;
-	free(cg->pixels);
-	free(cg->palette);
-	free(cg);
+	if (cg->ref == 0)
+		ERROR("double-free of CG");
+	if (--cg->ref == 0) {
+		free(cg->pixels);
+		free(cg->palette);
+		free(cg);
+	}
 }

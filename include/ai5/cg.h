@@ -49,6 +49,7 @@ struct cg {
 	//      RGBA.
 	uint8_t *pixels;
 	uint8_t *palette;
+	unsigned ref;
 };
 
 enum cg_type cg_type_from_name(const char *name);
