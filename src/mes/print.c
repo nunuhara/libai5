@@ -77,18 +77,18 @@ static bool binary_parens_required(enum mes_expression_op op, struct mes_express
 
 	switch (op) {
 	case MES_EXPR_IMM:
-	case MES_EXPR_VAR:
-	case MES_EXPR_ARRAY16_GET16:
-	case MES_EXPR_ARRAY16_GET8:
+	case MES_EXPR_GET_VAR16:
+	case MES_EXPR_PTR16_GET16:
+	case MES_EXPR_PTR16_GET8:
 	case MES_EXPR_RAND:
 	case MES_EXPR_IMM16:
 	case MES_EXPR_IMM32:
-	case MES_EXPR_REG16:
-	case MES_EXPR_REG8:
-	case MES_EXPR_ARRAY32_GET32:
-	case MES_EXPR_ARRAY32_GET16:
-	case MES_EXPR_ARRAY32_GET8:
-	case MES_EXPR_VAR32:
+	case MES_EXPR_GET_FLAG_CONST:
+	case MES_EXPR_GET_FLAG_EXPR:
+	case MES_EXPR_PTR32_GET32:
+	case MES_EXPR_PTR32_GET16:
+	case MES_EXPR_PTR32_GET8:
+	case MES_EXPR_GET_VAR32:
 case MES_EXPR_END:
 		ERROR("invalid binary operator: %d", op);
 	case MES_EXPR_MUL:
@@ -248,13 +248,13 @@ static void _mes_expression_print(struct mes_expression *expr, struct port *out,
 	case MES_EXPR_IMM:
 		print_number(expr->arg8, out, bitwise);
 		break;
-	case MES_EXPR_VAR:
+	case MES_EXPR_GET_VAR16:
 		port_printf(out, "var16[%u]", (unsigned)expr->arg8);
 		break;
-	case MES_EXPR_ARRAY16_GET16:
+	case MES_EXPR_PTR16_GET16:
 		op_array16_get16_print(expr, out);
 		break;
-	case MES_EXPR_ARRAY16_GET8:
+	case MES_EXPR_PTR16_GET8:
 		port_printf(out, "var16[%d]->byte[", (int)expr->arg8);
 		mes_expression_print(expr->sub_a, out);
 		port_putc(out, ']');
@@ -295,28 +295,28 @@ static void _mes_expression_print(struct mes_expression *expr, struct port *out,
 	case MES_EXPR_IMM32:
 		print_number(expr->arg32, out, bitwise);
 		break;
-	case MES_EXPR_REG16:
+	case MES_EXPR_GET_FLAG_CONST:
 		port_printf(out, "var4[%u]", (unsigned)expr->arg16);
 		break;
-	case MES_EXPR_REG8:
+	case MES_EXPR_GET_FLAG_EXPR:
 		port_puts(out, "var4[");
 		mes_expression_print(expr->sub_a, out);
 		port_putc(out, ']');
 		break;
-	case MES_EXPR_ARRAY32_GET32:
+	case MES_EXPR_PTR32_GET32:
 		op_array32_get32_print(expr, out);
 		break;
-	case MES_EXPR_ARRAY32_GET16:
+	case MES_EXPR_PTR32_GET16:
 		port_printf(out, "var32[%d]->word[", (int)expr->arg8 - 1);
 		mes_expression_print(expr->sub_a, out);
 		port_putc(out, ']');
 		break;
-	case MES_EXPR_ARRAY32_GET8:
+	case MES_EXPR_PTR32_GET8:
 		port_printf(out, "var32[%d]->byte[", (int)expr->arg8 - 1);
 		mes_expression_print(expr->sub_a, out);
 		port_putc(out, ']');
 		break;
-	case MES_EXPR_VAR32:
+	case MES_EXPR_GET_VAR32:
 		port_printf(out, "var32[%d]", (int)expr->arg8);
 		break;
 	case MES_EXPR_END:
@@ -392,62 +392,62 @@ static void mes_asm_statement_print(struct mes_statement *stmt, struct port *out
 	case MES_STMT_END:
 		port_puts(out, "END;\n");
 		break;
-	case MES_STMT_TXT:
-		port_printf(out, "TXT \"%s\";\n", stmt->TXT.text);
+	case MES_STMT_ZENKAKU:
+		port_printf(out, "ZENKAKU \"%s\";\n", stmt->TXT.text);
 		break;
-	case MES_STMT_STR:
-		port_printf(out, "STR \"%s\";\n", stmt->TXT.text);
+	case MES_STMT_HANKAKU:
+		port_printf(out, "HANKAKU \"%s\";\n", stmt->TXT.text);
 		break;
-	case MES_STMT_SETRBC:
-		port_printf(out, "SETRBC[%u] = ", (unsigned)stmt->SETRBC.reg_no);
-		mes_expression_list_print(stmt->SETRBC.exprs, out);
+	case MES_STMT_SET_FLAG_CONST:
+		port_printf(out, "SET_FLAG_CONST[%u] = ", (unsigned)stmt->SET_VAR_CONST.var_no);
+		mes_expression_list_print(stmt->SET_VAR_CONST.val_exprs, out);
 		port_puts(out, ";\n");
 		break;
-	case MES_STMT_SETV:
-		port_printf(out, "SETV[%u] = ", (unsigned)stmt->SETV.var_no);
-		mes_expression_list_print(stmt->SETV.exprs, out);
+	case MES_STMT_SET_VAR16:
+		port_printf(out, "SET_VAR16[%u] = ", (unsigned)stmt->SET_VAR_CONST.var_no);
+		mes_expression_list_print(stmt->SET_VAR_CONST.val_exprs, out);
 		port_puts(out, ";\n");
 		break;
-	case MES_STMT_SETRBE:
-		port_puts(out, "SETRBE[");
-		mes_expression_print(stmt->SETRBE.reg_expr, out);
+	case MES_STMT_SET_FLAG_EXPR:
+		port_puts(out, "SET_FLAG_EXPR[");
+		mes_expression_print(stmt->SET_VAR_EXPR.var_expr, out);
 		port_puts(out, "] = ");
-		mes_expression_list_print(stmt->SETRBE.val_exprs, out);
+		mes_expression_list_print(stmt->SET_VAR_EXPR.val_exprs, out);
 		port_puts(out, ";\n");
 		break;
-	case MES_STMT_SETAC:
-		port_printf(out, "SETAC[%u][", (unsigned)stmt->SETAC.var_no);
-		mes_expression_print(stmt->SETAC.off_expr, out);
+	case MES_STMT_PTR16_SET8:
+		port_printf(out, "PTR16_SET8[%u][", (unsigned)stmt->PTR_SET.var_no);
+		mes_expression_print(stmt->PTR_SET.off_expr, out);
 		port_puts(out, "] = ");
-		mes_expression_list_print(stmt->SETAC.val_exprs, out);
+		mes_expression_list_print(stmt->PTR_SET.val_exprs, out);
 		port_puts(out, ";\n");
 		break;
-	case MES_STMT_SETA_AT:
-		port_printf(out, "SETA@[%u][", (unsigned)stmt->SETA_AT.var_no);
-		mes_expression_print(stmt->SETA_AT.off_expr, out);
+	case MES_STMT_PTR16_SET16:
+		port_printf(out, "PTR16_SET16[%u][", (unsigned)stmt->PTR_SET.var_no);
+		mes_expression_print(stmt->PTR_SET.off_expr, out);
 		port_puts(out, "] = ");
-		mes_expression_list_print(stmt->SETA_AT.val_exprs, out);
+		mes_expression_list_print(stmt->PTR_SET.val_exprs, out);
 		port_puts(out, ";\n");
 		break;
-	case MES_STMT_SETAD:
-		port_printf(out, "SETAD[%u][", (unsigned)stmt->SETAD.var_no);
-		mes_expression_print(stmt->SETAD.off_expr, out);
+	case MES_STMT_PTR32_SET32:
+		port_printf(out, "PTR32_SET32[%u][", (unsigned)stmt->PTR_SET.var_no);
+		mes_expression_print(stmt->PTR_SET.off_expr, out);
 		port_puts(out, "] = ");
-		mes_expression_list_print(stmt->SETAD.val_exprs, out);
+		mes_expression_list_print(stmt->PTR_SET.val_exprs, out);
 		port_puts(out, ";\n");
 		break;
-	case MES_STMT_SETAW:
-		port_printf(out, "SETAW[%u][", (unsigned)stmt->SETAW.var_no);
-		mes_expression_print(stmt->SETAW.off_expr, out);
+	case MES_STMT_PTR32_SET16:
+		port_printf(out, "PTR32_SET16[%u][", (unsigned)stmt->PTR_SET.var_no);
+		mes_expression_print(stmt->PTR_SET.off_expr, out);
 		port_puts(out, "] = ");
-		mes_expression_list_print(stmt->SETAW.val_exprs, out);
+		mes_expression_list_print(stmt->PTR_SET.val_exprs, out);
 		port_puts(out, ";\n");
 		break;
-	case MES_STMT_SETAB:
-		port_printf(out, "SETAB[%u][", (unsigned)stmt->SETAB.var_no);
-		mes_expression_print(stmt->SETAB.off_expr, out);
+	case MES_STMT_PTR32_SET8:
+		port_printf(out, "PTR32_SET8[%u][", (unsigned)stmt->PTR_SET.var_no);
+		mes_expression_print(stmt->PTR_SET.off_expr, out);
 		port_puts(out, "] = ");
-		mes_expression_list_print(stmt->SETAB.val_exprs, out);
+		mes_expression_list_print(stmt->PTR_SET.val_exprs, out);
 		port_puts(out, ";\n");
 		break;
 	case MES_STMT_JZ:
@@ -465,45 +465,45 @@ static void mes_asm_statement_print(struct mes_statement *stmt, struct port *out
 		mes_parameter_list_print(stmt->SYS.params, out);
 		port_puts(out, ";\n");
 		break;
-	case MES_STMT_GOTO:
-		port_puts(out, "GOTO");
-		mes_parameter_list_print(stmt->GOTO.params, out);
-		port_puts(out, ";\n");
-		break;
-	case MES_STMT_CALL:
-		port_puts(out, "CALL");
+	case MES_STMT_JMP_MES:
+		port_puts(out, "JMP_MES");
 		mes_parameter_list_print(stmt->CALL.params, out);
 		port_puts(out, ";\n");
 		break;
-	case MES_STMT_MENUI:
-		port_puts(out, "MENUI");
-		mes_parameter_list_print(stmt->MENUI.params, out);
-		port_printf(out, " L_%08x;\n", stmt->MENUI.addr);
+	case MES_STMT_CALL_MES:
+		port_puts(out, "CALL_MES");
+		mes_parameter_list_print(stmt->CALL.params, out);
+		port_puts(out, ";\n");
 		break;
-	case MES_STMT_PROC:
-		port_puts(out, "PROC");
-		mes_parameter_list_print(stmt->PROC.params, out);
+	case MES_STMT_DEF_MENU:
+		port_puts(out, "DEF_MENU");
+		mes_parameter_list_print(stmt->DEF_MENU.params, out);
+		port_printf(out, " L_%08x;\n", stmt->DEF_MENU.skip_addr);
+		break;
+	case MES_STMT_CALL_PROC:
+		port_puts(out, "CALL_PROC");
+		mes_parameter_list_print(stmt->CALL.params, out);
 		port_puts(out, ";\n");
 		break;
 	case MES_STMT_UTIL:
 		port_puts(out, "UTIL");
-		mes_parameter_list_print(stmt->UTIL.params, out);
+		mes_parameter_list_print(stmt->CALL.params, out);
 		port_puts(out, ";\n");
 		break;
 	case MES_STMT_LINE:
 		port_printf(out, "LINE %u;\n", (unsigned)stmt->LINE.arg);
 		break;
-	case MES_STMT_PROCD:
-		port_puts(out, "PROCD ");
-		mes_expression_print(stmt->PROCD.no_expr, out);
-		port_printf(out, " L_%08x;\n", stmt->PROCD.skip_addr);
+	case MES_STMT_DEF_PROC:
+		port_puts(out, "DEF_PROC ");
+		mes_expression_print(stmt->DEF_PROC.no_expr, out);
+		port_printf(out, " L_%08x;\n", stmt->DEF_PROC.skip_addr);
 		break;
-	case MES_STMT_MENUS:
-		port_puts(out, "MENUS;\n");
+	case MES_STMT_MENU_EXEC:
+		port_puts(out, "MENU_EXEC;\n");
 		break;
-	case MES_STMT_SETRD:
-		port_printf(out, "SETRD[%u] = ", (unsigned)stmt->SETRD.var_no);
-		mes_expression_list_print(stmt->SETRD.val_exprs, out);
+	case MES_STMT_SET_VAR32:
+		port_printf(out, "SET_VAR32[%u] = ", (unsigned)stmt->SET_VAR_CONST.var_no);
+		mes_expression_list_print(stmt->SET_VAR_CONST.val_exprs, out);
 		port_puts(out, ";\n");
 		break;
 	}
@@ -523,40 +523,40 @@ void mes_asm_statement_list_print(mes_statement_list statements, struct port *ou
 static void stmt_seta_at_print(struct mes_statement *stmt, struct port *out)
 {
 	const char *name;
-	if (stmt->SETA_AT.var_no == 0 && stmt->SETA_AT.off_expr->op == MES_EXPR_IMM
-			&& (name = system_var16_name(stmt->SETA_AT.off_expr->arg8))) {
+	if (stmt->PTR_SET.var_no == 0 && stmt->PTR_SET.off_expr->op == MES_EXPR_IMM
+			&& (name = system_var16_name(stmt->PTR_SET.off_expr->arg8))) {
 		port_printf(out, "System.%s", name);
-	} else if (stmt->SETA_AT.var_no == 0) {
+	} else if (stmt->PTR_SET.var_no == 0) {
 		port_puts(out, "System.var16[");
-		mes_expression_print(stmt->SETA_AT.off_expr, out);
+		mes_expression_print(stmt->PTR_SET.off_expr, out);
 		port_putc(out, ']');
 	} else {
-		port_printf(out, "var16[%d]->word[", (int)stmt->SETA_AT.var_no - 1);
-		mes_expression_print(stmt->SETA_AT.off_expr, out);
+		port_printf(out, "var16[%d]->word[", (int)stmt->PTR_SET.var_no - 1);
+		mes_expression_print(stmt->PTR_SET.off_expr, out);
 		port_putc(out, ']');
 	}
 	port_puts(out, " = ");
-	mes_expression_list_print(stmt->SETA_AT.val_exprs, out);
+	mes_expression_list_print(stmt->PTR_SET.val_exprs, out);
 	port_puts(out, ";\n");
 }
 
 static void stmt_setad_print(struct mes_statement *stmt, struct port *out)
 {
 	const char *name;
-	if (stmt->SETAD.var_no == 0 && stmt->SETAD.off_expr->op == MES_EXPR_IMM
-			&& (name = system_var32_name(stmt->SETAD.off_expr->arg8))) {
+	if (stmt->PTR_SET.var_no == 0 && stmt->PTR_SET.off_expr->op == MES_EXPR_IMM
+			&& (name = system_var32_name(stmt->PTR_SET.off_expr->arg8))) {
 		port_printf(out, "System.%s", name);
-	} else if (stmt->SETAD.var_no == 0) {
+	} else if (stmt->PTR_SET.var_no == 0) {
 		port_puts(out, "System.var32[");
-		mes_expression_print(stmt->SETAD.off_expr, out);
+		mes_expression_print(stmt->PTR_SET.off_expr, out);
 		port_putc(out, ']');
 	} else {
-		port_printf(out, "var32[%d]->dword[", (int)stmt->SETAD.var_no - 1);
-		mes_expression_print(stmt->SETAD.off_expr, out);
+		port_printf(out, "var32[%d]->dword[", (int)stmt->PTR_SET.var_no - 1);
+		mes_expression_print(stmt->PTR_SET.off_expr, out);
 		port_putc(out, ']');
 	}
 	port_puts(out, " = ");
-	mes_expression_list_print(stmt->SETAD.val_exprs, out);
+	mes_expression_list_print(stmt->PTR_SET.val_exprs, out);
 	port_puts(out, ";\n");
 }
 
@@ -582,9 +582,9 @@ static void stmt_sys_print(struct mes_statement *stmt, struct port *out)
 static void stmt_util_print(struct mes_statement *stmt, struct port *out)
 {
 	unsigned skip_params;
-	string name = mes_get_util_name(stmt->UTIL.params, &skip_params);
+	string name = mes_get_util_name(stmt->CALL.params, &skip_params);
 	port_puts(out, name);
-	mes_parameter_list_print_from(stmt->UTIL.params, skip_params, out);
+	mes_parameter_list_print_from(stmt->CALL.params, skip_params, out);
 	port_puts(out, ";\n");
 	string_free(name);
 }
@@ -597,7 +597,7 @@ void _mes_statement_print(struct mes_statement *stmt, struct port *out, int inde
 	case MES_STMT_END:
 		port_puts(out, "return;\n");
 		break;
-	case MES_STMT_TXT:
+	case MES_STMT_ZENKAKU:
 		// SJIS string
 		if (stmt->TXT.unprefixed)
 			port_puts(out, "unprefixed ");
@@ -605,7 +605,7 @@ void _mes_statement_print(struct mes_statement *stmt, struct port *out, int inde
 			port_puts(out, "unterminated ");
 		port_printf(out, "\"%s\";\n", stmt->TXT.text);
 		break;
-	case MES_STMT_STR:
+	case MES_STMT_HANKAKU:
 		// ASCII string
 		if (stmt->TXT.unprefixed)
 			port_puts(out, "unprefixed ");
@@ -613,58 +613,58 @@ void _mes_statement_print(struct mes_statement *stmt, struct port *out, int inde
 			port_puts(out, "unterminated ");
 		port_printf(out, "\"%s\";\n", stmt->TXT.text);
 		break;
-	case MES_STMT_SETRBC:
+	case MES_STMT_SET_FLAG_CONST:
 		// var4[v] = ...;
-		port_printf(out, "var4[%u] = ", (unsigned)stmt->SETRBC.reg_no);
-		mes_expression_list_print(stmt->SETRBC.exprs, out);
+		port_printf(out, "var4[%u] = ", (unsigned)stmt->SET_VAR_CONST.var_no);
+		mes_expression_list_print(stmt->SET_VAR_CONST.val_exprs, out);
 		port_puts(out, ";\n");
 		break;
-	case MES_STMT_SETV:
+	case MES_STMT_SET_VAR16:
 		// var16[v] = ...;
-		port_printf(out, "var16[%u] = ", (unsigned)stmt->SETV.var_no);
-		mes_expression_list_print(stmt->SETV.exprs, out);
+		port_printf(out, "var16[%u] = ", (unsigned)stmt->SET_VAR_CONST.var_no);
+		mes_expression_list_print(stmt->SET_VAR_CONST.val_exprs, out);
 		port_puts(out, ";\n");
 		break;
-	case MES_STMT_SETRBE:
+	case MES_STMT_SET_FLAG_EXPR:
 		// var4[e] = ...;
 		port_puts(out, "var4[");
-		mes_expression_print(stmt->SETRBE.reg_expr, out);
+		mes_expression_print(stmt->SET_VAR_EXPR.var_expr, out);
 		port_puts(out, "] = ");
-		mes_expression_list_print(stmt->SETRBE.val_exprs, out);
+		mes_expression_list_print(stmt->SET_VAR_EXPR.val_exprs, out);
 		port_puts(out, ";\n");
 		break;
-	case MES_STMT_SETAC:
+	case MES_STMT_PTR16_SET8:
 		// var16[v]->byte[e] = ...;
-		port_printf(out, "var16[%u]->byte[", (unsigned)stmt->SETAC.var_no);
-		mes_expression_print(stmt->SETAC.off_expr, out);
+		port_printf(out, "var16[%u]->byte[", (unsigned)stmt->PTR_SET.var_no);
+		mes_expression_print(stmt->PTR_SET.off_expr, out);
 		port_puts(out, "] = ");
-		mes_expression_list_print(stmt->SETAC.val_exprs, out);
+		mes_expression_list_print(stmt->PTR_SET.val_exprs, out);
 		port_puts(out, ";\n");
 		break;
-	case MES_STMT_SETA_AT:
+	case MES_STMT_PTR16_SET16:
 		// var16[v-1]->word[e] = ...;
 		// System.var16[e] = ...; // when v = 0
 		stmt_seta_at_print(stmt, out);
 		break;
-	case MES_STMT_SETAD:
+	case MES_STMT_PTR32_SET32:
 		// var32[v]->dword[e] = ...;
 		// System.var32[e] = ...; // when v = 0
 		stmt_setad_print(stmt, out);
 		break;
-	case MES_STMT_SETAW:
+	case MES_STMT_PTR32_SET16:
 		// var32[v]->word[e] = ...;
-		port_printf(out, "var32[%d]->word[", (int)stmt->SETAW.var_no - 1);
-		mes_expression_print(stmt->SETAW.off_expr, out);
+		port_printf(out, "var32[%d]->word[", (int)stmt->PTR_SET.var_no - 1);
+		mes_expression_print(stmt->PTR_SET.off_expr, out);
 		port_puts(out, "] = ");
-		mes_expression_list_print(stmt->SETAW.val_exprs, out);
+		mes_expression_list_print(stmt->PTR_SET.val_exprs, out);
 		port_puts(out, ";\n");
 		break;
-	case MES_STMT_SETAB:
+	case MES_STMT_PTR32_SET8:
 		// var32[v]->byte[e] = ...;
-		port_printf(out, "var32[%d]->byte[", (int)stmt->SETAB.var_no - 1);
-		mes_expression_print(stmt->SETAB.off_expr, out);
+		port_printf(out, "var32[%d]->byte[", (int)stmt->PTR_SET.var_no - 1);
+		mes_expression_print(stmt->PTR_SET.off_expr, out);
 		port_puts(out, "] = ");
-		mes_expression_list_print(stmt->SETAB.val_exprs, out);
+		mes_expression_list_print(stmt->PTR_SET.val_exprs, out);
 		port_puts(out, ";\n");
 		break;
 	case MES_STMT_JZ:
@@ -679,25 +679,25 @@ void _mes_statement_print(struct mes_statement *stmt, struct port *out, int inde
 	case MES_STMT_SYS:
 		stmt_sys_print(stmt, out);
 		break;
-	case MES_STMT_GOTO:
+	case MES_STMT_JMP_MES:
 		port_puts(out, "jump");
-		mes_parameter_list_print(stmt->GOTO.params, out);
+		mes_parameter_list_print(stmt->CALL.params, out);
 		port_puts(out, ";\n");
 		break;
-	case MES_STMT_CALL:
+	case MES_STMT_CALL_MES:
 		port_puts(out, "call");
 		mes_parameter_list_print(stmt->CALL.params, out);
 		port_puts(out, ";\n");
 		break;
-	case MES_STMT_MENUI:
-		//WARNING("Encountered MENUI as AST statement");
+	case MES_STMT_DEF_MENU:
+		//WARNING("Encountered DEF_MENU as AST statement");
 		port_puts(out, "defmenu");
-		mes_parameter_list_print(stmt->MENUI.params, out);
-		port_printf(out, " L_%08x;\n", stmt->MENUI.addr);
+		mes_parameter_list_print(stmt->DEF_MENU.params, out);
+		port_printf(out, " L_%08x;\n", stmt->DEF_MENU.skip_addr);
 		break;
-	case MES_STMT_PROC:
+	case MES_STMT_CALL_PROC:
 		port_puts(out, "call");
-		mes_parameter_list_print(stmt->PROC.params, out);
+		mes_parameter_list_print(stmt->CALL.params, out);
 		port_puts(out, ";\n");
 		break;
 	case MES_STMT_UTIL:
@@ -707,18 +707,18 @@ void _mes_statement_print(struct mes_statement *stmt, struct port *out, int inde
 	case MES_STMT_LINE:
 		port_printf(out, "line %u;\n", (unsigned)stmt->LINE.arg);
 		break;
-	case MES_STMT_PROCD:
-		//WARNING("Encountered PROCD as AST statement");
+	case MES_STMT_DEF_PROC:
+		//WARNING("Encountered DEF_PROC as AST statement");
 		port_puts(out, "defproc ");
-		mes_expression_print(stmt->PROCD.no_expr, out);
-		port_printf(out, " L_%08x;\n", stmt->PROCD.skip_addr);
+		mes_expression_print(stmt->DEF_PROC.no_expr, out);
+		port_printf(out, " L_%08x;\n", stmt->DEF_PROC.skip_addr);
 		break;
-	case MES_STMT_MENUS:
+	case MES_STMT_MENU_EXEC:
 		port_puts(out, "menuexec;\n");
 		break;
-	case MES_STMT_SETRD:
-		port_printf(out, "var32[%d] = ", (unsigned)stmt->SETRD.var_no);
-		mes_expression_list_print(stmt->SETRD.val_exprs, out);
+	case MES_STMT_SET_VAR32:
+		port_printf(out, "var32[%d] = ", (unsigned)stmt->SET_VAR_CONST.var_no);
+		mes_expression_list_print(stmt->SET_VAR_CONST.val_exprs, out);
 		port_puts(out, ";\n");
 		break;
 	}

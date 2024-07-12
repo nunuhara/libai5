@@ -39,38 +39,38 @@ enum ai5_game_id;
  */
 enum mes_statement_op {
 	MES_STMT_END = 0x00,
-	MES_STMT_TXT = 0x01,
-	MES_STMT_STR = 0x02,
-	MES_STMT_SETRBC = 0x03,
-	MES_STMT_SETV = 0x04,
-	MES_STMT_SETRBE = 0x05,
-	MES_STMT_SETAC = 0x06,
-	MES_STMT_SETA_AT = 0x07,
-	MES_STMT_SETAD = 0x08,
-	MES_STMT_SETAW = 0x09,
-	MES_STMT_SETAB = 0x0A,
+	MES_STMT_ZENKAKU = 0x01,
+	MES_STMT_HANKAKU = 0x02,
+	MES_STMT_SET_FLAG_CONST = 0x03,
+	MES_STMT_SET_VAR16 = 0x04,
+	MES_STMT_SET_FLAG_EXPR = 0x05,
+	MES_STMT_PTR16_SET8 = 0x06,
+	MES_STMT_PTR16_SET16 = 0x07,
+	MES_STMT_PTR32_SET32 = 0x08,
+	MES_STMT_PTR32_SET16 = 0x09,
+	MES_STMT_PTR32_SET8 = 0x0A,
 	MES_STMT_JZ = 0x0B,
 	MES_STMT_JMP = 0x0C,
 	MES_STMT_SYS = 0x0D,
-	MES_STMT_GOTO = 0x0E,
-	MES_STMT_CALL = 0x0F,
-	MES_STMT_MENUI = 0x10,
-	MES_STMT_PROC = 0x11,
+	MES_STMT_JMP_MES = 0x0E,
+	MES_STMT_CALL_MES = 0x0F,
+	MES_STMT_DEF_MENU = 0x10,
+	MES_STMT_CALL_PROC = 0x11,
 	MES_STMT_UTIL = 0x12,
 	MES_STMT_LINE = 0x13,
-	MES_STMT_PROCD = 0x14,
-	MES_STMT_MENUS = 0x15,
-	MES_STMT_SETRD = 0x16,
+	MES_STMT_DEF_PROC = 0x14,
+	MES_STMT_MENU_EXEC = 0x15,
+	MES_STMT_SET_VAR32 = 0x16,
 };
-#define MES_STMT_OP_MAX (MES_STMT_SETRD+1)
+#define MES_STMT_OP_MAX (MES_STMT_SET_VAR32+1)
 
 #define MES_CODE_INVALID 0xFF
 
 enum mes_expression_op {
 	MES_EXPR_IMM = 0x00, // not a real op
-	MES_EXPR_VAR = 0x80,
-	MES_EXPR_ARRAY16_GET16 = 0xA0,
-	MES_EXPR_ARRAY16_GET8 = 0xC0,
+	MES_EXPR_GET_VAR16 = 0x80,
+	MES_EXPR_PTR16_GET16 = 0xA0,
+	MES_EXPR_PTR16_GET8 = 0xC0,
 	MES_EXPR_PLUS = 0xE0,
 	MES_EXPR_MINUS = 0xE1,
 	MES_EXPR_MUL = 0xE2,
@@ -90,12 +90,12 @@ enum mes_expression_op {
 	MES_EXPR_NEQ = 0xF0,
 	MES_EXPR_IMM16 = 0xF1,
 	MES_EXPR_IMM32 = 0xF2,
-	MES_EXPR_REG16 = 0xF3, // 16-bit *index*
-	MES_EXPR_REG8 = 0xF4, // 8-bit *index*
-	MES_EXPR_ARRAY32_GET32 = 0xF5,
-	MES_EXPR_ARRAY32_GET16 = 0xF6,
-	MES_EXPR_ARRAY32_GET8 = 0xF7,
-	MES_EXPR_VAR32 = 0xF8,
+	MES_EXPR_GET_FLAG_CONST = 0xF3,
+	MES_EXPR_GET_FLAG_EXPR = 0xF4,
+	MES_EXPR_PTR32_GET32 = 0xF5,
+	MES_EXPR_PTR32_GET16 = 0xF6,
+	MES_EXPR_PTR32_GET8 = 0xF7,
+	MES_EXPR_GET_VAR32 = 0xF8,
 	MES_EXPR_END = 0xFF
 };
 #define MES_EXPR_OP_MAX (MES_EXPR_END+1)
@@ -350,81 +350,54 @@ struct mes_statement {
 			bool terminated;
 			bool unprefixed;
 		} TXT;
+		// SET_FLAG_CONST, SET_VAR16, SET_VAR32
 		struct {
-			uint16_t reg_no;
-			mes_expression_list exprs;
-		} SETRBC;
-		struct {
-			uint8_t var_no;
-			mes_expression_list exprs;
-		} SETV;
-		struct {
-			struct mes_expression *reg_expr;
+			uint16_t var_no;
 			mes_expression_list val_exprs;
-		} SETRBE;
+		} SET_VAR_CONST;
+		// SET_FLAG_EXPR
 		struct {
-			uint8_t var_no;
-			struct mes_expression *off_expr;
+			struct mes_expression *var_expr;
 			mes_expression_list val_exprs;
-		} SETAC;
+		} SET_VAR_EXPR;
+		// PTR{16,32}_SET{8,16,32}
 		struct {
 			uint8_t var_no;
 			struct mes_expression *off_expr;
 			mes_expression_list val_exprs;
-		} SETA_AT;
-		struct {
-			uint8_t var_no;
-			struct mes_expression *off_expr;
-			mes_expression_list val_exprs;
-		} SETAD;
-		struct {
-			uint8_t var_no;
-			struct mes_expression *off_expr;
-			mes_expression_list val_exprs;
-		} SETAW;
-		struct {
-			uint8_t var_no;
-			struct mes_expression *off_expr;
-			mes_expression_list val_exprs;
-		} SETAB;
+		} PTR_SET;
+		// JZ
 		struct {
 			uint32_t addr;
 			struct mes_expression *expr;
 		} JZ;
+		// JMP
 		struct {
 			uint32_t addr;
 		} JMP;
+		// SYS
 		struct {
 			struct mes_expression *expr;
 			mes_parameter_list params;
 		} SYS;
-		struct {
-			mes_parameter_list params;
-		} GOTO;
+		// JMP_MES, CALL_MES, CALL_PROC, UTIL
 		struct {
 			mes_parameter_list params;
 		} CALL;
+		// DEF_MENU
 		struct {
-			uint32_t addr; // ???
+			uint32_t skip_addr;
 			mes_parameter_list params;
-		} MENUI;
-		struct {
-			mes_parameter_list params;
-		} PROC;
-		struct {
-			mes_parameter_list params;
-		} UTIL;
+		} DEF_MENU;
+		// LINE
 		struct {
 			uint8_t arg;
 		} LINE;
+		// DEF_PROC
 		struct {
 			uint32_t skip_addr;
 			struct mes_expression *no_expr;
-		} PROCD;
-		struct {
-			uint8_t var_no;
-			mes_expression_list val_exprs;
-		} SETRD;
+		} DEF_PROC;
 	};
 };
 

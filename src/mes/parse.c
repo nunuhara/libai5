@@ -55,15 +55,15 @@ static struct mes_expression *_mes_parse_expression(struct buffer *mes)
 		}
 		uint8_t b = buffer_read_u8(mes);
 		switch ((expr->op = mes_opcode_to_expr(b))) {
-		case MES_EXPR_VAR:
+		case MES_EXPR_GET_VAR16:
 			expr->arg8 = buffer_read_u8(mes);
 			break;
-		case MES_EXPR_ARRAY16_GET16:
+		case MES_EXPR_PTR16_GET16:
 			expr->arg8 = buffer_read_u8(mes);
 			if (!(expr->sub_a = stack_pop(mes->index-1, stack, &stack_ptr)))
 				goto error;
 			break;
-		case MES_EXPR_ARRAY16_GET8:
+		case MES_EXPR_PTR16_GET8:
 			expr->arg8 = buffer_read_u8(mes);
 			if (!(expr->sub_a = stack_pop(mes->index-1, stack, &stack_ptr)))
 				goto error;
@@ -110,21 +110,21 @@ static struct mes_expression *_mes_parse_expression(struct buffer *mes)
 		case MES_EXPR_IMM32:
 			expr->arg32 = buffer_read_u32(mes);
 			break;
-		case MES_EXPR_REG16:
+		case MES_EXPR_GET_FLAG_CONST:
 			expr->arg16 = buffer_read_u16(mes);
 			break;
-		case MES_EXPR_REG8:
+		case MES_EXPR_GET_FLAG_EXPR:
 			if (!(expr->sub_a = stack_pop(mes->index-1, stack, &stack_ptr)))
 				goto error;
 			break;
-		case MES_EXPR_ARRAY32_GET32:
-		case MES_EXPR_ARRAY32_GET16:
-		case MES_EXPR_ARRAY32_GET8:
+		case MES_EXPR_PTR32_GET32:
+		case MES_EXPR_PTR32_GET16:
+		case MES_EXPR_PTR32_GET8:
 			expr->arg8 = buffer_read_u8(mes);
 			if (!(expr->sub_a = stack_pop(mes->index-1, stack, &stack_ptr)))
 				goto error;
 			break;
-		case MES_EXPR_VAR32:
+		case MES_EXPR_GET_VAR32:
 			expr->arg8 = buffer_read_u8(mes);
 			break;
 		case MES_EXPR_END:
@@ -380,74 +380,43 @@ static struct mes_statement *_mes_parse_statement(struct buffer *mes)
 	switch ((stmt->op = mes_opcode_to_stmt(b))) {
 	case MES_STMT_END:
 		break;
-	case MES_STMT_TXT:
+	case MES_STMT_ZENKAKU:
 		if (!(stmt->TXT.text = mes_parse_txt(mes, &stmt->TXT.terminated)))
 			goto error;
 		break;
-	case MES_STMT_STR:
+	case MES_STMT_HANKAKU:
 		if (!(stmt->TXT.text = mes_parse_str(mes, &stmt->TXT.terminated)))
 			goto error;
 		break;
-	case MES_STMT_SETRBC:
-		stmt->SETRBC.reg_no = buffer_read_u16(mes);
-		if (!mes_parse_expression_list(mes, &stmt->SETRBC.exprs))
+	case MES_STMT_SET_FLAG_CONST:
+		stmt->SET_VAR_CONST.var_no = buffer_read_u16(mes);
+		if (!mes_parse_expression_list(mes, &stmt->SET_VAR_CONST.val_exprs))
 			goto error;
 		break;
-	case MES_STMT_SETV:
-		stmt->SETV.var_no = buffer_read_u8(mes);
-		if (!mes_parse_expression_list(mes, &stmt->SETV.exprs))
+	case MES_STMT_SET_VAR16:
+	case MES_STMT_SET_VAR32:
+		stmt->SET_VAR_CONST.var_no = buffer_read_u8(mes);
+		if (!mes_parse_expression_list(mes, &stmt->SET_VAR_CONST.val_exprs))
 			goto error;
 		break;
-	case MES_STMT_SETRBE:
-		if (!(stmt->SETRBE.reg_expr = _mes_parse_expression(mes)))
+	case MES_STMT_SET_FLAG_EXPR:
+		if (!(stmt->SET_VAR_EXPR.var_expr = _mes_parse_expression(mes)))
 			goto error;
-		if (!mes_parse_expression_list(mes, &stmt->SETRBE.val_exprs)) {
-			mes_expression_free(stmt->SETRBE.reg_expr);
+		if (!mes_parse_expression_list(mes, &stmt->SET_VAR_EXPR.val_exprs)) {
+			mes_expression_free(stmt->SET_VAR_EXPR.var_expr);
 			goto error;
 		}
 		break;
-	case MES_STMT_SETAC:
-		if (!(stmt->SETAC.off_expr = _mes_parse_expression(mes)))
+	case MES_STMT_PTR16_SET8:
+	case MES_STMT_PTR16_SET16:
+	case MES_STMT_PTR32_SET8:
+	case MES_STMT_PTR32_SET16:
+	case MES_STMT_PTR32_SET32:
+		if (!(stmt->PTR_SET.off_expr = _mes_parse_expression(mes)))
 			goto error;
-		stmt->SETAC.var_no = buffer_read_u8(mes);
-		if (!mes_parse_expression_list(mes, &stmt->SETAC.val_exprs)) {
-			mes_expression_free(stmt->SETAC.off_expr);
-			goto error;
-		}
-		break;
-	case MES_STMT_SETA_AT:
-		if (!(stmt->SETA_AT.off_expr = _mes_parse_expression(mes)))
-			goto error;
-		stmt->SETA_AT.var_no = buffer_read_u8(mes);
-		if (!mes_parse_expression_list(mes, &stmt->SETA_AT.val_exprs)) {
-			mes_expression_free(stmt->SETA_AT.off_expr);
-			goto error;
-		}
-		break;
-	case MES_STMT_SETAD:
-		if (!(stmt->SETAD.off_expr = _mes_parse_expression(mes)))
-			goto error;
-		stmt->SETAD.var_no = buffer_read_u8(mes);
-		if (!mes_parse_expression_list(mes, &stmt->SETAD.val_exprs)) {
-			mes_expression_free(stmt->SETAD.off_expr);
-			goto error;
-		}
-		break;
-	case MES_STMT_SETAW:
-		if (!(stmt->SETAW.off_expr = _mes_parse_expression(mes)))
-			goto error;
-		stmt->SETAW.var_no = buffer_read_u8(mes);
-		if (!mes_parse_expression_list(mes, &stmt->SETAW.val_exprs)) {
-			mes_expression_free(stmt->SETAW.off_expr);
-			goto error;
-		}
-		break;
-	case MES_STMT_SETAB:
-		if (!(stmt->SETAB.off_expr = _mes_parse_expression(mes)))
-			goto error;
-		stmt->SETAB.var_no = buffer_read_u8(mes);
-		if (!mes_parse_expression_list(mes, &stmt->SETAB.val_exprs)) {
-			mes_expression_free(stmt->SETAB.off_expr);
+		stmt->PTR_SET.var_no = buffer_read_u8(mes);
+		if (!mes_parse_expression_list(mes, &stmt->PTR_SET.val_exprs)) {
+			mes_expression_free(stmt->PTR_SET.off_expr);
 			goto error;
 		}
 		break;
@@ -467,52 +436,38 @@ static struct mes_statement *_mes_parse_statement(struct buffer *mes)
 			goto error;
 		}
 		break;
-	case MES_STMT_GOTO:
-		if (!mes_parse_parameter_list(mes, &stmt->GOTO.params))
-			goto error;
-		break;
-	case MES_STMT_CALL:
+	case MES_STMT_JMP_MES:
+	case MES_STMT_CALL_MES:
+	case MES_STMT_CALL_PROC:
+	case MES_STMT_UTIL:
 		if (!mes_parse_parameter_list(mes, &stmt->CALL.params))
 			goto error;
 		break;
-	case MES_STMT_MENUI:
-		if (!mes_parse_parameter_list(mes, &stmt->MENUI.params))
+	case MES_STMT_DEF_MENU:
+		if (!mes_parse_parameter_list(mes, &stmt->DEF_MENU.params))
 			goto error;
-		stmt->MENUI.addr = buffer_read_u32(mes);
-		break;
-	case MES_STMT_PROC:
-		if (!mes_parse_parameter_list(mes, &stmt->PROC.params))
-			goto error;
-		break;
-	case MES_STMT_UTIL:
-		if (!mes_parse_parameter_list(mes, &stmt->UTIL.params))
-			goto error;
+		stmt->DEF_MENU.skip_addr = buffer_read_u32(mes);
 		break;
 	case MES_STMT_LINE:
 		stmt->LINE.arg = buffer_read_u8(mes);
 		break;
-	case MES_STMT_PROCD:
-		if (!(stmt->PROCD.no_expr = _mes_parse_expression(mes)))
+	case MES_STMT_DEF_PROC:
+		if (!(stmt->DEF_PROC.no_expr = _mes_parse_expression(mes)))
 			goto error;
-		stmt->PROCD.skip_addr = buffer_read_u32(mes);
+		stmt->DEF_PROC.skip_addr = buffer_read_u32(mes);
 		break;
-	case MES_STMT_MENUS:
-		break;
-	case MES_STMT_SETRD:
-		stmt->SETRD.var_no = buffer_read_u8(mes);
-		if (!mes_parse_expression_list(mes, &stmt->SETRD.val_exprs))
-			goto error;
+	case MES_STMT_MENU_EXEC:
 		break;
 	default:
 		mes->index--;
 		DC_WARNING(mes->index, "Unprefixed text: 0x%02x (possibly unhandled statement)", b);
 		if (mes_char_is_hankaku(buffer_peek_u8(mes))) {
-			stmt->op = MES_STMT_STR;
+			stmt->op = MES_STMT_HANKAKU;
 			if (!(stmt->TXT.text = mes_parse_str(mes, &stmt->TXT.terminated)))
 				goto error;
 			stmt->TXT.unprefixed = true;
 		} else {
-			stmt->op = MES_STMT_TXT;
+			stmt->op = MES_STMT_ZENKAKU;
 			if (!(stmt->TXT.text = mes_parse_txt(mes, &stmt->TXT.terminated)))
 				goto error;
 			stmt->TXT.unprefixed = true;
@@ -563,16 +518,16 @@ static void tag_jump_targets(mes_statement_list statements)
 				ERROR("invalid address in JMP statement");
 			kh_value(&table, k)->is_jump_target = true;
 			break;
-		case MES_STMT_MENUI:
-			k = hashtable_get(addr_table, &table, p->MENUI.addr);
+		case MES_STMT_DEF_MENU:
+			k = hashtable_get(addr_table, &table, p->DEF_MENU.skip_addr);
 			if (unlikely(k == hashtable_end(&table)))
-				ERROR("invalid address in MENUI statement");
+				ERROR("invalid address in DEF_MENU statement");
 			kh_value(&table, k)->is_jump_target = true;
 			break;
-		case MES_STMT_PROCD:
-			k = hashtable_get(addr_table, &table, p->PROCD.skip_addr);
+		case MES_STMT_DEF_PROC:
+			k = hashtable_get(addr_table, &table, p->DEF_PROC.skip_addr);
 			if (unlikely(k == hashtable_end(&table)))
-				ERROR("invalid address in PROCD statement");
+				ERROR("invalid address in DEF_PROC statement");
 			kh_value(&table, k)->is_jump_target = true;
 			break;
 		default:
@@ -640,41 +595,26 @@ void mes_parameter_list_free(mes_parameter_list list)
 void mes_statement_free(struct mes_statement *stmt)
 {
 	switch (stmt->op) {
-	case MES_STMT_TXT:
+	case MES_STMT_ZENKAKU:
+	case MES_STMT_HANKAKU:
 		string_free(stmt->TXT.text);
 		break;
-	case MES_STMT_STR:
-		string_free(stmt->TXT.text);
+	case MES_STMT_SET_FLAG_CONST:
+	case MES_STMT_SET_VAR16:
+	case MES_STMT_SET_VAR32:
+		mes_expression_list_free(stmt->SET_VAR_CONST.val_exprs);
 		break;
-	case MES_STMT_SETRBC:
-		mes_expression_list_free(stmt->SETRBC.exprs);
+	case MES_STMT_SET_FLAG_EXPR:
+		mes_expression_free(stmt->SET_VAR_EXPR.var_expr);
+		mes_expression_list_free(stmt->SET_VAR_EXPR.val_exprs);
 		break;
-	case MES_STMT_SETV:
-		mes_expression_list_free(stmt->SETV.exprs);
-		break;
-	case MES_STMT_SETRBE:
-		mes_expression_free(stmt->SETRBE.reg_expr);
-		mes_expression_list_free(stmt->SETRBE.val_exprs);
-		break;
-	case MES_STMT_SETAC:
-		mes_expression_free(stmt->SETAC.off_expr);
-		mes_expression_list_free(stmt->SETAC.val_exprs);
-		break;
-	case MES_STMT_SETA_AT:
-		mes_expression_free(stmt->SETA_AT.off_expr);
-		mes_expression_list_free(stmt->SETA_AT.val_exprs);
-		break;
-	case MES_STMT_SETAD:
-		mes_expression_free(stmt->SETAD.off_expr);
-		mes_expression_list_free(stmt->SETAD.val_exprs);
-		break;
-	case MES_STMT_SETAW:
-		mes_expression_free(stmt->SETAW.off_expr);
-		mes_expression_list_free(stmt->SETAW.val_exprs);
-		break;
-	case MES_STMT_SETAB:
-		mes_expression_free(stmt->SETAB.off_expr);
-		mes_expression_list_free(stmt->SETAB.val_exprs);
+	case MES_STMT_PTR16_SET8:
+	case MES_STMT_PTR16_SET16:
+	case MES_STMT_PTR32_SET32:
+	case MES_STMT_PTR32_SET16:
+	case MES_STMT_PTR32_SET8:
+		mes_expression_free(stmt->PTR_SET.off_expr);
+		mes_expression_list_free(stmt->PTR_SET.val_exprs);
 		break;
 	case MES_STMT_JZ:
 		mes_expression_free(stmt->JZ.expr);
@@ -683,31 +623,22 @@ void mes_statement_free(struct mes_statement *stmt)
 		mes_expression_free(stmt->SYS.expr);
 		mes_parameter_list_free(stmt->SYS.params);
 		break;
-	case MES_STMT_GOTO:
-		mes_parameter_list_free(stmt->GOTO.params);
-		break;
-	case MES_STMT_CALL:
+	case MES_STMT_JMP_MES:
+	case MES_STMT_CALL_MES:
+	case MES_STMT_CALL_PROC:
+	case MES_STMT_UTIL:
 		mes_parameter_list_free(stmt->CALL.params);
 		break;
-	case MES_STMT_MENUI:
-		mes_parameter_list_free(stmt->MENUI.params);
+	case MES_STMT_DEF_MENU:
+		mes_parameter_list_free(stmt->DEF_MENU.params);
 		break;
-	case MES_STMT_PROC:
-		mes_parameter_list_free(stmt->PROC.params);
-		break;
-	case MES_STMT_UTIL:
-		mes_parameter_list_free(stmt->UTIL.params);
-		break;
-	case MES_STMT_PROCD:
-		mes_expression_free(stmt->PROCD.no_expr);
-		break;
-	case MES_STMT_SETRD:
-		mes_expression_list_free(stmt->SETRD.val_exprs);
+	case MES_STMT_DEF_PROC:
+		mes_expression_free(stmt->DEF_PROC.no_expr);
 		break;
 	case MES_STMT_END:
 	case MES_STMT_JMP:
 	case MES_STMT_LINE:
-	case MES_STMT_MENUS:
+	case MES_STMT_MENU_EXEC:
 		break;
 	}
 	free(stmt);
