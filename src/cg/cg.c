@@ -157,6 +157,34 @@ bool cg_write(struct cg *cg, FILE *out, enum cg_type type)
 	}
 }
 
+struct cg *cg_alloc(void)
+{
+	struct cg *cg = xcalloc(1, sizeof(struct cg));
+	cg->ref = 1;
+	return cg;
+}
+
+struct cg *cg_alloc_indexed(unsigned w, unsigned h)
+{
+	struct cg *cg = cg_alloc();
+	cg->metrics.w = w;
+	cg->metrics.h = h;
+	cg->metrics.bpp = 8;
+	cg->pixels = xcalloc(w, h);
+	cg->palette = xcalloc(256, 4);
+	return cg;
+}
+
+struct cg *cg_alloc_direct(unsigned w, unsigned h)
+{
+	struct cg *cg = cg_alloc();
+	cg->metrics.w = w;
+	cg->metrics.h = h;
+	cg->metrics.bpp = 24;
+	cg->pixels = xcalloc(w * 4, h);
+	return cg;
+}
+
 void cg_free(struct cg *cg)
 {
 	if (!cg)

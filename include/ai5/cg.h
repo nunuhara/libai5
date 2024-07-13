@@ -62,6 +62,9 @@ struct cg *cg_depalettize_copy(struct cg *cg);
 
 bool cg_write(struct cg *cg, FILE *out, enum cg_type type);
 
+struct cg *cg_alloc(void);
+struct cg *cg_alloc_indexed(unsigned w, unsigned h);
+struct cg *cg_alloc_direct(unsigned w, unsigned h);
 void cg_free(struct cg *cg);
 
 #endif // AI5_CG_H
