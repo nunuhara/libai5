@@ -534,6 +534,7 @@ bool archive_file_compressed(const char *name)
 		"eve",
 		"fnt",
 		"mes",
+		"mp3",
 		"mpx",
 		"msk",
 		"pal",
