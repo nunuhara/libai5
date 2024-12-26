@@ -90,18 +90,21 @@ static struct mes_expression *_mes_parse_expression(struct buffer *mes)
 				goto error;
 			break;
 		case MES_EXPR_RAND:
-			if (ai5_target_game == GAME_DOUKYUUSEI) {
+			switch (ai5_target_game) {
+			case GAME_DOUKYUUSEI:
+			case GAME_KAKYUUSEI:
 				// TODO: which other games do this?
 				//       should test:
 				//         Shuusaku (1998 CD version)
-				//         Kakyuusei (1998 CD version)
 				//         Kawarazaki-ke (1997 CD version)
 				expr->sub_a = xcalloc(1, sizeof(struct mes_expression));
 				expr->sub_a->op = MES_EXPR_IMM16;
 				expr->sub_a->arg16 = buffer_read_u16(mes);
-			} else {
+				break;
+			default:
 				if (!(expr->sub_a = stack_pop(mes->index-1, stack, &stack_ptr)))
 					goto error;
+				break;
 			}
 			break;
 		case MES_EXPR_IMM16:

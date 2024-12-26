@@ -125,6 +125,12 @@ static bool arc_get_metadata(FILE *fp, struct arc_metadata *meta_out)
 		meta.scheme = ARCHIVE_SCHEME_GAME_SPECIFIC;
 		*meta_out = meta;
 		return true;
+	case GAME_KAKYUUSEI:
+		meta.entry_size = 20;
+		meta.name_length = 12;
+		meta.scheme = ARCHIVE_SCHEME_GAME_SPECIFIC;
+		*meta_out = meta;
+		return true;
 	default:
 		break;
 	}
@@ -415,6 +421,46 @@ static bool doukyuusei_2_dl_read_entry(struct archive *arc, struct archive_data 
 	return true;
 }
 
+static bool kakyuusei_read_index(FILE *fp, struct archive *arc)
+{
+	// encrypted bytes of index are out of order
+	static uint8_t shuffle_table[20] = {
+		17, 2, 8, 19, 0, 5, 10, 13, 1, 15, 6, 4, 11, 16, 3, 9, 18, 12, 7, 14
+	};
+
+	const size_t buf_len = arc->meta.nr_files * arc->meta.entry_size;
+	size_t buf_pos = 0;
+	uint8_t *buf = xmalloc(buf_len);
+	if (fread(buf, buf_len, 1, fp) != 1) {
+		WARNING("fread: %s", strerror(errno));
+		free(buf);
+		return false;
+	}
+
+	// read file entries
+	uint8_t dec[20];
+	uint8_t key = arc->meta.nr_files;
+	vector_init(arc->files);
+	vector_resize(struct archive_data, arc->files, arc->meta.nr_files);
+	for (int i = 0; i < arc->meta.nr_files; i++, buf_pos += 20) {
+		struct archive_data *file = &vector_A(arc->files, i);
+		*file = (struct archive_data){0};
+		for (int i = 0; i < 20; i++) {
+			dec[shuffle_table[i]] = buf[buf_pos + i] ^ key;
+			key = ((int)key * 3 + 1) & 0xff;
+		}
+		file->offset = le_get32(dec, 16);
+		file->raw_size = le_get32(dec, 12);
+		dec[12] = '\0';
+		file->name = sjis_cstring_to_utf8((char*)dec, 0);
+		file->archive = arc;
+	}
+
+	free(buf);
+	create_index(arc);
+	return true;
+}
+
 static bool arc_read_index(FILE *fp, struct archive *arc)
 {
 	if (fseek(fp, arc->meta.index_off, SEEK_SET)) {
@@ -426,6 +472,8 @@ static bool arc_read_index(FILE *fp, struct archive *arc)
 		switch (ai5_target_game) {
 		case GAME_DOUKYUUSEI2_DL:
 			return read_index(fp, arc, doukyuusei_2_dl_read_entry);
+		case GAME_KAKYUUSEI:
+			return kakyuusei_read_index(fp, arc);
 		default:
 			WARNING("Game-specific archive type but no game specified");
 			return false;
