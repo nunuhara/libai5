@@ -31,6 +31,7 @@ void anim_set_game(enum ai5_game_id game)
 	case GAME_DOUKYUUSEI:
 	case GAME_AI_SHIMAI:
 	case GAME_ALLSTARS:
+	case GAME_BEYOND:
 		anim_draw_call_size = 17;
 		anim_type = ANIM_A;
 		break;
@@ -131,12 +132,52 @@ static bool parse_s4_draw_call(struct buffer *in, struct anim_draw_call *out)
 static enum anim_draw_opcode parse_a_draw_opcode(uint8_t op)
 {
 	switch ((enum anim_a_draw_opcode)(op & 0xf0)) {
-	case ANIM_A_DRAW_OP_COPY: return ANIM_DRAW_OP_COPY;
-	case ANIM_A_DRAW_OP_COPY_MASKED: return ANIM_DRAW_OP_COPY_MASKED;
-	case ANIM_A_DRAW_OP_SWAP: return ANIM_DRAW_OP_SWAP;
-	case ANIM_A_DRAW_OP_COMPOSE: return ANIM_DRAW_OP_COMPOSE;
+	case ANIM_A_DRAW_OP_COPY:
+		return ANIM_DRAW_OP_COPY;
+	case ANIM_A_DRAW_OP_COPY_MASKED:
+		return ANIM_DRAW_OP_COPY_MASKED;
+	case ANIM_A_DRAW_OP_SWAP:
+		if (ai5_target_game == GAME_BEYOND)
+			return ANIM_DRAW_OP_COMPOSE_WITH_OFFSET;
+		return ANIM_DRAW_OP_SWAP;
+	case ANIM_A_DRAW_OP_COMPOSE:
+		return ANIM_DRAW_OP_COMPOSE;
+	default:
+		// BE-YOND
+		switch (op) {
+		case 0x60: return ANIM_DRAW_OP_0x60_COPY_MASKED;
+		case 0x61: return ANIM_DRAW_OP_0x61_COMPOSE;
+		case 0x62: return ANIM_DRAW_OP_0x62;
+		case 0x63: return ANIM_DRAW_OP_0x63_COPY_MASKED_WITH_XOFFSET;
+		case 0x64: return ANIM_DRAW_OP_0x64_COMPOSE_MASKED;
+		case 0x65: return ANIM_DRAW_OP_0x65_COMPOSE;
+		case 0x66: return ANIM_DRAW_OP_0x66;
+		}
+		break;
 	}
 	return -1;
+}
+
+static void parse_copy_args(struct buffer *in, struct anim_copy_args *out)
+{
+	out->src.x = buffer_read_u16(in);
+	out->src.y = buffer_read_u16(in);
+	out->dim.w = buffer_read_u16(in);
+	out->dim.h = buffer_read_u16(in);
+	out->dst.x = buffer_read_u16(in);
+	out->dst.y = buffer_read_u16(in);
+}
+
+static void parse_compose_args(struct buffer *in, struct anim_compose_args *out)
+{
+	out->fg.x = buffer_read_u16(in);
+	out->fg.y = buffer_read_u16(in);
+	out->dim.w = buffer_read_u16(in);
+	out->dim.h = buffer_read_u16(in);
+	out->bg.x = buffer_read_u16(in);
+	out->bg.y = buffer_read_u16(in);
+	out->dst.x = out->bg.x;
+	out->dst.y = out->bg.y;
 }
 
 static bool parse_a_draw_call(struct buffer *in, struct anim_draw_call *out)
@@ -148,27 +189,50 @@ static bool parse_a_draw_call(struct buffer *in, struct anim_draw_call *out)
 	case ANIM_DRAW_OP_COPY:
 	case ANIM_DRAW_OP_COPY_MASKED:
 	case ANIM_DRAW_OP_SWAP:
+	case ANIM_DRAW_OP_0x62:
+	case ANIM_DRAW_OP_0x66:
 		out->copy.src.i = anim_a_src;
 		out->copy.dst.i = 0;
-		out->copy.src.x = buffer_read_u16(in);
-		out->copy.src.y = buffer_read_u16(in);
-		out->copy.dim.w = buffer_read_u16(in);
-		out->copy.dim.h = buffer_read_u16(in);
-		out->copy.dst.x = buffer_read_u16(in);
-		out->copy.dst.y = buffer_read_u16(in);
+		parse_copy_args(in, &out->copy);
 		break;
 	case ANIM_DRAW_OP_COMPOSE:
+	case ANIM_DRAW_OP_COMPOSE_WITH_OFFSET:
 		out->compose.bg.i = 2;
 		out->compose.fg.i = anim_a_src;
 		out->compose.dst.i = 0;
-		out->compose.fg.x = buffer_read_u16(in);
-		out->compose.fg.y = buffer_read_u16(in);
-		out->compose.dim.w = buffer_read_u16(in);
-		out->compose.dim.h = buffer_read_u16(in);
-		out->compose.bg.x = buffer_read_u16(in);
-		out->compose.bg.y = buffer_read_u16(in);
-		out->compose.dst.x = out->compose.bg.x;
-		out->compose.dst.y = out->compose.bg.y;
+		parse_compose_args(in, &out->compose);
+		break;
+	case ANIM_DRAW_OP_0x60_COPY_MASKED:
+		out->copy.src.i = 4;
+		out->copy.dst.i = 11;
+		parse_copy_args(in, &out->copy);
+		out->copy.dst.y -= 8;
+		break;
+	case ANIM_DRAW_OP_0x61_COMPOSE:
+		out->compose.bg.i = 10;
+		out->compose.fg.i = 10;
+		out->compose.dst.i = 4;
+		parse_compose_args(in, &out->compose);
+		out->compose.bg.x = 200;
+		out->compose.bg.y = 320;
+		break;
+	case ANIM_DRAW_OP_0x63_COPY_MASKED_WITH_XOFFSET:
+		out->copy.src.i = 4;
+		out->copy.dst.i = 11;
+		parse_copy_args(in, &out->copy);
+		out->copy.dst.y += 20;
+		break;
+	case ANIM_DRAW_OP_0x64_COMPOSE_MASKED:
+		out->compose.bg.i = 8;
+		out->compose.fg.i = 1;
+		out->compose.dst.i = 0;
+		parse_compose_args(in, &out->compose);
+		break;
+	case ANIM_DRAW_OP_0x65_COMPOSE:
+		out->compose.bg.i = 2;
+		out->compose.fg.i = 3;
+		out->compose.dst.i = 0;
+		parse_compose_args(in, &out->compose);
 		break;
 	default:
 		WARNING("Invalid draw call opcode: %02x", op);
@@ -391,12 +455,20 @@ static void print_draw_args(struct port *out, struct anim_draw_call *call)
 	case ANIM_DRAW_OP_COPY:
 	case ANIM_DRAW_OP_COPY_MASKED:
 	case ANIM_DRAW_OP_SWAP:
+	case ANIM_DRAW_OP_0x60_COPY_MASKED:
+	case ANIM_DRAW_OP_0x62:
+	case ANIM_DRAW_OP_0x63_COPY_MASKED_WITH_XOFFSET:
+	case ANIM_DRAW_OP_0x66:
 		port_printf(out, " %u(%u, %u) -> %u(%u, %u) @ (%u, %u);\n",
 				call->copy.src.i, call->copy.src.x, call->copy.src.y,
 				call->copy.dst.i, call->copy.dst.x, call->copy.dst.y,
 				call->copy.dim.w, call->copy.dim.h);
 		break;
 	case ANIM_DRAW_OP_COMPOSE:
+	case ANIM_DRAW_OP_COMPOSE_WITH_OFFSET:
+	case ANIM_DRAW_OP_0x61_COMPOSE:
+	case ANIM_DRAW_OP_0x64_COMPOSE_MASKED:
+	case ANIM_DRAW_OP_0x65_COMPOSE:
 		port_printf(out, " %u(%u, %u) + %u(%u, %u) -> %u(%u, %u) @ (%u, %u);\n",
 				call->compose.bg.i, call->compose.bg.x, call->compose.bg.y,
 				call->compose.fg.i, call->compose.fg.x, call->compose.fg.y,
@@ -445,11 +517,35 @@ static void anim_print_draw_call(struct port *out, struct anim_draw_call *call, 
 	case ANIM_DRAW_OP_COMPOSE:
 		port_puts(out, "COMPOSE");
 		break;
+	case ANIM_DRAW_OP_COMPOSE_WITH_OFFSET:
+		port_puts(out, "COMPOSE_WITH_OFFSET");
+		break;
 	case ANIM_DRAW_OP_FILL:
 		port_puts(out, "FILL");
 		break;
 	case ANIM_DRAW_OP_SET_PALETTE:
 		port_puts(out, "SET_PALETTE");
+		break;
+	case ANIM_DRAW_OP_0x60_COPY_MASKED:
+		port_puts(out, "COPY_MASKED_0x60");
+		break;
+	case ANIM_DRAW_OP_0x61_COMPOSE:
+		port_puts(out, "COMPOSE_0x61");
+		break;
+	case ANIM_DRAW_OP_0x62:
+		port_puts(out, "0x62");
+		break;
+	case ANIM_DRAW_OP_0x63_COPY_MASKED_WITH_XOFFSET:
+		port_puts(out, "COPY_MASKED_WITH_XOFFSET_0x63");
+		break;
+	case ANIM_DRAW_OP_0x64_COMPOSE_MASKED:
+		port_puts(out, "COMPOSE_MASKED_0x64");
+		break;
+	case ANIM_DRAW_OP_0x65_COMPOSE:
+		port_puts(out, "COMPOSE_0x65");
+		break;
+	case ANIM_DRAW_OP_0x66:
+		port_puts(out, "0x66");
 		break;
 	default:
 		ERROR("Invalid draw call: %d", call->op);

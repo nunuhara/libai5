@@ -104,6 +104,18 @@ NODE(sys_cursor_doukyuusei, Cursor,
 	[3] = &sys_cursor_set_pos,
 	[4] = &sys_cursor_load,
 );
+NODE(sys_cursor_beyond, Cursor,
+	[0] = &sys_cursor_show,
+	[1] = &sys_cursor_hide,
+	[2] = &sys_cursor_save_pos,
+	[3] = &sys_cursor_set_pos,
+	[4] = NULL,
+	[5] = NULL,
+	[6] = NULL,
+	[7] = NULL,
+	[8] = NULL,
+	[9] = NULL,
+);
 
 // System.Anim
 LEAF(sys_anim, init);
@@ -118,6 +130,11 @@ LEAF(sys_anim, halt_all);
 LEAF(sys_anim, reset_all);
 LEAF(sys_anim, exec_copy_call);
 LEAF(sys_anim, halt_group);
+LEAF(sys_anim, unpause_all);
+LEAF(sys_anim, init_alt);
+LEAF(sys_anim, init_from);
+LEAF(sys_anim, stream_running);
+LEAF(sys_anim, running);
 NODE(sys_anim, Anim,
 	[0] = &sys_anim_init,
 	[1] = &sys_anim_start,
@@ -164,6 +181,22 @@ NODE(sys_anim_doukyuusei, Anim,
 	[11] = NULL,
 	[12] = NULL,
 	[13] = &sys_anim_wait3,
+);
+NODE(sys_anim_beyond, Anim,
+	[0] = &sys_anim_init,
+	[1] = &sys_anim_start,
+	[2] = &sys_anim_stop,
+	[3] = &sys_anim_halt,
+	[4] = &sys_anim_wait,
+	[5] = &sys_anim_stop_all,
+	[6] = &sys_anim_halt_all,
+	[7] = &sys_anim_reset_all,
+	[8] = &sys_anim_unpause_all,
+	[9] = &sys_anim_init_alt,
+	[10] = &sys_anim_init_from,
+	[11] = NULL,
+	[12] = &sys_anim_stream_running,
+	[13] = &sys_anim_running,
 );
 
 // System.SaveData
@@ -240,6 +273,17 @@ NODE(sys_savedata_doukyuusei, SaveData,
 	[8] = NULL, // conditionally load some var4s at var[2001] - var4[3499]
 	[9] = NULL, // conditionally save some var4s at var[2001] - var4[3499]
 	[10] = &sys_savedata_save_var4,
+);
+NODE(sys_savedata_beyond, SaveData,
+	[0] = &sys_savedata_resume_load,
+	[1] = &sys_savedata_resume_save,
+	[2] = &sys_savedata_load_var4,
+	[3] = &sys_savedata_save_union_var4,
+	[4] = NULL, // load 200 dwords @ &System.var32[11]
+	[5] = NULL, // save 200 dwords @ &System.var32[11]
+	[6] = &sys_savedata_clear_var4,
+	[7] = &sys_savedata_load_heap,
+	[8] = &sys_savedata_save_heap,
 );
 
 // System.Audio
@@ -324,6 +368,19 @@ NODE(sys_audio_doukyuusei, Audio,
 	[6] = &sys_audio_bgm_play_sync,
 	[7] = &sys_audio_se_play_sync, // with cancel
 );
+NODE(sys_audio_beyond, Audio,
+	[0] = &sys_audio_bgm_play,
+	[1] = &sys_audio_bgm_stop,
+	[2] = &sys_audio_bgm_fade_out,
+	[3] = &sys_audio_bgm_fade_out_sync,
+	[4] = &sys_audio_se_play,
+	[5] = &sys_audio_se_stop,
+	[6] = &sys_audio_se_fade_out,
+	[7] = &sys_audio_se_fade_out_sync,
+	[8] = &sys_audio_bgm_set_volume,
+	[9] = &sys_audio_bgm_restore,
+	[10] = &sys_audio_bgm_is_playing,
+);
 
 // System.Voice
 LEAF(sys_voice, play);
@@ -331,6 +388,7 @@ LEAF(sys_voice, stop);
 LEAF(sys_voice, play_sync);
 LEAF(sys_voice, prepare);
 LEAF(sys_voice, play_prepared);
+LEAF(sys_voice, play_prepared_sync);
 LEAF(sys_voice, is_playing);
 LEAF(sys_voice, set_volume);
 LEAF(sys_voice, restore_volume);
@@ -360,6 +418,17 @@ NODE(sys_voice_doukyuusei, Voice,
 	[1] = &sys_voice_stop,
 	[2] = &sys_voice_play_sync,
 	[3] = &sys_voice_is_playing,
+);
+NODE(sys_voice_beyond, Voice,
+	[0] = &sys_voice_play,
+	[1] = &sys_voice_stop,
+	[2] = &sys_voice_play_sync,
+	[3] = &sys_voice_is_playing,
+	[4] = &sys_voice_set_volume,
+	[5] = &sys_voice_restore_volume,
+	[6] = &sys_voice_prepare,
+	[7] = &sys_voice_play_prepared,
+	[8] = &sys_voice_play_prepared_sync,
 );
 
 // System.File
@@ -412,6 +481,10 @@ NODE(sys_display_doukyuusei, Display,
 	[0] = &sys_display_hide_unhide,
 	[1] = &sys_display_fade_out_fade_in,
 );
+NODE(sys_display_beyond, Display,
+	[0] = &sys_display_hide_unhide,
+	[1] = &sys_display_fade_out_fade_in,
+);
 
 // System.Image
 LEAF(sys_image, copy);
@@ -430,6 +503,7 @@ LEAF(sys_image, pixel_fade_masked);
 LEAF(sys_image, blend_half);
 LEAF(sys_image, blend_with_mask_color);
 LEAF(sys_image, darken);
+LEAF(sys_image, crossfade);
 NODE(sys_image_classics, Image,
 	[0] = &sys_image_copy,
 	[1] = &sys_image_copy_masked,
@@ -488,6 +562,21 @@ NODE(sys_image_doukyuusei, Image,
 	[12] = NULL, // unused
 	[13] = NULL, // unused
 	[14] = &sys_image_blend_to,
+);
+NODE(sys_image_beyond, Image,
+	[0] = &sys_image_copy,
+	[1] = &sys_image_copy_masked,
+	[2] = &sys_image_fill_bg,
+	[3] = &sys_image_copy_swap,
+	[4] = &sys_image_swap_bg_fg,
+	[5] = NULL, // TODO
+	[6] = &sys_image_compose,
+	[7] = NULL, // TODO
+	[8] = NULL, // TODO
+	[9] = NULL, // TODO
+	[10] = &sys_image_blend_with_mask_color,
+	[11] = &sys_image_crossfade,
+	[12] = NULL, // TODO
 );
 
 // System.wait
@@ -586,7 +675,6 @@ NODE(sys_map_doukyuusei, Map,
 	[25] = &sys_map_load_bitmap,
 );
 
-
 // System.noop
 LEAF(sys, noop);
 
@@ -618,6 +706,14 @@ NODE(sys_backlog_doukyuusei, Backlog,
 	[2] = &sys_backlog_commit,
 	[3] = &sys_backlog_get_count,
 	[4] = &sys_backlog_get_pointer,
+);
+NODE(sys_backlog_beyond, Backlog,
+	[0] = &sys_backlog_clear,
+	[1] = &sys_backlog_prepare,
+	[2] = &sys_backlog_commit,
+	[3] = &sys_backlog_get_count,
+	[4] = &sys_backlog_get_pointer,
+	[5] = &sys_backlog_has_voice,
 );
 
 // System.noop2
@@ -861,6 +957,32 @@ PUBLIC_NODE(mes_sys_doukyuusei, System,
 	[24] = &sys_strlen,
 	[25] = NULL, // TODO
 	[26] = NULL, // TODO
+);
+
+PUBLIC_NODE(mes_sys_beyond, System,
+	[0] = &sys_set_font_size,
+	[1] = &sys_display_number,
+	[2] = &sys_cursor_beyond,
+	[3] = &sys_anim_beyond,
+	[4] = &sys_savedata_beyond,
+	[5] = &sys_audio_beyond,
+	[6] = &sys_voice_beyond,
+	[7] = &sys_load_file,
+	[8] = &sys_load_image,
+	[9] = &sys_display_beyond,
+	[10] = &sys_image_beyond,
+	[11] = &sys_wait,
+	[12] = &sys_set_text_colors,
+	[13] = &sys_farcall,
+	[14] = &sys_get_cursor_segment,
+	[15] = &sys_get_menu_no,
+	[16] = &sys_get_time,
+	[17] = NULL,
+	[18] = &sys_check_input,
+	[19] = &sys_backlog_beyond,
+	[21] = &sys_strlen,
+	//[22] = overlay?
+	[23] = NULL, // TODO
 );
 
 PUBLIC_NODE(mes_sys_none, System,);
@@ -1156,6 +1278,48 @@ PUBLIC_NODE(mes_util_aishimai, AiShimai,
 	[14] = &util_scroll,
 	[15] = NULL,
 	[16] = &util_get_CUT,
+);
+
+LEAF(util, set_volume);
+LEAF(util, get_ini_values);
+
+PUBLIC_NODE(mes_util_beyond, Beyond,
+	[0] = NULL,
+	[1] = NULL,
+	[2] = NULL,
+	[3] = NULL,
+	[4] = NULL,
+	[5] = NULL,
+	[6] = NULL,
+	[7] = NULL,
+	[8] = NULL,
+	[9] = NULL,
+	[10] = NULL,
+	[11] = &util_set_volume,
+	[12] = &util_get_ini_values,
+	[13] = NULL,
+	[14] = NULL,
+	[15] = NULL,
+	[16] = NULL,
+	[17] = NULL,
+	[18] = NULL,
+	[20] = NULL,
+	[21] = NULL,
+	[22] = NULL,
+	[23] = NULL,
+	[24] = NULL,
+	[25] = NULL,
+	[26] = NULL,
+	[27] = NULL,
+	[28] = NULL,
+	[29] = NULL,
+	[30] = NULL,
+	[31] = NULL,
+	[32] = NULL,
+	[33] = NULL,
+	[34] = NULL,
+	[35] = NULL,
+	[36] = NULL,
 );
 
 PUBLIC_NODE(mes_util_none, Empty, );
