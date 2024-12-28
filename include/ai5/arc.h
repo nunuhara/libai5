@@ -159,6 +159,4 @@ bool archive_data_load(struct archive_data *data)
  */
 #define archive_foreach(var, arc) vector_foreach_p(var, (arc)->files)
 
-bool archive_file_compressed(const char *name);
-
 #endif // AI5_ARC_H

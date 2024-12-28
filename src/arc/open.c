@@ -567,38 +567,6 @@ void archive_close(struct archive *arc)
 	free(arc);
 }
 
-bool archive_file_compressed(const char *name)
-{
-	if (ai5_target_game == GAME_ALLSTARS)
-		return false;
-
-	static const char *compressed_ext[] = {
-		"a",
-		"a4",
-		"a6",
-		"bmp",
-		"ccd",
-		"dat",
-		"eve",
-		"fnt",
-		"mes",
-		"mp3",
-		"mpx",
-		"msk",
-		"pal",
-		"lib",
-		"s4",
-		"tbl",
-		"x",
-	};
-	const char *ext = file_extension(name);
-	for (unsigned i = 0; i < ARRAY_SIZE(compressed_ext); i++) {
-		if (!strcasecmp(ext, compressed_ext[i]))
-			return true;
-	}
-	return false;
-}
-
 static uint8_t *pack_wav(uint8_t *data_in, size_t size_in, size_t *size_out, bool stereo)
 {
 	uint8_t *data = xmalloc(size_in + 44);
@@ -637,16 +605,17 @@ static bool data_decompress(struct archive_data *file)
 {
 	uint8_t *data;
 	size_t data_size;
+
 	if (file->archive->meta.type == ARCHIVE_TYPE_AWD
 			|| file->archive->meta.type == ARCHIVE_TYPE_AWF) {
 		// raw s16le PCM data: convert to WAV
 		bool stereo = file->archive->flags & ARCHIVE_STEREO;
 		data = pack_wav(file->data, file->raw_size, &data_size, stereo);
-	} else if (archive_file_compressed(file->name)) {
+	} else if (file->archive->flags & ARCHIVE_RAW) {
+		return true;
+	} else {
 		// LZSS compressed: decompress
 		data = lzss_decompress(file->data, file->raw_size, &data_size);
-	} else {
-		return true;
 	}
 
 	if (!file->mapped)
@@ -744,7 +713,7 @@ bool archive_data_load(struct archive_data *data)
 		data->size = data->raw_size;
 	}
 
-	if (!(data->archive->flags & ARCHIVE_RAW) && !data_decompress(data))
+	if (!data_decompress(data))
 		return false;
 
 	data->ref++;
