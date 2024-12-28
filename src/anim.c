@@ -35,6 +35,10 @@ void anim_set_game(enum ai5_game_id game)
 		anim_draw_call_size = 17;
 		anim_type = ANIM_A;
 		break;
+	case GAME_KAKYUUSEI:
+		anim_draw_call_size = 17;
+		anim_type = ANIM_A8;
+		break;
 	case GAME_SHANGRLIA:
 		anim_draw_call_size = 10;
 		anim_type = ANIM_S4;
@@ -129,6 +133,69 @@ static bool parse_s4_draw_call(struct buffer *in, struct anim_draw_call *out)
 	return true;
 }
 
+static enum anim_draw_opcode parse_a8_draw_opcode(uint8_t op)
+{
+	switch (op & 0xf0) {
+	case 0x10: return ANIM_DRAW_OP_COPY;
+	case 0x20: return ANIM_DRAW_OP_COPY_MASKED;
+	case 0x30: return ANIM_DRAW_OP_SWAP;
+	// XXX: NOT compose... might be Kakyuusei-specific quirk?
+	//      (otherwise same as S4 opcodes)
+	case 0x50: return ANIM_DRAW_OP_COPY_MASKED;
+	case 0x60: return ANIM_DRAW_OP_FILL;
+	}
+	return -1;
+}
+
+static void parse_copy_args(struct buffer *in, struct anim_copy_args *out)
+{
+	out->src.x = buffer_read_u16(in);
+	out->src.y = buffer_read_u16(in);
+	out->dim.w = buffer_read_u16(in);
+	out->dim.h = buffer_read_u16(in);
+	out->dst.x = buffer_read_u16(in);
+	out->dst.y = buffer_read_u16(in);
+}
+
+static void parse_compose_args(struct buffer *in, struct anim_compose_args *out)
+{
+	out->fg.x = buffer_read_u16(in);
+	out->fg.y = buffer_read_u16(in);
+	out->dim.w = buffer_read_u16(in);
+	out->dim.h = buffer_read_u16(in);
+	out->bg.x = buffer_read_u16(in);
+	out->bg.y = buffer_read_u16(in);
+	out->dst.x = out->bg.x;
+	out->dst.y = out->bg.y;
+}
+
+static bool parse_a8_draw_call(struct buffer *in, struct anim_draw_call *out)
+{
+	size_t start = in->index;
+	uint8_t op = buffer_read_u8(in);
+	switch ((out->op = parse_a8_draw_opcode(op))) {
+	case ANIM_DRAW_OP_COPY:
+	case ANIM_DRAW_OP_COPY_MASKED:
+	case ANIM_DRAW_OP_SWAP:
+		out->copy.dst.i = op & 1;
+		out->copy.src.i = (op >> 1) & 1;
+		parse_copy_args(in, &out->copy);
+		break;
+	case ANIM_DRAW_OP_FILL:
+		out->fill.dst.i = (op >> 1) & 1;
+		out->fill.dst.x = buffer_read_u16(in);
+		out->fill.dst.y = buffer_read_u16(in);
+		out->fill.dim.w = buffer_read_u16(in);
+		out->fill.dim.h = buffer_read_u16(in);
+		break;
+	default:
+		WARNING("Invalid draw call opcode: %02x", op);
+		return false;
+	}
+	buffer_seek(in, start + anim_draw_call_size);
+	return true;
+}
+
 static enum anim_draw_opcode parse_a_draw_opcode(uint8_t op)
 {
 	switch ((enum anim_a_draw_opcode)(op & 0xf0)) {
@@ -156,28 +223,6 @@ static enum anim_draw_opcode parse_a_draw_opcode(uint8_t op)
 		break;
 	}
 	return -1;
-}
-
-static void parse_copy_args(struct buffer *in, struct anim_copy_args *out)
-{
-	out->src.x = buffer_read_u16(in);
-	out->src.y = buffer_read_u16(in);
-	out->dim.w = buffer_read_u16(in);
-	out->dim.h = buffer_read_u16(in);
-	out->dst.x = buffer_read_u16(in);
-	out->dst.y = buffer_read_u16(in);
-}
-
-static void parse_compose_args(struct buffer *in, struct anim_compose_args *out)
-{
-	out->fg.x = buffer_read_u16(in);
-	out->fg.y = buffer_read_u16(in);
-	out->dim.w = buffer_read_u16(in);
-	out->dim.h = buffer_read_u16(in);
-	out->bg.x = buffer_read_u16(in);
-	out->bg.y = buffer_read_u16(in);
-	out->dst.x = out->bg.x;
-	out->dst.y = out->bg.y;
 }
 
 static bool parse_a_draw_call(struct buffer *in, struct anim_draw_call *out)
@@ -246,9 +291,12 @@ bool anim_parse_draw_call(uint8_t *data, struct anim_draw_call *out)
 {
 	struct buffer b;
 	buffer_init(&b, data, anim_draw_call_size);
-	if (anim_type == ANIM_S4)
-		return parse_s4_draw_call(&b, out);
-	return parse_a_draw_call(&b, out);
+	switch (anim_type) {
+	case ANIM_S4: return parse_s4_draw_call(&b, out);
+	case ANIM_A8: return parse_a8_draw_call(&b, out);
+	case ANIM_A:  return parse_a_draw_call(&b, out);
+	}
+	ERROR("Invalid anim_type");
 }
 
 static bool anim_parse_s4_instruction(struct buffer *in, struct anim *anim,
@@ -394,6 +442,50 @@ err:
 
 }
 
+static struct anim *anim_a8_parse(struct buffer *in)
+{
+	uint32_t stream_ptr[10];
+	uint8_t nr_draw_calls = buffer_read_u8(in);
+	for (int i = 0; i < 10; i++) {
+		stream_ptr[i] = buffer_read_u16(in);
+	}
+
+	// determine start of stream bytecode section
+	unsigned stream_start = stream_ptr[0];
+	for (int i = 0; i < 10; i++) {
+		if (stream_ptr[i] < stream_start)
+			stream_start = stream_ptr[i];
+	}
+
+	struct anim *anim = xcalloc(1, sizeof(struct anim));
+
+	// read draw calls
+	while (!buffer_end(in) && in->index < stream_start) {
+		struct anim_draw_call call;
+		if (!parse_a_draw_call(in, &call))
+			goto err;
+		vector_push(struct anim_draw_call, anim->draw_calls, call);
+	}
+	if (vector_length(anim->draw_calls) != nr_draw_calls)
+		WARNING("Declared draw call count doesn't match number of parsed calls");
+
+	// read bytecode for each stream
+	for (int i = 0; i < 10; i++) {
+		buffer_seek(in, stream_ptr[i]);
+		while (!buffer_end(in) && buffer_peek_u8(in) != 0xff) {
+			struct anim_instruction instr;
+			if (!anim_parse_s4_instruction(in, anim, &instr))
+				goto err;
+			vector_push(struct anim_instruction, anim->streams[i], instr);
+		}
+	}
+
+	return anim;
+err:
+	anim_free(anim);
+	return NULL;
+}
+
 static struct anim *anim_a_parse(struct buffer *in)
 {
 	uint32_t stream_ptr[ANIM_MAX_STREAMS];
@@ -444,9 +536,12 @@ struct anim *anim_parse(uint8_t *data, size_t data_size)
 {
 	struct buffer in;
 	buffer_init(&in, data, data_size);
-	if (anim_type == ANIM_S4)
-		return anim_s4_parse(&in);
-	return anim_a_parse(&in);
+	switch (anim_type) {
+	case ANIM_S4: return anim_s4_parse(&in);
+	case ANIM_A8: return anim_a8_parse(&in);
+	case ANIM_A:  return anim_a_parse(&in);
+	}
+	ERROR("Invalid anim_type");
 }
 
 static void print_draw_args(struct port *out, struct anim_draw_call *call)

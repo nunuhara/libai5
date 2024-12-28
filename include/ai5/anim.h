@@ -147,7 +147,8 @@ typedef vector_t(struct anim_instruction) anim_stream;
 
 enum anim_type {
 	ANIM_S4,
-	ANIM_A,
+	ANIM_A8, // 8-bit .A
+	ANIM_A,  // 16-bit .A (typical)
 };
 
 struct anim {
