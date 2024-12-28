@@ -169,7 +169,7 @@ enum mes_system_var32 {
 	MES_SYS_VAR_MASK_COLOR24,
 };
 
-#define MES_NR_SYSTEM_VARIABLES 26
+#define MES_NR_SYSTEM_VARIABLES 28
 
 typedef struct mes_path_component *mes_namespace_t;
 

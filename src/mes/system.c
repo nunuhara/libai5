@@ -116,6 +116,14 @@ NODE(sys_cursor_beyond, Cursor,
 	[8] = NULL,
 	[9] = NULL,
 );
+NODE(sys_cursor_kakyuusei, Cursor,
+	[0] = &sys_cursor_show,
+	[1] = &sys_cursor_hide,
+	[2] = NULL, // unused
+	[3] = &sys_cursor_save_pos,
+	[4] = &sys_cursor_set_pos,
+	[5] = &sys_cursor_load,
+);
 
 // System.Anim
 LEAF(sys_anim, init);
@@ -135,6 +143,7 @@ LEAF(sys_anim, init_alt);
 LEAF(sys_anim, init_from);
 LEAF(sys_anim, stream_running);
 LEAF(sys_anim, running);
+LEAF(sys_anim, wait_all);
 NODE(sys_anim, Anim,
 	[0] = &sys_anim_init,
 	[1] = &sys_anim_start,
@@ -197,6 +206,17 @@ NODE(sys_anim_beyond, Anim,
 	[11] = NULL,
 	[12] = &sys_anim_stream_running,
 	[13] = &sys_anim_running,
+);
+NODE(sys_anim_kakyuusei, Anim,
+	[0] = &sys_anim_init,
+	[1] = &sys_anim_start,
+	[2] = &sys_anim_stop,
+	[3] = &sys_anim_halt,
+	[4] = &sys_anim_wait,
+	[5] = &sys_anim_stop_all,
+	[6] = &sys_anim_halt_all,
+	[7] = &sys_anim_reset_all,
+	[8] = &sys_anim_wait_all,
 );
 
 // System.SaveData
@@ -284,6 +304,13 @@ NODE(sys_savedata_beyond, SaveData,
 	[6] = &sys_savedata_clear_var4,
 	[7] = &sys_savedata_load_heap,
 	[8] = &sys_savedata_save_heap,
+);
+NODE(sys_savedata_kakyuusei, SaveData,
+	[0] = &sys_savedata_resume_load,
+	[1] = &sys_savedata_resume_save,
+	[2] = &sys_savedata_load,
+	[3] = &sys_savedata_save,
+	[4] = &sys_savedata_load_variables,
 );
 
 // System.Audio
@@ -381,6 +408,14 @@ NODE(sys_audio_beyond, Audio,
 	[9] = &sys_audio_bgm_restore,
 	[10] = &sys_audio_bgm_is_playing,
 );
+NODE(sys_audio_kakyuusei, Audio,
+	[0] = &sys_audio_bgm_play,
+	[1] = &sys_audio_bgm_stop,
+	[2] = &sys_audio_bgm_fade_out,
+	[3] = &sys_audio_se_play,
+	[4] = &sys_audio_se_fade_out,
+	[5] = &sys_audio_se_stop,
+);
 
 // System.Voice
 LEAF(sys_voice, play);
@@ -430,6 +465,11 @@ NODE(sys_voice_beyond, Voice,
 	[7] = &sys_voice_play_prepared,
 	[8] = &sys_voice_play_prepared_sync,
 );
+NODE(sys_voice_kakyuusei, Voice,
+	[0] = &sys_voice_play,
+	[1] = &sys_voice_stop,
+	[2] = &sys_voice_is_playing,
+);
 
 // System.File
 LEAF(sys_file, read);
@@ -449,14 +489,27 @@ LEAF(sys, load_image);
 LEAF(sys_palette, set);
 LEAF(sys_palette, crossfade);
 LEAF(sys_palette, crossfade_timed);
+LEAF(sys_palette, crossfade_range);
 LEAF(sys_palette, hide);
 LEAF(sys_palette, unhide);
+LEAF(sys_palette, update);
 NODE(sys_palette, Palette,
 	[0] = &sys_palette_set,
 	[1] = &sys_palette_crossfade,
 	[2] = &sys_palette_crossfade_timed,
 	[3] = &sys_palette_hide,
 	[4] = &sys_palette_unhide,
+);
+
+NODE(sys_palette_kakyuusei, Palette,
+	[0] = NULL, // unused
+	[1] = &sys_palette_crossfade,
+	[2] = NULL, // unused
+	[3] = NULL, // unused
+	[4] = NULL, // unused
+	[5] = &sys_palette_update,
+	[6] = NULL, // unused
+	[7] = &sys_palette_crossfade_range,
 );
 
 // System.Display
@@ -499,6 +552,7 @@ LEAF(sys_image, blend);
 LEAF(sys_image, blend_masked);
 LEAF(sys_image, blend_to);
 LEAF(sys_image, pixel_fade);
+LEAF(sys_image, pixel_fade_slow);
 LEAF(sys_image, pixel_fade_masked);
 LEAF(sys_image, blend_half);
 LEAF(sys_image, blend_with_mask_color);
@@ -577,6 +631,16 @@ NODE(sys_image_beyond, Image,
 	[10] = &sys_image_blend_with_mask_color,
 	[11] = &sys_image_crossfade,
 	[12] = NULL, // TODO
+);
+NODE(sys_image_kakyuusei, Image,
+	[0] = &sys_image_copy,
+	[1] = &sys_image_copy_masked,
+	[2] = &sys_image_fill_bg,
+	[3] = &sys_image_copy_swap,
+	[4] = &sys_image_swap_bg_fg,
+	[5] = &sys_image_pixel_fade,
+	[6] = &sys_image_compose,
+	[7] = &sys_image_pixel_fade_slow,
 );
 
 // System.wait
@@ -674,6 +738,30 @@ NODE(sys_map_doukyuusei, Map,
 	[24] = &sys_map_load_palette,
 	[25] = &sys_map_load_bitmap,
 );
+NODE(sys_map_kakyuusei, Map,
+	[0] = &sys_map_load_tilemap,
+	[1] = &sys_map_load_sprite,
+	[2] = &sys_map_load_tiles,
+	[3] = NULL, // unused?
+	[4] = &sys_map_load_sprite_scripts,
+	[5] = &sys_map_set_sprite_script,
+	[6] = &sys_map_place_sprites,
+	[7] = &sys_map_set_sprite_state,
+	[8] = &sys_map_tick_and_redraw,
+	[9] = &sys_map_tick,
+	[10] = &sys_map_draw_tiles,
+	[11] = &sys_map_draw_tiles2,
+	[12] = &sys_map_set_location_mode,
+	[13] = &sys_map_get_location,
+	[14] = &sys_map_move_sprite,
+	[15] = &sys_map_path_sprite,
+	[16] = &sys_map_cancel_sprite_pathing,
+	[17] = &sys_map_get_pathing,
+	[18] = NULL, // unused?
+	[19] = NULL, // unused?
+	[20] = &sys_map_rewind_sprite_pos,
+	[21] = NULL, // TODO
+);
 
 // System.noop
 LEAF(sys, noop);
@@ -714,6 +802,13 @@ NODE(sys_backlog_beyond, Backlog,
 	[3] = &sys_backlog_get_count,
 	[4] = &sys_backlog_get_pointer,
 	[5] = &sys_backlog_has_voice,
+);
+NODE(sys_backlog_kakyuusei, Backlog,
+	[0] = &sys_backlog_clear,
+	[1] = &sys_backlog_prepare,
+	[2] = &sys_backlog_commit,
+	[3] = &sys_backlog_get_count,
+	[4] = &sys_backlog_get_pointer,
 );
 
 // System.noop2
@@ -983,6 +1078,28 @@ PUBLIC_NODE(mes_sys_beyond, System,
 	[21] = &sys_strlen,
 	//[22] = overlay?
 	[23] = NULL, // TODO
+);
+
+PUBLIC_NODE(mes_sys_kakyuusei, System,
+	[0] = &sys_set_font_size,
+	[1] = &sys_display_number,
+	[2] = &sys_cursor_kakyuusei,
+	[3] = &sys_anim_kakyuusei,
+	[4] = &sys_savedata_kakyuusei,
+	[5] = &sys_audio_kakyuusei,
+	[6] = &sys_voice_kakyuusei,
+	[7] = &sys_load_file,
+	[8] = &sys_load_image,
+	[9] = &sys_palette_kakyuusei,
+	[10] = &sys_image_kakyuusei,
+	[11] = &sys_wait,
+	[12] = &sys_set_text_colors,
+	[13] = &sys_farcall,
+	[14] = &sys_get_cursor_segment,
+	[15] = &sys_get_menu_no,
+	[16] = &sys_get_time,
+	[17] = &sys_map_kakyuusei,
+	[18] = &sys_backlog_kakyuusei,
 );
 
 PUBLIC_NODE(mes_sys_none, System,);
@@ -1320,6 +1437,58 @@ PUBLIC_NODE(mes_util_beyond, Beyond,
 	[34] = NULL,
 	[35] = NULL,
 	[36] = NULL,
+);
+
+LEAF(util, save_palette);
+LEAF(util, restore_palette); // 0-255
+LEAF(util, reset_low_palette); // 0-16
+LEAF(util, ctrl_is_down);
+LEAF(util, get_ccd_sprite_pos);
+LEAF(util, activate_is_down);
+LEAF(util, wait_until_activate_is_up);
+LEAF(util, timer_init);
+LEAF(util, timer_set);
+LEAF(util, move_wait);
+LEAF(util, restore_high_palette); // 16-255
+LEAF(util, load_flag08_heap); // TODO: better name?
+LEAF(util, save_flag08_heap); // TODO: better name?
+LEAF(util, backlog_save_ptr);
+LEAF(util, backlog_truncate_at_saved_ptr);
+LEAF(util, timer_wait);
+LEAF(util, bgm_is_playing);
+LEAF(util, activate_is_down2);
+PUBLIC_NODE(mes_util_kakyuusei, Kakyuusei,
+	[94] = &util_save_palette,
+	[95] = &util_restore_palette,
+	[96] = &util_reset_low_palette,
+	[97] = &util_ctrl_is_down,
+	[98] = &util_get_ccd_sprite_pos,
+	[99] = &util_activate_is_down,
+	[100] = &util_wait_until_activate_is_up,
+	[101] = &util_timer_init,
+	[102] = &util_timer_set,
+	[103] = &util_move_wait,
+	[105] = NULL, // TODO: palette related
+	[106] = &util_restore_high_palette,
+	[107] = &util_load_flag08_heap,
+	[111] = NULL, // TODO: backlog related
+	[127] = NULL, // TODO: oversized-CG related
+	[128] = NULL, // TODO
+	[129] = NULL, // TODO
+	[130] = NULL, // TODO
+	[131] = NULL, // TODO: palette related
+	[133] = &util_save_flag08_heap,
+	[134] = &util_backlog_save_ptr,
+	[135] = &util_backlog_truncate_at_saved_ptr,
+	[136] = NULL, // TODO: palette related
+	[137] = &util_delay,
+	[138] = NULL, // TODO
+	[139] = &util_timer_wait,
+	[140] = &util_bgm_is_playing,
+	[141] = NULL, // TODO
+	[142] = NULL, // TODO
+	[143] = NULL, // TODO
+	[144] = &util_activate_is_down2,
 );
 
 PUBLIC_NODE(mes_util_none, Empty, );
