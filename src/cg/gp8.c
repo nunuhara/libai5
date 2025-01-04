@@ -31,17 +31,21 @@ struct cg *gp8_decode(uint8_t *data, size_t size)
 	cg->metrics.h = le_get16(data, 6);
 	cg->metrics.bpp = 8;
 
+	uint16_t stride = cg->metrics.w;
+	if (stride & 3)
+		stride = (stride & 0xfffc) + 4;
+
 	cg->palette = xmalloc(256 * 4);
 	memcpy(cg->palette, data + 8, 256 * 4);
 
 	size_t pos = 8 + 256 * 4;
 	size_t px_size;
 	uint8_t *px = lzss_decompress(data + pos, size - pos, &px_size);
-	if (px_size != cg->metrics.w * cg->metrics.h) {
+	if (px_size != stride * cg->metrics.h) {
 		WARNING("Unexpected size for GP8 pixel data (expected %u; got %u)",
-				(unsigned)cg->metrics.w * cg->metrics.h,
+				(unsigned)stride * cg->metrics.h,
 				(unsigned)px_size);
-		if (px_size < cg->metrics.w * cg->metrics.h) {
+		if (px_size < stride * cg->metrics.h) {
 			free(cg->palette);
 			free(cg->pixels);
 			free(cg);
@@ -52,7 +56,7 @@ struct cg *gp8_decode(uint8_t *data, size_t size)
 	cg->pixels = xmalloc(cg->metrics.w * cg->metrics.h);
 	for (int i = 0; i < cg->metrics.h; i++) {
 		uint8_t *dst = cg->pixels + cg->metrics.w * i;
-		uint8_t *src = px + cg->metrics.w * (cg->metrics.h - (i + 1));
+		uint8_t *src = px + stride * (cg->metrics.h - (i + 1));
 		memcpy(dst, src, cg->metrics.w);
 	}
 	free(px);
