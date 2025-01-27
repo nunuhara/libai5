@@ -1449,13 +1449,23 @@ LEAF(util, wait_until_activate_is_up);
 LEAF(util, timer_init);
 LEAF(util, timer_set);
 LEAF(util, move_wait);
-LEAF(util, restore_high_palette); // 16-255
-LEAF(util, load_flag08_heap); // TODO: better name?
-LEAF(util, save_flag08_heap); // TODO: better name?
+LEAF(util, crossfade_sepia);
+LEAF(util, crossfade_high_palette);
+LEAF(util, load_player_name);
+LEAF(util, save_player_name);
+LEAF(util, backlog_add_number);
+LEAF(util, quake);
+LEAF(util, mahoko_spin_start);
+LEAF(util, mahoko_spin_end);
+LEAF(util, save_current_palette);
 LEAF(util, backlog_save_ptr);
 LEAF(util, backlog_truncate_at_saved_ptr);
+LEAF(util, palette_blend_color);
+LEAF(util, credits_roll);
 LEAF(util, timer_wait);
 LEAF(util, bgm_is_playing);
+LEAF(util, clock_start);
+LEAF(util, clock_get);
 LEAF(util, activate_is_down2);
 PUBLIC_NODE(mes_util_kakyuusei, Kakyuusei,
 	[94] = &util_save_palette,
@@ -1468,25 +1478,25 @@ PUBLIC_NODE(mes_util_kakyuusei, Kakyuusei,
 	[101] = &util_timer_init,
 	[102] = &util_timer_set,
 	[103] = &util_move_wait,
-	[105] = NULL, // TODO: palette related
-	[106] = &util_restore_high_palette,
-	[107] = &util_load_flag08_heap,
-	[111] = NULL, // TODO: backlog related
-	[127] = NULL, // TODO: oversized-CG related
-	[128] = NULL, // TODO
-	[129] = NULL, // TODO
-	[130] = NULL, // TODO
-	[131] = NULL, // TODO: palette related
-	[133] = &util_save_flag08_heap,
+	[105] = &util_crossfade_sepia,
+	[106] = &util_crossfade_high_palette,
+	[107] = &util_load_player_name,
+	[111] = &util_backlog_add_number,
+	[127] = &util_scroll,
+	[128] = &util_quake,
+	[129] = &util_mahoko_spin_start,
+	[130] = &util_mahoko_spin_end,
+	[131] = &util_save_current_palette,
+	[133] = &util_save_player_name,
 	[134] = &util_backlog_save_ptr,
 	[135] = &util_backlog_truncate_at_saved_ptr,
-	[136] = NULL, // TODO: palette related
+	[136] = &util_palette_blend_color,
 	[137] = &util_delay,
-	[138] = NULL, // TODO
+	[138] = &util_credits_roll,
 	[139] = &util_timer_wait,
 	[140] = &util_bgm_is_playing,
-	[141] = NULL, // TODO
-	[142] = NULL, // TODO
+	[141] = &util_clock_start,
+	[142] = &util_clock_get,
 	[143] = NULL, // TODO
 	[144] = &util_activate_is_down2,
 );
