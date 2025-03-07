@@ -33,11 +33,11 @@
 #include "nulib/file.h"
 #include "nulib/hashtable.h"
 #include "nulib/little_endian.h"
-#include "nulib/lzss.h"
 #include "nulib/string.h"
 #include "nulib/utfsjis.h"
 #include "nulib/vector.h"
 #include "ai5/arc.h"
+#include "ai5/lzss.h"
 #include "ai5/game.h"
 
 #define MAX_SANE_FILES 100000

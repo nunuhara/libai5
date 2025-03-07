@@ -44,8 +44,8 @@
 #include "nulib.h"
 #include "nulib/buffer.h"
 #include "nulib/little_endian.h"
-#include "nulib/lzss.h"
 #include "ai5/cg.h"
+#include "ai5/lzss.h"
 
 struct bitbuffer {
 	uint8_t *buf;

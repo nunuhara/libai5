@@ -19,8 +19,8 @@
 
 #include "nulib.h"
 #include "nulib/little_endian.h"
-#include "nulib/lzss.h"
 #include "ai5/cg.h"
+#include "ai5/lzss.h"
 
 struct cg *gp8_decode(uint8_t *data, size_t size)
 {
