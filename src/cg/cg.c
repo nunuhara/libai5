@@ -27,6 +27,7 @@ struct cg *gp8_decode(uint8_t *data, size_t size);
 struct cg *gxx_decode(uint8_t *data, size_t size, unsigned bpp);
 struct cg *png_decode(uint8_t *data, size_t size);
 struct cg *gcc_decode(uint8_t *data, size_t size);
+struct cg *gpx_decode(uint8_t *data, size_t size);
 
 bool gxx_write(struct cg *cg, FILE *out, unsigned bpp);
 bool png_write(struct cg *cg, FILE *out);
@@ -41,6 +42,7 @@ static struct cg *_cg_load(uint8_t *data, size_t size, enum cg_type type)
 	case CG_TYPE_G32: return gxx_decode(data, size, 32);
 	case CG_TYPE_GCC: return gcc_decode(data, size);
 	case CG_TYPE_PNG: return png_decode(data, size);
+	case CG_TYPE_GPX: return gpx_decode(data, size);
 	}
 	ERROR("invalid CG type: %d", type);
 }
@@ -62,6 +64,7 @@ enum cg_type cg_type_from_name(const char *name)
 	if (!strcasecmp(ext, "g24")) return CG_TYPE_G24;
 	if (!strcasecmp(ext, "g32")) return CG_TYPE_G32;
 	if (!strcasecmp(ext, "gcc")) return CG_TYPE_GCC;
+	if (!strcasecmp(ext, "gpx")) return CG_TYPE_GPX;
 	if (!strcasecmp(ext, "png")) return CG_TYPE_PNG;
 	return -1;
 }
@@ -140,6 +143,7 @@ bool _cg_write(struct cg *cg, FILE *out, enum cg_type type)
 	case CG_TYPE_G24: return gxx_write(cg, out, 24);
 	case CG_TYPE_G32: return gxx_write(cg, out, 32);
 	case CG_TYPE_GCC: ERROR("GCC write not supported");
+	case CG_TYPE_GPX: ERROR("GPX write not supported");
 	case CG_TYPE_PNG: return png_write(cg, out);
 	}
 	ERROR("Invalid CG type: %d", type);

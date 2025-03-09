@@ -28,6 +28,7 @@ ai5_sources = [
   'src/cg/cg.c',
   'src/cg/gp4.c',
   'src/cg/gp8.c',
+  'src/cg/gpx.c',
   'src/cg/g16_24_32.c',
   'src/cg/gcc.c',
   'src/cg/png.c',
