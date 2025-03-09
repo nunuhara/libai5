@@ -106,3 +106,38 @@ uint8_t *lzss_compress(uint8_t *input, size_t input_size, size_t *output_size)
 	*output_size = out.index;
 	return out.buf;
 }
+
+/*
+ * "Bitwise" LZSS (data is not byte-aligned).
+ */
+uint8_t *lzss_bw_decompress(uint8_t *input, size_t input_size, size_t *output_size)
+{
+	uint8_t frame[FRAME_SIZE] = {0};
+	unsigned frame_pos = 1;
+
+	struct bitbuffer b;
+	bitbuffer_init(&b, input, input_size);
+
+	struct buffer out;
+	buffer_init(&out, NULL, 0);
+
+	while (true) {
+		if (bitbuffer_read_bit(&b)) {
+			uint8_t c = bitbuffer_read_number(&b, 8);
+			frame[frame_pos++ & FRAME_MASK] = c;
+			buffer_write_u8(&out, c);
+		} else {
+			unsigned off = bitbuffer_read_number(&b, 12);
+			if (!off)
+				break;
+			unsigned len = bitbuffer_read_number(&b, 4) + 2;
+			for (int i = 0; i < len; i++) {
+				uint8_t c = frame[off++ & FRAME_MASK];
+				frame[frame_pos++ & FRAME_MASK] = c;
+				buffer_write_u8(&out, c);
+			}
+		}
+	}
+	*output_size = out.index;
+	return out.buf;
+}

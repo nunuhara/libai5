@@ -47,20 +47,20 @@
 #include "ai5/cg.h"
 #include "ai5/lzss.h"
 
-struct bitbuffer {
+struct gcc_bitbuffer {
 	uint8_t *buf;
 	int index;
 	int current;
 	int mask;
 };
 
-void bitbuffer_seek_byte(struct bitbuffer *b, int idx)
+void gcc_bitbuffer_seek_byte(struct gcc_bitbuffer *b, int idx)
 {
 	b->index = idx;
 	b->mask = 0x80;
 }
 
-bool bitbuffer_read_bit(struct bitbuffer *b)
+bool gcc_bitbuffer_read_bit(struct gcc_bitbuffer *b)
 {
 	b->mask <<= 1;
 	if (0x100 == b->mask) {
@@ -104,22 +104,22 @@ static void decode_chunk(struct buffer *out, uint8_t *chunk, int chunk_size)
 	}
 }
 
-static int read_count(struct bitbuffer *b)
+static int read_count(struct gcc_bitbuffer *b)
 {
 	int result = 1;
 	int bit_count = 0;
-	while (!bitbuffer_read_bit(b)) {
+	while (!gcc_bitbuffer_read_bit(b)) {
 		bit_count++;
 	}
 	for (; bit_count > 0; bit_count--) {
 		result <<= 1;
-		if (bitbuffer_read_bit(b))
+		if (gcc_bitbuffer_read_bit(b))
 			result |= 1;
 	}
 	return result;
 }
 
-static void read_compressed_chunk(struct bitbuffer *control, struct buffer *in,
+static void read_compressed_chunk(struct gcc_bitbuffer *control, struct buffer *in,
 		struct buffer *out, uint8_t *chunk, int chunk_size)
 {
 	uint8_t buf_a[16] = {0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15};
@@ -130,15 +130,15 @@ static void read_compressed_chunk(struct bitbuffer *control, struct buffer *in,
 	while (chunk_i < chunk_size + 2) {
 		int b;
 		uint8_t buf_b_i;
-		if (!bitbuffer_read_bit(control)) {
-			if (bitbuffer_read_bit(control)) {
+		if (!gcc_bitbuffer_read_bit(control)) {
+			if (gcc_bitbuffer_read_bit(control)) {
 				buf_b_i = read_count(control) & 0xf;
 				b = buf_b[buf_b_i];
 				chunk[chunk_i++] = b;
 			} else {
-				if (bitbuffer_read_bit(control)) {
+				if (gcc_bitbuffer_read_bit(control)) {
 					int n = read_count(control);
-					if (bitbuffer_read_bit(control))
+					if (gcc_bitbuffer_read_bit(control))
 						b = (prev_b - n) & 0xff;
 					else
 						b = (prev_b + n) & 0xff;
@@ -152,16 +152,16 @@ static void read_compressed_chunk(struct bitbuffer *control, struct buffer *in,
 		} else {
 			int buf_a_i;
 			int count = read_count(control);
-			if (bitbuffer_read_bit(control)) {
+			if (gcc_bitbuffer_read_bit(control)) {
 				buf_a_i = 0;
 				b = buf_a[0];
-			} else if (bitbuffer_read_bit(control)) {
+			} else if (gcc_bitbuffer_read_bit(control)) {
 				buf_a_i = read_count(control) & 0xf;
 				b = buf_a[buf_a_i];
 			} else {
-				if (bitbuffer_read_bit(control)) {
+				if (gcc_bitbuffer_read_bit(control)) {
 					int n = read_count(control);
-					if (bitbuffer_read_bit(control))
+					if (gcc_bitbuffer_read_bit(control))
 						b = (prev_b - n) & 0xff;
 					else
 						b = (prev_b + n) & 0xff;
@@ -193,12 +193,12 @@ static void read_compressed_chunk(struct bitbuffer *control, struct buffer *in,
 	decode_chunk(out, chunk, chunk_size);
 }
 
-static void read_raw_chunk(struct bitbuffer *control, struct buffer *in,
+static void read_raw_chunk(struct gcc_bitbuffer *control, struct buffer *in,
 		struct buffer *out, int chunk_size)
 {
 	int n = 0;
 	while (n < chunk_size) {
-		if (!bitbuffer_read_bit(control)) {
+		if (!gcc_bitbuffer_read_bit(control)) {
 			// single pixel
 			buffer_write_u8(out, buffer_read_u8(in));
 			buffer_write_u8(out, buffer_read_u8(in));
@@ -225,8 +225,8 @@ static uint8_t *alt_unpack(struct buffer *data, int offset, size_t total)
 	uint8_t chunk[0x10001] = {0};
 
 	// control bitstream
-	struct bitbuffer control = { .buf = data->buf };
-	bitbuffer_seek_byte(&control, offset);
+	struct gcc_bitbuffer control = { .buf = data->buf };
+	gcc_bitbuffer_seek_byte(&control, offset);
 
 	// source data stream
 	struct buffer in = *data;
@@ -239,7 +239,7 @@ static uint8_t *alt_unpack(struct buffer *data, int offset, size_t total)
 	int dst = 0;
 	while (dst < total) {
 		int chunk_size = min(total - dst, 0xffff);
-		if (bitbuffer_read_bit(&control)) {
+		if (gcc_bitbuffer_read_bit(&control)) {
 			read_compressed_chunk(&control, &in, &out, chunk, chunk_size);
 		} else {
 			read_raw_chunk(&control, &in, &out, chunk_size);
@@ -268,9 +268,9 @@ static uint8_t *lzss_unpack(struct buffer *data, int offset, size_t total)
 uint8_t *unpack_alpha(struct buffer *data, unsigned *w, unsigned *h)
 {
 	// control bitstream
-	struct bitbuffer control = { .buf = data->buf };
+	struct gcc_bitbuffer control = { .buf = data->buf };
 	int control_offset = 0x20 + le_get32(data->buf, 0x0c);
-	bitbuffer_seek_byte(&control, control_offset);
+	gcc_bitbuffer_seek_byte(&control, control_offset);
 
 	unsigned alpha_w = le_get16(data->buf, 0x18);
 	unsigned alpha_h = le_get16(data->buf, 0x1a);
@@ -283,7 +283,7 @@ uint8_t *unpack_alpha(struct buffer *data, unsigned *w, unsigned *h)
 
 	unsigned dst = 0;
 	while (dst < total) {
-		if (bitbuffer_read_bit(&control)) {
+		if (gcc_bitbuffer_read_bit(&control)) {
 			// RLE
 			int count = read_count(&control);
 			uint8_t v = buffer_read_u8(&in);
