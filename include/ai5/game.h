@@ -17,8 +17,12 @@
 #ifndef AI5_GAME_H
 #define AI5_GAME_H
 
+#include <stdbool.h>
+
 enum ai5_game_id {
 	GAME_DOUKYUUSEI2_DL, // 2007-07-06 release
+	GAME_KAWARAZAKIKE,   // 2003-10-24 release (AIWIN engine)
+	GAME_SHUUSAKU,       // 2001-10-26 release (AIWIN engine)
 	GAME_YUKINOJOU,      // 2001-08-31 release
 	GAME_YUNO,           // 2000-12-22 release (elf classics)
 	GAME_SHANGRLIA,      // 2000-12-22 release (elf classics)
@@ -40,6 +44,17 @@ struct ai5_game {
 	enum ai5_game_id id;
 	const char *description;
 };
+
+static inline bool game_is_aiwin(void)
+{
+	switch (ai5_target_game) {
+	case GAME_KAWARAZAKIKE:
+	case GAME_SHUUSAKU:
+		return true;
+	default:
+		return false;
+	}
+}
 
 extern struct ai5_game ai5_games[AI5_NR_GAME_IDS];
 

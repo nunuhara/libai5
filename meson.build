@@ -36,7 +36,9 @@ ai5_sources = [
   'src/lzss.c',
   'src/mes/codes.c',
   'src/mes/parse.c',
+  'src/mes/parse_aiw.c',
   'src/mes/print.c',
+  'src/mes/print_aiw.c',
   'src/mes/system.c',
 ]
 

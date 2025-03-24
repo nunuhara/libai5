@@ -30,9 +30,11 @@ struct ai5_game ai5_games[] = {
 	{ "doukyuusei2-dl", GAME_DOUKYUUSEI2_DL, "同級生２ ＤＬ版" },
 	{ "isaku",          GAME_ISAKU,          "遺作 リニューアル" },
 	{ "kakyuusei",      GAME_KAKYUUSEI,      "下級生" },
+	{ "kawarazakike",   GAME_KAWARAZAKIKE,   "河原崎家の一族" },
 	{ "koihime",        GAME_KOIHIME,        "恋姫" },
 	{ "shangrlia",      GAME_SHANGRLIA,      "SHANGRLIA" },
 	{ "shangrlia2",     GAME_SHANGRLIA2,     "SHANGRLIA2" },
+	{ "shuusaku",       GAME_SHUUSAKU,       "臭作" },
 	{ "yukinojou",      GAME_YUKINOJOU,      "あしたの雪之丞" },
 	{ "yuno",           GAME_YUNO,           "この世の果てで恋を唄う少女YU-NO (エルフclassics)" },
 };

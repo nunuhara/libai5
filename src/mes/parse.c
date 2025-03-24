@@ -541,8 +541,13 @@ static void tag_jump_targets(mes_statement_list statements)
 	hashtable_destroy(addr_table, &table);
 }
 
+bool aiw_mes_parse_statements(uint8_t *data, size_t data_size, mes_statement_list *statements);
+
 bool mes_parse_statements(uint8_t *data, size_t data_size, mes_statement_list *statements)
 {
+	if (game_is_aiwin())
+		return aiw_mes_parse_statements(data, data_size, statements);
+
 	struct buffer mes;
 	buffer_init(&mes, data, data_size);
 
@@ -595,8 +600,15 @@ void mes_parameter_list_free(mes_parameter_list list)
 	vector_destroy(list);
 }
 
+void aiw_mes_statement_free(struct mes_statement *stmt);
+
 void mes_statement_free(struct mes_statement *stmt)
 {
+	if (game_is_aiwin()) {
+		aiw_mes_statement_free(stmt);
+		return;
+	}
+
 	switch (stmt->op) {
 	case MES_STMT_ZENKAKU:
 	case MES_STMT_HANKAKU:

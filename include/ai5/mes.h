@@ -71,6 +71,7 @@ enum mes_expression_op {
 	MES_EXPR_GET_VAR16 = 0x80,
 	MES_EXPR_PTR16_GET16 = 0xA0,
 	MES_EXPR_PTR16_GET8 = 0xC0,
+	// XXX: codes E0 -> F2 match AIWIN codes
 	MES_EXPR_PLUS = 0xE0,
 	MES_EXPR_MINUS = 0xE1,
 	MES_EXPR_MUL = 0xE2,
@@ -99,6 +100,91 @@ enum mes_expression_op {
 	MES_EXPR_END = 0xFF
 };
 #define MES_EXPR_OP_MAX (MES_EXPR_END+1)
+
+enum aiw_mes_statement_op {
+	AIW_MES_STMT_TXT = 0x00,
+	AIW_MES_STMT_JMP = 0x01,
+	AIW_MES_STMT_UTIL = 0x02,
+	AIW_MES_STMT_JMP_MES = 0x03,
+	AIW_MES_STMT_CALL_MES = 0x04,
+	AIW_MES_STMT_SET_FLAG_CONST = 0x05,
+	AIW_MES_STMT_SET_FLAG_EXPR = 0x06,
+	AIW_MES_STMT_SET_VAR32 = 0x07,
+	AIW_MES_STMT_PTR_SET8 = 0x08,
+	AIW_MES_STMT_PTR_SET16 = 0x09,
+	AIW_MES_STMT_SET_VAR16_CONST = 0x0a,
+	AIW_MES_STMT_SET_VAR16_EXPR = 0x0b,
+	AIW_MES_STMT_SET_SYSVAR_CONST = 0x0c,
+	AIW_MES_STMT_SET_SYSVAR_EXPR = 0x0d,
+	AIW_MES_STMT_LOAD = 0x0e,
+	AIW_MES_STMT_SAVE = 0x0f,
+	AIW_MES_STMT_JZ = 0x10,
+	AIW_MES_STMT_DEF_PROC = 0x11,
+	AIW_MES_STMT_CALL_PROC = 0x12,
+	AIW_MES_STMT_DEF_MENU = 0x13,
+	AIW_MES_STMT_MENU_EXEC = 0x14,
+	AIW_MES_STMT_NUM = 0x15,
+	AIW_MES_STMT_SET_TEXT_COLOR = 0x16,
+	AIW_MES_STMT_WAIT = 0x20,
+	AIW_MES_STMT_21 = 0x21,
+	AIW_MES_STMT_COMMIT_MESSAGE = 0x22,
+	AIW_MES_STMT_LOAD_IMAGE = 0x23,
+	AIW_MES_STMT_SURF_COPY = 0x24,
+	AIW_MES_STMT_SURF_COPY_MASKED = 0x25,
+	AIW_MES_STMT_SURF_SWAP = 0x26,
+	AIW_MES_STMT_SURF_FILL = 0x27,
+	AIW_MES_STMT_SURF_INVERT = 0x28,
+	AIW_MES_STMT_29 = 0x29,
+	AIW_MES_STMT_SHOW_HIDE = 0x2a,
+	AIW_MES_STMT_CROSSFADE = 0x2b,
+	AIW_MES_STMT_CROSSFADE2 = 0x2c,
+	AIW_MES_STMT_CURSOR = 0x2d,
+	AIW_MES_STMT_ANIM = 0x2e,
+	AIW_MES_STMT_LOAD_AUDIO = 0x2f,
+	AIW_MES_STMT_LOAD_EFFECT = 0x30,
+	AIW_MES_STMT_LOAD_VOICE = 0x31,
+	AIW_MES_STMT_AUDIO = 0x32,
+	AIW_MES_STMT_PLAY_MOVIE = 0x33,
+	AIW_MES_STMT_34 = 0x34,
+	AIW_MES_STMT_35 = 0x35,
+	AIW_MES_STMT_37 = 0x37,
+	AIW_MES_STMT_FE = 0xFE,
+	AIW_MES_STMT_END = 0xFF,
+};
+
+enum aiw_mes_expression_op {
+	AIW_MES_EXPR_IMM = 0x00, // 0x00 - 0x7f
+	AIW_MES_EXPR_VAR32 = 0x80, // 0x80 - 0x9f
+	AIW_MES_EXPR_PTR_GET8 = 0xa0, // 0xa0 - 0xdf
+	// XXX: codes E0 -> F2 match AI5 codes
+	AIW_MES_EXPR_PLUS = 0xe0,
+	AIW_MES_EXPR_MINUS = 0xe1,
+	AIW_MES_EXPR_MUL = 0xe2,
+	AIW_MES_EXPR_DIV = 0xe3,
+	AIW_MES_EXPR_MOD = 0xe4,
+	AIW_MES_EXPR_RAND = 0xe5,
+	AIW_MES_EXPR_AND = 0xe6,
+	AIW_MES_EXPR_OR = 0xe7,
+	AIW_MES_EXPR_BITAND = 0xe8,
+	AIW_MES_EXPR_BITIOR = 0xe9,
+	AIW_MES_EXPR_BITXOR = 0xea,
+	AIW_MES_EXPR_LT = 0xeb,
+	AIW_MES_EXPR_GT = 0xec,
+	AIW_MES_EXPR_LTE = 0xed,
+	AIW_MES_EXPR_GTE = 0xee,
+	AIW_MES_EXPR_EQ = 0xef,
+	AIW_MES_EXPR_NEQ = 0xf0,
+	AIW_MES_EXPR_IMM16 = 0xf1,
+	AIW_MES_EXPR_IMM32 = 0xf2,
+	AIW_MES_EXPR_GET_FLAG_CONST = 0xf3,
+	AIW_MES_EXPR_GET_FLAG_EXPR = 0xf4,
+	// XXX: 0xf5 reserved for string parameter marker
+	AIW_MES_EXPR_GET_VAR16_CONST = 0xf6,
+	AIW_MES_EXPR_GET_VAR16_EXPR = 0xf7,
+	AIW_MES_EXPR_GET_SYSVAR_CONST = 0xf8,
+	AIW_MES_EXPR_GET_SYSVAR_EXPR = 0xf9,
+	AIW_MES_EXPR_END = 0xFF
+};
 
 enum mes_system_var16 {
 	// offset to usable heap memory
@@ -309,7 +395,10 @@ enum mes_parameter_type {
 };
 
 struct mes_expression {
-	enum mes_expression_op op;
+	union {
+		enum mes_expression_op op;
+		enum aiw_mes_expression_op aiw_op;
+	};
 	union {
 		uint8_t arg8;
 		uint16_t arg16;
@@ -339,8 +428,20 @@ struct mes_qname_part {
 
 typedef vector_t(struct mes_qname_part) mes_qname;
 
+struct mes_statement;
+typedef vector_t(struct mes_statement*) mes_statement_list;
+
+struct aiw_mes_menu_case {
+	struct mes_expression *cond;
+	mes_statement_list body;
+};
+typedef vector_t(struct aiw_mes_menu_case) aiw_menu_table;
+
 struct mes_statement {
-	enum mes_statement_op op;
+	union {
+		enum mes_statement_op op;
+		enum aiw_mes_statement_op aiw_op;
+	};
 	uint32_t address;
 	uint32_t next_address;
 	bool is_jump_target;
@@ -398,10 +499,21 @@ struct mes_statement {
 			uint32_t skip_addr;
 			struct mes_expression *no_expr;
 		} DEF_PROC;
+		struct {
+			uint32_t table_addr;
+			uint32_t skip_addr;
+			struct mes_expression *expr;
+			aiw_menu_table cases;
+		} AIW_DEF_MENU;
+		struct {
+			mes_expression_list exprs;
+		} AIW_MENU_EXEC;
+		struct {
+			uint16_t a;
+			uint16_t b;
+		} AIW_0x35;
 	};
 };
-
-typedef vector_t(struct mes_statement*) mes_statement_list;
 
 /* parse.c */
 bool mes_char_is_hankaku(uint8_t b);
@@ -412,6 +524,7 @@ struct mes_statement *mes_parse_statement(uint8_t *data, size_t data_size);
 bool mes_parse_statements(uint8_t *data, size_t data_size, mes_statement_list *statements);
 void mes_qname_free(mes_qname name);
 void mes_expression_free(struct mes_expression *expr);
+void mes_expression_list_free(mes_expression_list list);
 void mes_parameter_list_free(mes_parameter_list list);
 void mes_statement_free(struct mes_statement *stmt);
 void mes_statement_list_free(mes_statement_list list);
@@ -430,6 +543,11 @@ void _mes_statement_list_print(mes_statement_list statements, struct port *out, 
 void mes_asm_statement_list_print(mes_statement_list statements, struct port *out);
 void mes_flat_statement_list_print(mes_statement_list statements, struct port *out);
 void mes_statement_list_print(mes_statement_list statements, struct port *out);
+void mes_label_print(uint32_t addr, const char *suffix, struct port *out);
+void mes_clear_labels(void);
+
+void _aiw_mes_expression_print(struct mes_expression *expr, struct port *out, bool bitwise);
+void _aiw_mes_statement_print(struct mes_statement *stmt, struct port *out, int indent);
 
 /* system.c */
 mes_parameter_list mes_resolve_syscall(mes_qname name, int *no);

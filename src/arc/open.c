@@ -613,6 +613,9 @@ static bool data_decompress(struct archive_data *file)
 		data = pack_wav(file->data, file->raw_size, &data_size, stereo);
 	} else if (file->archive->flags & ARCHIVE_RAW) {
 		return true;
+	} else if (game_is_aiwin()) {
+		// LZSS compressed (bitwise): decompress
+		data = lzss_bw_decompress(file->data, file->raw_size, &data_size);
 	} else {
 		// LZSS compressed: decompress
 		data = lzss_decompress(file->data, file->raw_size, &data_size);
