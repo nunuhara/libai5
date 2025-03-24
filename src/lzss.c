@@ -141,3 +141,91 @@ uint8_t *lzss_bw_decompress(uint8_t *input, size_t input_size, size_t *output_si
 	*output_size = out.index;
 	return out.buf;
 }
+
+struct bitwriter {
+	uint8_t *buf;
+	size_t buf_size;
+	int index;
+	int current;
+	int bit;
+};
+
+static void bitwriter_init(struct bitwriter *buf)
+{
+	buf->buf = xmalloc(64);
+	buf->buf_size = 64;
+	buf->index = 0;
+	buf->current = 0;
+	buf->bit = 0;
+}
+
+static void bitwriter_prewrite(struct bitwriter *b)
+{
+	if (b->bit == 8) {
+		if (b->index + 1 >= b->buf_size) {
+			b->buf_size *= 2;
+			b->buf = xrealloc(b->buf, b->buf_size);
+		}
+		b->buf[b->index++] = b->current;
+		b->current = 0;
+		b->bit = 0;
+	}
+}
+
+static void bitwriter_end(struct bitwriter *b)
+{
+	while (b->bit < 8) {
+		b->current <<= 1;
+		b->bit++;
+	}
+	bitwriter_prewrite(b);
+}
+
+static void bitwriter_write_1(struct bitwriter *b)
+{
+	bitwriter_prewrite(b);
+	b->current = (b->current << 1) + 1;
+	b->bit++;
+}
+
+static void bitwriter_write_0(struct bitwriter *b)
+{
+	bitwriter_prewrite(b);
+	b->current <<= 1;
+	b->bit++;
+}
+
+static void bitwriter_write_u8(struct bitwriter *w, uint8_t b)
+{
+	for (int i = 0; i < 8; i++) {
+		if (b & 0x80)
+			bitwriter_write_1(w);
+		else
+			bitwriter_write_0(w);
+		b <<= 1;
+	}
+}
+
+uint8_t *lzss_bw_compress(uint8_t *input, size_t input_size, size_t *output_size)
+{
+	struct buffer in;
+	buffer_init(&in, input, input_size);
+
+	struct bitwriter out;
+	bitwriter_init(&out);
+
+	// write data
+	while (!buffer_end(&in)) {
+		bitwriter_write_1(&out);
+		bitwriter_write_u8(&out, buffer_read_u8(&in));
+	}
+
+	// write terminator
+	for (int i = 0; i < 13; i++) {
+		bitwriter_write_0(&out);
+	}
+
+	bitwriter_end(&out);
+	*output_size = out.index;
+	return out.buf;
+}
