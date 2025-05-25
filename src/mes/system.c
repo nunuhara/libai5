@@ -127,9 +127,15 @@ NODE(sys_cursor_kakyuusei, Cursor,
 
 // System.Anim
 LEAF(sys_anim, init);
+LEAF(sys_anim, init2);
 LEAF(sys_anim, start);
+LEAF(sys_anim, start2);
+LEAF(sys_anim, start_sync);
+LEAF(sys_anim, start_sync2);
 LEAF(sys_anim, stop);
+LEAF(sys_anim, stop2);
 LEAF(sys_anim, halt);
+LEAF(sys_anim, halt2);
 LEAF(sys_anim, wait);
 LEAF(sys_anim, wait2);
 LEAF(sys_anim, wait3);
@@ -217,6 +223,23 @@ NODE(sys_anim_kakyuusei, Anim,
 	[6] = &sys_anim_halt_all,
 	[7] = &sys_anim_reset_all,
 	[8] = &sys_anim_wait_all,
+);
+
+NODE(sys_anim_shuusaku, Anim,
+	[0] = &sys_anim_init,
+	[1] = &sys_anim_start,
+	[2] = &sys_anim_stop,
+	[3] = &sys_anim_start_sync,
+	[4] = &sys_anim_halt,
+	// 5 unused
+	[6] = &sys_anim_unpause_all,
+	[7] = &sys_anim_stop_all,
+	// 8-15 unused
+	[16] = &sys_anim_init2,
+	[17] = &sys_anim_start2,
+	[18] = &sys_anim_stop2,
+	[19] = &sys_anim_start_sync2,
+	[20] = &sys_anim_halt2,
 );
 
 // System.SaveData
@@ -313,6 +336,26 @@ NODE(sys_savedata_kakyuusei, SaveData,
 	[4] = &sys_savedata_load_variables,
 );
 
+LEAF(sys_savedata, load_var4_and_heap);
+LEAF(sys_savedata, load_var32);
+LEAF(sys_savedata, load_var16);
+LEAF(sys_savedata, save_var16);
+
+NODE(sys_load_shuusaku, Load,
+	[0] = &sys_savedata_resume_load,
+	[1] = &sys_savedata_load,
+	[2] = &sys_savedata_load_var4_and_heap,
+	[3] = &sys_savedata_load_var32,
+	[4] = &sys_savedata_load_var16,
+);
+NODE(sys_save_shuusaku, Save,
+	[0] = &sys_savedata_resume_save,
+	[1] = &sys_savedata_save,
+	[2] = &sys_savedata_save_var4,
+	[3] = NULL, // TODO: name
+	[4] = &sys_savedata_save_var16,
+);
+
 // System.Audio
 LEAF(sys_audio, bgm_play);
 LEAF(sys_audio, bgm_play_sync);
@@ -328,6 +371,7 @@ LEAF(sys_audio, se_stop);
 LEAF(sys_audio, se_fade_out);
 LEAF(sys_audio, se_fade_out_sync);
 LEAF(sys_audio, se_play_sync);
+LEAF(sys_audio, se_wait);
 LEAF(sys_audio, bgm_set_next);
 LEAF(sys_audio, bgm_play_next);
 LEAF(sys_audio, aux_play);
@@ -415,6 +459,18 @@ NODE(sys_audio_kakyuusei, Audio,
 	[3] = &sys_audio_se_play,
 	[4] = &sys_audio_se_fade_out,
 	[5] = &sys_audio_se_stop,
+);
+
+NODE(sys_audio_shuusaku, Audio,
+	[0] = &sys_audio_bgm_play,
+	[1] = &sys_audio_bgm_stop,
+	[3] = &sys_audio_bgm_fade_out,
+	[5] = &sys_audio_bgm_set_volume,
+	[16] = &sys_audio_se_play,
+	[17] = &sys_audio_se_stop,
+	[19] = &sys_audio_se_fade_out,
+	[20] = &sys_audio_se_fade_out_sync,
+	[22] = &sys_audio_se_wait,
 );
 
 // System.Voice
@@ -1102,6 +1158,59 @@ PUBLIC_NODE(mes_sys_kakyuusei, System,
 	[18] = &sys_backlog_kakyuusei,
 );
 
+LEAF(aiw_sys, Util); // TODO: not leaf
+LEAF(aiw_sys, display_number);
+LEAF(aiw_sys, set_text_color);
+LEAF(aiw_sys, wait);
+LEAF(aiw_sys, OP_0x21);
+LEAF(aiw_sys, commit_message);
+LEAF(aiw_sys, load_image);
+LEAF(aiw_sys, surface_copy);
+LEAF(aiw_sys, surface_copy_masked);
+LEAF(aiw_sys, surface_swap);
+LEAF(aiw_sys, surface_fill);
+LEAF(aiw_sys, surface_invert);
+LEAF(aiw_sys, OP_0x29);
+LEAF2(aiw_sys, hide, show);
+LEAF(aiw_sys, crossfade);
+LEAF(aiw_sys, crossfade2);
+LEAF(aiw_sys, Cursor); // TODO: not leaf
+LEAF(aiw_sys, load_audio);
+LEAF(aiw_sys, load_effect);
+LEAF(aiw_sys, load_voice);
+LEAF(aiw_sys, play_movie);
+LEAF(aiw_sys, OP_0x34);
+
+// XXX: AIWIN games are indexed by opcode
+PUBLIC_NODE(mes_sys_shuusaku, System,
+	[AIW_MES_STMT_UTIL] = &aiw_sys_Util,
+	[AIW_MES_STMT_LOAD] = &sys_load_shuusaku,
+	[AIW_MES_STMT_SAVE] = &sys_save_shuusaku,
+	[AIW_MES_STMT_NUM] = &aiw_sys_display_number,
+	[AIW_MES_STMT_SET_TEXT_COLOR] = &aiw_sys_set_text_color,
+	[AIW_MES_STMT_WAIT] = &aiw_sys_wait,
+	[AIW_MES_STMT_21] = &aiw_sys_OP_0x21,
+	[AIW_MES_STMT_COMMIT_MESSAGE] = &aiw_sys_commit_message,
+	[AIW_MES_STMT_LOAD_IMAGE] = &aiw_sys_load_image,
+	[AIW_MES_STMT_SURF_COPY] = &aiw_sys_surface_copy,
+	[AIW_MES_STMT_SURF_COPY_MASKED] = &aiw_sys_surface_copy_masked,
+	[AIW_MES_STMT_SURF_SWAP] = &aiw_sys_surface_swap,
+	[AIW_MES_STMT_SURF_FILL] = &aiw_sys_surface_fill,
+	[AIW_MES_STMT_SURF_INVERT] = &aiw_sys_surface_invert,
+	[AIW_MES_STMT_29] = &aiw_sys_OP_0x29,
+	[AIW_MES_STMT_SHOW_HIDE] = &aiw_sys_hide_show,
+	[AIW_MES_STMT_CROSSFADE] = &aiw_sys_crossfade,
+	[AIW_MES_STMT_CROSSFADE2] = &aiw_sys_crossfade2,
+	[AIW_MES_STMT_CURSOR] = &aiw_sys_Cursor,
+	[AIW_MES_STMT_ANIM] = &sys_anim_shuusaku,
+	[AIW_MES_STMT_LOAD_AUDIO] = &aiw_sys_load_audio,
+	[AIW_MES_STMT_LOAD_EFFECT] = &aiw_sys_load_effect,
+	[AIW_MES_STMT_LOAD_VOICE] = &aiw_sys_load_voice,
+	[AIW_MES_STMT_AUDIO] = &sys_audio_shuusaku,
+	[AIW_MES_STMT_PLAY_MOVIE] = &aiw_sys_play_movie,
+	[AIW_MES_STMT_34] = &aiw_sys_OP_0x34,
+);
+
 PUBLIC_NODE(mes_sys_none, System,);
 
 static bool component_name_equals(struct mes_path_component *c, const char *name)
@@ -1226,16 +1335,20 @@ static string get_name(string name, struct mes_path_component *parent,
 	return get_name(name, child, params, skip_params);
 }
 
-string mes_get_syscall_name(unsigned no, mes_parameter_list params, unsigned *skip_params)
+string mes_get_syscall_name(unsigned no, mes_parameter_list params, unsigned *skip_params,
+		const char *ns)
 {
 	*skip_params = 0;
-	string name = string_new("System");
+	string name = string_empty();
+	if (ns)
+		name = string_concat_fmt(name, "%s.", ns);
+
 	struct mes_path_component *sys = get_child(mes_code_tables.system, no);
 	if (!sys) {
-		return string_concat_fmt(name, ".function[%u]", no);
+		return string_concat_fmt(name, "function[%u]", no);
 	}
 
-	name = string_concat_fmt(name, ".%s", sys->name);
+	name = string_concat_fmt(name, "%s", sys->name);
 	return get_name(name, sys, params, skip_params);
 }
 

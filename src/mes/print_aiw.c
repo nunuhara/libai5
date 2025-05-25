@@ -318,6 +318,16 @@ static void print_defmenu(struct port *out, struct mes_statement *stmt, int inde
 	port_puts(out, "}\n");
 }
 
+static void print_syscall(struct mes_statement *stmt, struct port *out)
+{
+	unsigned skip_params;
+	string name = mes_get_syscall_name(stmt->op, stmt->CALL.params, &skip_params, NULL);
+	port_puts(out, name);
+	mes_parameter_list_print_from(stmt->CALL.params, skip_params, out);
+	port_puts(out, ";\n");
+	string_free(name);
+}
+
 void _aiw_mes_statement_print(struct mes_statement *stmt, struct port *out, int indent)
 {
 	indent_print(out, indent);
@@ -342,13 +352,32 @@ void _aiw_mes_statement_print(struct mes_statement *stmt, struct port *out, int 
 		mes_label_print(stmt->JMP.addr, ";\n", out);
 		break;
 	case AIW_MES_STMT_UTIL:
-		print_call(out, stmt, "Util");
-		break;
+	case AIW_MES_STMT_LOAD:
+	case AIW_MES_STMT_SAVE:
+	case AIW_MES_STMT_NUM:
+	case AIW_MES_STMT_SET_TEXT_COLOR:
+	case AIW_MES_STMT_WAIT:
+	case AIW_MES_STMT_21:
+	case AIW_MES_STMT_COMMIT_MESSAGE:
+	case AIW_MES_STMT_LOAD_IMAGE:
+	case AIW_MES_STMT_SURF_COPY:
+	case AIW_MES_STMT_SURF_COPY_MASKED:
+	case AIW_MES_STMT_SURF_SWAP:
+	case AIW_MES_STMT_SURF_FILL:
+	case AIW_MES_STMT_SURF_INVERT:
 	case AIW_MES_STMT_29:
+	case AIW_MES_STMT_SHOW_HIDE:
+	case AIW_MES_STMT_CROSSFADE:
+	case AIW_MES_STMT_CROSSFADE2:
+	case AIW_MES_STMT_CURSOR:
+	case AIW_MES_STMT_ANIM:
+	case AIW_MES_STMT_LOAD_AUDIO:
+	case AIW_MES_STMT_LOAD_EFFECT:
+	case AIW_MES_STMT_LOAD_VOICE:
+	case AIW_MES_STMT_AUDIO:
+	case AIW_MES_STMT_PLAY_MOVIE:
 	case AIW_MES_STMT_34:
-		port_printf(out, "OP_0x%02x", stmt->aiw_op);
-		mes_parameter_list_print(stmt->CALL.params, out);
-		port_puts(out, ";\n");
+		print_syscall(stmt, out);
 		break;
 	case AIW_MES_STMT_JMP_MES:
 		print_call(out, stmt, "jump");
@@ -410,12 +439,6 @@ void _aiw_mes_statement_print(struct mes_statement *stmt, struct port *out, int 
 		port_puts(out, "] = "); aiw_mes_expression_list_print(stmt->SET_VAR_EXPR.val_exprs, out);
 		port_puts(out, ";\n");
 		break;
-	case AIW_MES_STMT_LOAD:
-		print_call(out, stmt, "load");
-		break;
-	case AIW_MES_STMT_SAVE:
-		print_call(out, stmt, "save");
-		break;
 	case AIW_MES_STMT_JZ:
 		port_puts(out, "jz ");
 		_aiw_mes_expression_print(stmt->JZ.expr, out, false);
@@ -439,72 +462,6 @@ void _aiw_mes_statement_print(struct mes_statement *stmt, struct port *out, int 
 		port_puts(out, "menuexec ");
 		aiw_mes_expression_list_print(stmt->AIW_MENU_EXEC.exprs, out);
 		port_puts(out, ";\n");
-		break;
-	case AIW_MES_STMT_NUM:
-		print_call(out, stmt, "display_number");
-		break;
-	case AIW_MES_STMT_SET_TEXT_COLOR:
-		print_call(out, stmt, "set_text_color");
-		break;
-	case AIW_MES_STMT_WAIT:
-		print_call(out, stmt, "wait");
-		break;
-	case AIW_MES_STMT_21:
-		port_puts(out, "OP_0x21();\n");
-		break;
-	case AIW_MES_STMT_COMMIT_MESSAGE:
-		print_call(out, stmt, "commit_message");
-		break;
-	case AIW_MES_STMT_LOAD_IMAGE:
-		print_call(out, stmt, "load_image");
-		break;
-	case AIW_MES_STMT_SURF_COPY:
-		print_call(out, stmt, "surface_copy");
-		break;
-	case AIW_MES_STMT_SURF_COPY_MASKED:
-		print_call(out, stmt, "surface_copy_masked");
-		break;
-	case AIW_MES_STMT_SURF_SWAP:
-		print_call(out, stmt, "surface_swap");
-		break;
-	case AIW_MES_STMT_SURF_FILL:
-		print_call(out, stmt, "surface_fill");
-		break;
-	case AIW_MES_STMT_SURF_INVERT:
-		print_call(out, stmt, "surface_invert");
-		break;
-	case AIW_MES_STMT_SHOW_HIDE:
-		if (vector_length(stmt->CALL.params) > 0)
-			print_call(out, stmt, "hide");
-		else
-			print_call(out, stmt, "show");
-		break;
-	case AIW_MES_STMT_CROSSFADE:
-		print_call(out, stmt, "crossfade");
-		break;
-	case AIW_MES_STMT_CROSSFADE2:
-		print_call(out, stmt, "crossfade2");
-		break;
-	case AIW_MES_STMT_CURSOR:
-		print_call(out, stmt, "Cursor");
-		break;
-	case AIW_MES_STMT_ANIM:
-		print_call(out, stmt, "Anim");
-		break;
-	case AIW_MES_STMT_LOAD_AUDIO:
-		print_call(out, stmt, "load_audio");
-		break;
-	case AIW_MES_STMT_LOAD_EFFECT:
-		print_call(out, stmt, "load_effect");
-		break;
-	case AIW_MES_STMT_LOAD_VOICE:
-		print_call(out, stmt, "load_voice");
-		break;
-	case AIW_MES_STMT_AUDIO:
-		print_call(out, stmt, "Audio");
-		break;
-	case AIW_MES_STMT_PLAY_MOVIE:
-		print_call(out, stmt, "play_movie");
 		break;
 	case AIW_MES_STMT_35:
 		port_printf(out, "OP_0x35 %u %u;\n", stmt->AIW_0x35.a, stmt->AIW_0x35.b);

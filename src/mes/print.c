@@ -359,8 +359,7 @@ void mes_parameter_print(struct mes_parameter *param, struct port *out)
 	}
 }
 
-static void mes_parameter_list_print_from(mes_parameter_list list, unsigned start,
-		struct port *out)
+void mes_parameter_list_print_from(mes_parameter_list list, unsigned start, struct port *out)
 {
 	port_putc(out, '(');
 	for (unsigned i = start; i < vector_length(list); i++) {
@@ -438,7 +437,8 @@ static void stmt_sys_print(struct mes_statement *stmt, struct port *out)
 	}
 
 	unsigned skip_params;
-	string name = mes_get_syscall_name(stmt->SYS.expr->arg8, stmt->SYS.params, &skip_params);
+	string name = mes_get_syscall_name(stmt->SYS.expr->arg8, stmt->SYS.params,
+			&skip_params, "System");
 	port_puts(out, name);
 	mes_parameter_list_print_from(stmt->SYS.params, skip_params, out);
 	port_puts(out, ";\n");
@@ -568,6 +568,7 @@ void _mes_statement_print(struct mes_statement *stmt, struct port *out, int inde
 	case MES_STMT_JZ:
 		port_puts(out, "jz ");
 		mes_expression_print(stmt->JZ.expr, out);
+		port_putc(out, ' ');
 		mes_label_print(stmt->JZ.addr, ";\n", out);
 		break;
 	case MES_STMT_JMP:

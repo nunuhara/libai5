@@ -29,6 +29,8 @@ extern struct mes_path_component mes_sys_allstars;
 extern struct mes_path_component mes_sys_ai_shimai;
 extern struct mes_path_component mes_sys_beyond;
 extern struct mes_path_component mes_sys_classics;
+extern struct mes_path_component mes_sys_shuusaku;
+#define mes_sys_kawarazakike mes_sys_shuusaku
 extern struct mes_path_component mes_util_none;
 extern struct mes_path_component mes_util_isaku;
 extern struct mes_path_component mes_util_aishimai;
@@ -784,6 +786,22 @@ struct mes_code_tables kakyuusei_tables = {
 };
 
 // kakyuusei }}}
+// shuusaku {{{
+
+struct mes_code_tables shuusaku_tables = {
+	.system = &mes_sys_shuusaku,
+	.util = &mes_util_none,
+};
+
+// shuusaku }}}
+// kawarazaki-ke {{{
+
+struct mes_code_tables kawarazakike_tables = {
+	.system = &mes_sys_kawarazakike,
+	.util = &mes_util_none,
+};
+
+// kawarazaki-ke }}}
 
 struct mes_code_tables mes_code_tables = {
 	.stmt_op_to_int = DEFAULT_STMT_OP_TO_INT,
@@ -813,6 +831,10 @@ static struct mes_code_tables *get_code_tables(enum ai5_game_id id)
 		return &beyond_tables;
 	case GAME_KAKYUUSEI:
 		return &kakyuusei_tables;
+	case GAME_SHUUSAKU:
+		return &shuusaku_tables;
+	case GAME_KAWARAZAKIKE:
+		return &kawarazakike_tables;
 	default:
 		return &default_tables;
 	}
@@ -821,15 +843,17 @@ static struct mes_code_tables *get_code_tables(enum ai5_game_id id)
 static mes_namespace_t get_system_namespace(enum ai5_game_id id)
 {
 	switch (id) {
-	case GAME_ISAKU:      return &mes_sys_isaku;
-	case GAME_DOUKYUUSEI: return &mes_sys_doukyuusei;
-	case GAME_KAKYUUSEI:  return &mes_sys_kakyuusei;
-	case GAME_ALLSTARS:   return &mes_sys_allstars;
-	case GAME_AI_SHIMAI:  return &mes_sys_ai_shimai;
-	case GAME_BEYOND:     return &mes_sys_beyond;
-	case GAME_SHANGRLIA:  return &mes_sys_classics;
-	case GAME_YUNO:       return &mes_sys_classics;
-	default:              return &mes_sys_none;
+	case GAME_ISAKU:        return &mes_sys_isaku;
+	case GAME_DOUKYUUSEI:   return &mes_sys_doukyuusei;
+	case GAME_KAKYUUSEI:    return &mes_sys_kakyuusei;
+	case GAME_ALLSTARS:     return &mes_sys_allstars;
+	case GAME_AI_SHIMAI:    return &mes_sys_ai_shimai;
+	case GAME_BEYOND:       return &mes_sys_beyond;
+	case GAME_SHANGRLIA:    return &mes_sys_classics;
+	case GAME_YUNO:         return &mes_sys_classics;
+	case GAME_SHUUSAKU:     return &mes_sys_shuusaku;
+	case GAME_KAWARAZAKIKE: return &mes_sys_kawarazakike;
+	default:                return &mes_sys_none;
 	}
 }
 

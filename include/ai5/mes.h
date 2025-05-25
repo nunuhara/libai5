@@ -537,6 +537,7 @@ void mes_expression_print(struct mes_expression *expr, struct port *out);
 void mes_expression_list_print(mes_expression_list list, struct port *out);
 void mes_parameter_print(struct mes_parameter *param, struct port *out);
 void mes_parameter_list_print(mes_parameter_list list, struct port *out);
+void mes_parameter_list_print_from(mes_parameter_list list, unsigned start, struct port *out);
 void _mes_statement_print(struct mes_statement *stmt, struct port *out, int indent);
 void mes_statement_print(struct mes_statement *stmt, struct port *out);
 void _mes_statement_list_print(mes_statement_list statements, struct port *out, int indent);
@@ -552,7 +553,8 @@ void _aiw_mes_statement_print(struct mes_statement *stmt, struct port *out, int 
 /* system.c */
 mes_parameter_list mes_resolve_syscall(mes_qname name, int *no);
 mes_parameter_list mes_resolve_util(mes_qname name);
-string mes_get_syscall_name(unsigned no, mes_parameter_list params, unsigned *skip_params);
+string mes_get_syscall_name(unsigned no, mes_parameter_list params, unsigned *skip_params,
+		const char *ns);
 string mes_get_util_name(mes_parameter_list params, unsigned *skip_params);
 int mes_resolve_sysvar(string name, bool *dword);
 
