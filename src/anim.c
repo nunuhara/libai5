@@ -36,6 +36,7 @@ void anim_set_game(enum ai5_game_id game)
 		anim_type = ANIM_A;
 		break;
 	case GAME_KAKYUUSEI:
+	case GAME_SHUUSAKU:
 		anim_draw_call_size = 17;
 		anim_type = ANIM_A8;
 		break;
@@ -318,6 +319,10 @@ static bool anim_parse_s4_instruction(struct buffer *in, struct anim *anim,
 		out->op = op;
 		out->arg = buffer_read_u8(in);
 		break;
+	case ANIM_OP_LOAD_PALETTE:
+		out->op = op;
+		out->arg = buffer_read_u16(in);
+		break;
 	default:
 		if (op < 20 || op - 20 >= vector_length(anim->draw_calls)) {
 			WARNING("at %x", (unsigned)in->index-1);
@@ -351,6 +356,10 @@ static bool anim_parse_a_instruction(struct buffer *in, struct anim *anim,
 		out->op = op;
 		out->arg = buffer_read_u16(in);
 		break;
+	case ANIM_OP_LOAD_PALETTE:
+		out->op = op;
+		out->arg = buffer_read_u16(in);
+		break;
 	default:
 		if (op < 20 || op - 20 >= vector_length(anim->draw_calls)) {
 			WARNING("at %x", (unsigned)in->index-1);
@@ -371,6 +380,7 @@ void anim_free(struct anim *anim)
 		vector_destroy(anim->streams[i]);
 	}
 	vector_destroy(anim->draw_calls);
+	vector_destroy(anim->palettes);
 	free(anim);
 }
 
@@ -462,6 +472,27 @@ static struct anim *anim_a8_parse(struct buffer *in)
 	// read draw calls
 	while (!buffer_end(in) && in->index < stream_start) {
 		struct anim_draw_call call;
+		if (ai5_target_game == GAME_SHUUSAKU) {
+			// XXX: Palettes are counted as draw calls, but they have a different
+			//      length. There is no way to detect whether we are looking at a
+			//      draw call or a palette without reading the bytecode first.
+			//      However, in practice palettes always start with 0xff or 0x00,
+			//      which is the hack we use here.
+			uint8_t c = buffer_peek_u8(in);
+			if (c == 0 || c == 0xff) {
+				// palette
+				struct anim_palette *pal = vector_pushp(struct anim_palette,
+						anim->palettes);
+				pal->addr = in->index;
+				for (int i = 0; i < 256; i++) {
+					pal->colors[i].r = buffer_read_u8(in);
+					pal->colors[i].g = buffer_read_u8(in);
+					pal->colors[i].b = buffer_read_u8(in);
+				}
+				nr_draw_calls--;
+				continue;
+			}
+		}
 		if (!parse_a_draw_call(in, &call))
 			goto err;
 		vector_push(struct anim_draw_call, anim->draw_calls, call);
@@ -648,7 +679,23 @@ static void anim_print_draw_call(struct port *out, struct anim_draw_call *call, 
 	print_draw_args(out, call);
 }
 
-static void anim_print_instruction(struct port *out, struct anim_instruction *instr, int indent)
+static int get_palette_no(struct anim *anim, uint16_t addr)
+{
+	int no = 0;
+	struct anim_palette *p;
+	vector_foreach_p(p, anim->palettes) {
+		if (p->addr == addr)
+			return no;
+		no++;
+	}
+	// XXX: OP3.A from Shuusaku is broken and triggers this
+	//      (2 calls with palette address of 0)
+	WARNING("Couldn't locate palette @ 0x%x", addr);
+	return 0;
+}
+
+static void anim_print_instruction(struct port *out, struct anim *anim,
+		struct anim_instruction *instr, int indent)
 {
 	for (int i = 0; i < indent; i++) {
 		port_puts(out, "\t");
@@ -681,6 +728,9 @@ static void anim_print_instruction(struct port *out, struct anim_instruction *in
 	case ANIM_OP_LOOP2_END:
 		port_puts(out, "LOOP2_END;\n");
 		break;
+	case ANIM_OP_LOAD_PALETTE:
+		port_printf(out, "LOAD_PALETTE %u;\n", get_palette_no(anim, instr->arg));
+		break;
 	default:
 		ERROR("Invalid opcode: %d", instr->op);
 	}
@@ -688,6 +738,21 @@ static void anim_print_instruction(struct port *out, struct anim_instruction *in
 
 void anim_print(struct port *out, struct anim *anim)
 {
+	int pal_no = 0;
+	struct anim_palette *p;
+	vector_foreach_p(p, anim->palettes) {
+		port_printf(out, "PALETTE %u {", pal_no++);
+		for (int i = 0; i < 256; i += 8) {
+			port_puts(out, "\n\t");
+			for (int j = i; j < i + 8; j++) {
+				if (j > i)
+					port_putc(out, ' ');
+				port_printf(out, "#%02x%02x%02x", p->colors[j].r,
+						p->colors[j].g, p->colors[j].b);
+			}
+		}
+		port_puts(out, "\n};\n\n");
+	}
 	for (int i = 0; i < ANIM_MAX_STREAMS; i++) {
 		if (vector_empty(anim->streams[i]))
 			continue;
@@ -701,7 +766,7 @@ void anim_print(struct port *out, struct anim *anim)
 				struct anim_draw_call *call = &vector_A(anim->draw_calls, p->arg);
 				anim_print_draw_call(out, call, indent);
 			} else {
-				anim_print_instruction(out, p, indent);
+				anim_print_instruction(out, anim, p, indent);
 			}
 			if (p->op == ANIM_OP_LOOP_START || p->op == ANIM_OP_LOOP2_START)
 				indent++;

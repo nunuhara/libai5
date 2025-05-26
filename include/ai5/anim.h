@@ -45,6 +45,8 @@ enum anim_opcode {
 	ANIM_OP_LOOP2_START = 7,
 	// save as ANIM_LOOP2_END (for nested loop)
 	ANIM_OP_LOOP2_END = 8,
+	// load palette
+	ANIM_OP_LOAD_PALETTE = 0x96,
 };
 
 enum anim_s4_draw_opcode {
@@ -137,6 +139,13 @@ struct anim_draw_call {
 };
 typedef vector_t(struct anim_draw_call) anim_draw_call_list;
 
+struct anim_palette {
+	uint16_t addr;
+	struct anim_color colors[256];
+};
+
+typedef vector_t(struct anim_palette) anim_palette_list;
+
 struct anim_instruction {
 	int op; // anim_opcode or -1 for draw call
 	uint16_t arg;
@@ -154,6 +163,7 @@ enum anim_type {
 struct anim {
 	anim_stream streams[ANIM_MAX_STREAMS];
 	anim_draw_call_list draw_calls;
+	anim_palette_list palettes;
 };
 
 enum ai5_game_id;
