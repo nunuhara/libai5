@@ -182,6 +182,15 @@ static void print_number(uint32_t n, struct port *out, bool hex)
 	}
 }
 
+static void print_sysvar_name(unsigned var_no, struct port *out)
+{
+	enum mes_system_var16 v = mes_index_to_sysvar16(var_no);
+	if (v < MES_NR_SYSTEM_VARIABLES)
+		port_printf(out, "System.%s", mes_system_var16_names[v]);
+	else
+		port_printf(out, "System.var16[%u]", var_no);
+}
+
 void _aiw_mes_expression_print(struct mes_expression *expr, struct port *out, bool bitwise)
 {
 	switch (expr->aiw_op) {
@@ -247,10 +256,10 @@ void _aiw_mes_expression_print(struct mes_expression *expr, struct port *out, bo
 		port_putc(out, ']');
 		break;
 	case AIW_MES_EXPR_GET_SYSVAR_CONST:
-		port_printf(out, "sysvar[%u]", (unsigned)expr->arg16);
+		print_sysvar_name(expr->arg16, out);
 		break;
 	case AIW_MES_EXPR_GET_SYSVAR_EXPR:
-		port_puts(out, "sysvar[");
+		port_puts(out, "System.var16[");
 		_aiw_mes_expression_print(expr->sub_a, out, false);
 		port_putc(out, ']');
 		break;
@@ -429,12 +438,13 @@ void _aiw_mes_statement_print(struct mes_statement *stmt, struct port *out, int 
 		port_puts(out, ";\n");
 		break;
 	case AIW_MES_STMT_SET_SYSVAR_CONST:
-		port_printf(out, "sysvar[%u] = ", (unsigned)stmt->SET_VAR_CONST.var_no);
+		print_sysvar_name(stmt->SET_VAR_CONST.var_no, out);
+		port_puts(out, " = ");
 		aiw_mes_expression_list_print(stmt->SET_VAR_CONST.val_exprs, out);
 		port_puts(out, ";\n");
 		break;
 	case AIW_MES_STMT_SET_SYSVAR_EXPR:
-		port_puts(out, "sysvar[");
+		port_puts(out, "System.var16[");
 		_aiw_mes_expression_print(stmt->SET_VAR_EXPR.var_expr, out, false);
 		port_puts(out, "] = "); aiw_mes_expression_list_print(stmt->SET_VAR_EXPR.val_exprs, out);
 		port_puts(out, ";\n");
