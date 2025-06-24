@@ -606,8 +606,7 @@ static bool data_decompress(struct archive_data *file)
 	uint8_t *data;
 	size_t data_size;
 
-	if (file->archive->meta.type == ARCHIVE_TYPE_AWD
-			|| file->archive->meta.type == ARCHIVE_TYPE_AWF) {
+	if (file->archive->flags & ARCHIVE_PCM) {
 		// raw s16le PCM data: convert to WAV
 		bool stereo = file->archive->flags & ARCHIVE_STEREO;
 		data = pack_wav(file->data, file->raw_size, &data_size, stereo);

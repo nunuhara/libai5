@@ -30,10 +30,11 @@
 declare_hashtable_string_type(arcindex, int);
 
 enum {
-	ARCHIVE_MMAP = 1,   // map archive in memory
-	ARCHIVE_RAW  = 2,   // skip decompression when loading files
-	ARCHIVE_STEREO = 4, // raw PCM is stereo (AWD/AWF archives)
-	ARCHIVE_CACHE = 8,  // cache loaded files
+	ARCHIVE_MMAP = 1,    // map archive in memory
+	ARCHIVE_RAW  = 2,    // skip decompression when loading files
+	ARCHIVE_CACHE = 4,   // cache loaded files
+	ARCHIVE_PCM = 8,     // archive contains raw PCM
+	ARCHIVE_STEREO = 16, // raw PCM is stereo (AWD/AWF archives)
 };
 
 enum archive_scheme {
