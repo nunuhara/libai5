@@ -254,6 +254,9 @@ static bool awd_get_metadata(FILE *fp, struct arc_metadata *meta_out)
 		.name_off = 0,
 		.offset_off = 18,
 		.size_off = 22,
+		.awd_type_off = 16,
+		.loop_start_off = 26,
+		.loop_end_off = 30,
 		.scheme = ARCHIVE_SCHEME_TYPICAL,
 		.type = ARCHIVE_TYPE_AWD,
 	};
@@ -272,6 +275,8 @@ static bool awf_get_metadata(FILE *fp, struct arc_metadata *meta_out)
 		.name_off = 0,
 		.offset_off = 32,
 		.size_off = 36,
+		.loop_start_off = 40,
+		.loop_end_off = 44,
 		.scheme = ARCHIVE_SCHEME_TYPICAL,
 		.type = ARCHIVE_TYPE_AWF,
 	};
@@ -354,6 +359,16 @@ static bool typical_read_entry(struct archive *arc, struct archive_data *file, u
 				file->raw_size, (unsigned)meta->arc_size);
 		string_free(file->name);
 		return false;
+	}
+
+	if (arc->meta.type == ARCHIVE_TYPE_AWD) {
+		file->meta.type = le_get16(buf, meta->awd_type_off);
+		file->meta.loop_start = le_get32(buf, meta->loop_start_off);
+		file->meta.loop_end = le_get32(buf, meta->loop_end_off);
+	} else if (arc->meta.type == ARCHIVE_TYPE_AWF) {
+		file->meta.type = AWD_PCM;
+		file->meta.loop_start = le_get32(buf, meta->loop_start_off);
+		file->meta.loop_end = le_get32(buf, meta->loop_end_off);
 	}
 
 	return true;
@@ -606,10 +621,18 @@ static bool data_decompress(struct archive_data *file)
 	uint8_t *data;
 	size_t data_size;
 
-	if (file->archive->flags & ARCHIVE_PCM) {
-		// raw s16le PCM data: convert to WAV
-		bool stereo = file->archive->flags & ARCHIVE_STEREO;
-		data = pack_wav(file->data, file->raw_size, &data_size, stereo);
+	if (file->archive->meta.type == ARCHIVE_TYPE_AWD
+			|| file->archive->meta.type == ARCHIVE_TYPE_AWF) {
+		if (file->meta.type == AWD_PCM) {
+			// raw s16le PCM data: convert to WAV
+			bool stereo = file->archive->flags & ARCHIVE_STEREO;
+			data = pack_wav(file->data, file->raw_size, &data_size, stereo);
+		} else {
+			// mp3: do nothing
+			if (file->meta.type != AWD_MP3)
+				WARNING("Unknown AWD file type: %u", file->meta.type);
+			return true;
+		}
 	} else if (file->archive->flags & ARCHIVE_RAW) {
 		return true;
 	} else if (game_is_aiwin()) {

@@ -30,11 +30,10 @@
 declare_hashtable_string_type(arcindex, int);
 
 enum {
-	ARCHIVE_MMAP = 1,    // map archive in memory
-	ARCHIVE_RAW  = 2,    // skip decompression when loading files
-	ARCHIVE_CACHE = 4,   // cache loaded files
-	ARCHIVE_PCM = 8,     // archive contains raw PCM
-	ARCHIVE_STEREO = 16, // raw PCM is stereo (AWD/AWF archives)
+	ARCHIVE_MMAP = 1,   // map archive in memory
+	ARCHIVE_RAW  = 2,   // skip decompression when loading files
+	ARCHIVE_CACHE = 4,  // cache loaded files
+	ARCHIVE_STEREO = 8, // raw PCM is stereo (AWD/AWF archives)
 };
 
 enum archive_scheme {
@@ -66,6 +65,10 @@ struct arc_metadata {
 	unsigned size_off;
 	unsigned name_off;
 
+	unsigned awd_type_off;
+	unsigned loop_start_off;
+	unsigned loop_end_off;
+
 	enum archive_scheme scheme;
 	enum archive_type type;
 };
@@ -88,6 +91,17 @@ struct archive {
 	};
 };
 
+enum awd_file_type {
+	AWD_PCM = 1,
+	AWD_MP3 = 85,
+};
+
+struct awd_file_metadata {
+	uint16_t type;
+	uint32_t loop_start;
+	uint32_t loop_end;
+};
+
 struct archive_data {
 	TAILQ_ENTRY(archive_data) entry;
 	uint32_t offset;
@@ -95,6 +109,7 @@ struct archive_data {
 	uint32_t size;     // size of data in `data` (uncompressed)
 	string name;
 	uint8_t *data;
+	struct awd_file_metadata meta;
 	unsigned int ref : 16;      // reference count
 	unsigned int mapped : 1;    // true if `data` is a pointer into mmapped region
 	unsigned int allocated : 1; // true if archive_data object needs to be freed
