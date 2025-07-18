@@ -77,14 +77,14 @@ static enum anim_draw_opcode parse_s4_opcode(uint8_t op)
 	return -1;
 }
 
-static bool parse_s4_draw_call(struct buffer *in, struct anim_draw_call *out)
+static bool parse_s4_draw_call(struct buffer *in, struct anim_draw_call *out, unsigned src_i)
 {
 	size_t start = in->index;
 
 	uint8_t op = buffer_read_u8(in);
 	switch ((out->op = parse_s4_opcode(op))) {
 	case ANIM_DRAW_OP_FILL:
-		out->fill.dst.i = (op >> 1) & 1;
+		out->fill.dst.i = ((op >> 1) & 1) ? src_i : 0;
 		out->fill.dst.x = buffer_read_u8(in) * 8;
 		out->fill.dst.y = buffer_read_u16(in);
 		out->fill.dim.w = (buffer_read_u8(in) + 1) * 8 - out->fill.dst.x;
@@ -93,8 +93,8 @@ static bool parse_s4_draw_call(struct buffer *in, struct anim_draw_call *out)
 	case ANIM_DRAW_OP_COPY:
 	case ANIM_DRAW_OP_COPY_MASKED:
 	case ANIM_DRAW_OP_SWAP:
-		out->copy.src.i = (op >> 1) & 1;
-		out->copy.dst.i = op & 1;
+		out->copy.src.i = ((op >> 1) & 1) ? src_i : 0;
+		out->copy.dst.i = (op & 1) ? src_i : 0;
 		out->copy.src.x = buffer_read_u8(in) * 8;
 		out->copy.src.y = buffer_read_u16(in);
 		out->copy.dim.w = (buffer_read_u8(in) + 1) * 8 - out->copy.src.x;
@@ -103,9 +103,9 @@ static bool parse_s4_draw_call(struct buffer *in, struct anim_draw_call *out)
 		out->copy.dst.y = buffer_read_u16(in);
 		break;
 	case ANIM_DRAW_OP_COMPOSE:
-		out->compose.bg.i = op & 1;
-		out->compose.fg.i = (op >> 1) & 1;
-		out->compose.dst.i = (op >> 2) & 1;
+		out->compose.bg.i = (op & 1) ? src_i : 0;
+		out->compose.fg.i = ((op >> 1) & 1) ? src_i : 0;
+		out->compose.dst.i = ((op >> 2) & 1) ? src_i : 0;
 		out->compose.fg.x = buffer_read_u8(in) * 8;
 		out->compose.fg.y = buffer_read_u16(in);
 		out->compose.dim.w = (buffer_read_u8(in) + 1) * 8 - out->compose.fg.x;
@@ -140,8 +140,9 @@ static enum anim_draw_opcode parse_a8_draw_opcode(uint8_t op)
 	case 0x10: return ANIM_DRAW_OP_COPY;
 	case 0x20: return ANIM_DRAW_OP_COPY_MASKED;
 	case 0x30: return ANIM_DRAW_OP_SWAP;
-	// XXX: NOT compose... might be Kakyuusei-specific quirk?
-	//      (otherwise same as S4 opcodes)
+	// XXX: 0x40 is COMPOSE in Shuusaku, unused in Kakyuusei
+	case 0x40: return ANIM_DRAW_OP_COMPOSE;
+	// XXX: 0x50 is COPY_MASKED (redundant) in Kakyuusei, unused in Shuusaku
 	case 0x50: return ANIM_DRAW_OP_COPY_MASKED;
 	case 0x60: return ANIM_DRAW_OP_FILL;
 	}
@@ -170,7 +171,7 @@ static void parse_compose_args(struct buffer *in, struct anim_compose_args *out)
 	out->dst.y = out->bg.y;
 }
 
-static bool parse_a8_draw_call(struct buffer *in, struct anim_draw_call *out)
+static bool parse_a8_draw_call(struct buffer *in, struct anim_draw_call *out, unsigned src_i)
 {
 	size_t start = in->index;
 	uint8_t op = buffer_read_u8(in);
@@ -178,16 +179,22 @@ static bool parse_a8_draw_call(struct buffer *in, struct anim_draw_call *out)
 	case ANIM_DRAW_OP_COPY:
 	case ANIM_DRAW_OP_COPY_MASKED:
 	case ANIM_DRAW_OP_SWAP:
-		out->copy.dst.i = op & 1;
-		out->copy.src.i = (op >> 1) & 1;
+		out->copy.dst.i = (op & 1) ? src_i : 0;
+		out->copy.src.i = ((op >> 1) & 1) ? src_i : 0;
 		parse_copy_args(in, &out->copy);
 		break;
 	case ANIM_DRAW_OP_FILL:
-		out->fill.dst.i = (op >> 1) & 1;
+		out->fill.dst.i = ((op >> 1) & 1) ? src_i : 0;
 		out->fill.dst.x = buffer_read_u16(in);
 		out->fill.dst.y = buffer_read_u16(in);
 		out->fill.dim.w = buffer_read_u16(in);
 		out->fill.dim.h = buffer_read_u16(in);
+		break;
+	case ANIM_DRAW_OP_COMPOSE:
+		out->compose.dst.i = (op & 1) ? src_i : 0;
+		out->compose.fg.i = ((op >> 1) & 1) ? src_i : 0;
+		out->compose.bg.i = 3; // hardcoded in Shuusaku
+		parse_compose_args(in, &out->compose);
 		break;
 	default:
 		WARNING("Invalid draw call opcode: %02x", op);
@@ -226,7 +233,7 @@ static enum anim_draw_opcode parse_a_draw_opcode(uint8_t op)
 	return -1;
 }
 
-static bool parse_a_draw_call(struct buffer *in, struct anim_draw_call *out)
+static bool parse_a_draw_call(struct buffer *in, struct anim_draw_call *out, unsigned src_i)
 {
 	size_t start = in->index;
 
@@ -237,14 +244,14 @@ static bool parse_a_draw_call(struct buffer *in, struct anim_draw_call *out)
 	case ANIM_DRAW_OP_SWAP:
 	case ANIM_DRAW_OP_0x62:
 	case ANIM_DRAW_OP_0x66:
-		out->copy.src.i = anim_a_src;
+		out->copy.src.i = src_i;
 		out->copy.dst.i = 0;
 		parse_copy_args(in, &out->copy);
 		break;
 	case ANIM_DRAW_OP_COMPOSE:
 	case ANIM_DRAW_OP_COMPOSE_WITH_OFFSET:
 		out->compose.bg.i = 2;
-		out->compose.fg.i = anim_a_src;
+		out->compose.fg.i = src_i;
 		out->compose.dst.i = 0;
 		parse_compose_args(in, &out->compose);
 		break;
@@ -288,14 +295,14 @@ static bool parse_a_draw_call(struct buffer *in, struct anim_draw_call *out)
 	return true;
 }
 
-bool anim_parse_draw_call(uint8_t *data, struct anim_draw_call *out)
+bool anim_parse_draw_call(uint8_t *data, struct anim_draw_call *out, unsigned src_i)
 {
 	struct buffer b;
 	buffer_init(&b, data, anim_draw_call_size);
 	switch (anim_type) {
-	case ANIM_S4: return parse_s4_draw_call(&b, out);
-	case ANIM_A8: return parse_a8_draw_call(&b, out);
-	case ANIM_A:  return parse_a_draw_call(&b, out);
+	case ANIM_S4: return parse_s4_draw_call(&b, out, src_i);
+	case ANIM_A8: return parse_a8_draw_call(&b, out, src_i);
+	case ANIM_A:  return parse_a_draw_call(&b, out, src_i);
 	}
 	ERROR("Invalid anim_type");
 }
@@ -415,7 +422,7 @@ struct anim *anim_s4_parse(struct buffer *in)
 	// read draw calls
 	while (!buffer_end(in) && in->index < stream_start) {
 		struct anim_draw_call call;
-		if (!parse_s4_draw_call(in, &call))
+		if (!parse_s4_draw_call(in, &call, 1))
 			goto err;
 		vector_push(struct anim_draw_call, anim->draw_calls, call);
 	}
@@ -493,7 +500,7 @@ static struct anim *anim_a8_parse(struct buffer *in)
 				continue;
 			}
 		}
-		if (!parse_a_draw_call(in, &call))
+		if (!parse_a_draw_call(in, &call, 1))
 			goto err;
 		vector_push(struct anim_draw_call, anim->draw_calls, call);
 	}
@@ -539,7 +546,7 @@ static struct anim *anim_a_parse(struct buffer *in)
 	// read draw calls
 	while (!buffer_end(in) && in->index < stream_start) {
 		struct anim_draw_call call;
-		if (!parse_a_draw_call(in, &call))
+		if (!parse_a_draw_call(in, &call, 1))
 			goto err;
 		vector_push(struct anim_draw_call, anim->draw_calls, call);
 	}
