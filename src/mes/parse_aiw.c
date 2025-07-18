@@ -354,7 +354,7 @@ error:
 	return false;
 }
 
-static struct mes_statement *_aiw_mes_parse_statement(struct buffer *mes)
+struct mes_statement *aiw_mes_parse_statement(struct buffer *mes)
 {
 	struct mes_expression *tmp_expr;
 	struct mes_statement *stmt = xcalloc(1, sizeof(struct mes_statement));
@@ -566,7 +566,7 @@ static bool aiw_mes_parse_statements_until_end(struct buffer *mes, mes_statement
 	uint8_t b;
 	do {
 		b = buffer_peek_u8(mes);
-		struct mes_statement *stmt = _aiw_mes_parse_statement(mes);
+		struct mes_statement *stmt = aiw_mes_parse_statement(mes);
 		if (!stmt)
 			goto error;
 		vector_push(struct mes_statement*, *statements, stmt);
@@ -600,7 +600,7 @@ bool aiw_mes_parse_statements(uint8_t *data, size_t data_size, mes_statement_lis
 	buffer_init(&mes, data, data_size);
 
 	while (!buffer_end(&mes)) {
-		struct mes_statement *stmt = _aiw_mes_parse_statement(&mes);
+		struct mes_statement *stmt = aiw_mes_parse_statement(&mes);
 		if (!stmt)
 			goto error;
 		vector_push(struct mes_statement*, *statements, stmt);

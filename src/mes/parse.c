@@ -483,10 +483,14 @@ error:
 	return NULL;
 }
 
+struct mes_statement *aiw_mes_parse_statement(struct buffer *mes);
+
 struct mes_statement *mes_parse_statement(uint8_t *data, size_t data_size)
 {
 	struct buffer buf;
 	buffer_init(&buf, data, data_size);
+	if (game_is_aiwin())
+		return aiw_mes_parse_statement(&buf);
 	return _mes_parse_statement(&buf);
 }
 
