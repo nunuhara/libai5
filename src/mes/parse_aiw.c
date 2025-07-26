@@ -485,7 +485,7 @@ struct mes_statement *aiw_mes_parse_statement(struct buffer *mes)
 	stmt->next_address = mes->index;
 	return stmt;
 error:
-	NOTICE("error at statement @ %08lx", mes->index);
+	NOTICE("error at statement @ %08lx", (unsigned long)mes->index);
 	free(stmt);
 	return NULL;
 }
