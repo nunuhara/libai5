@@ -260,6 +260,25 @@ static bool awd_get_metadata(FILE *fp, struct arc_metadata *meta_out)
 		.scheme = ARCHIVE_SCHEME_TYPICAL,
 		.type = ARCHIVE_TYPE_AWD,
 	};
+
+	// heuristic to detect older awd format (shuusaku cd version)
+	uint8_t bytes[2];
+	if (fseek(fp, 22, SEEK_SET)) {
+		WARNING("fseek: %s", strerror(errno));
+		return false;
+	}
+	if (fread(bytes, 2, 1, fp) != 1) {
+		WARNING("fread: %s", strerror(errno));
+		return false;
+	}
+	if (bytes[0] == 0 && bytes[1] == 0) {
+		meta.offset_off += 2;
+		meta.size_off += 2;
+		meta.loop_start_off += 2;
+		meta.loop_end_off += 2;
+		meta.entry_size += 2;
+	}
+
 	if (!arc_get_size_and_count(fp, &meta))
 		return false;
 	*meta_out = meta;
