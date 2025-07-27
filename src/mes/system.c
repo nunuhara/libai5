@@ -340,6 +340,7 @@ LEAF(sys_savedata, load_var4_and_heap);
 LEAF(sys_savedata, load_var32);
 LEAF(sys_savedata, load_var16);
 LEAF(sys_savedata, save_var16);
+LEAF(sys_savedata, update_var4);
 
 NODE(sys_load_shuusaku, Load,
 	[0] = &sys_savedata_resume_load,
@@ -352,7 +353,7 @@ NODE(sys_save_shuusaku, Save,
 	[0] = &sys_savedata_resume_save,
 	[1] = &sys_savedata_save,
 	[2] = &sys_savedata_save_var4,
-	[3] = NULL, // TODO: name
+	[3] = &sys_savedata_update_var4,
 	[4] = &sys_savedata_save_var16,
 );
 
@@ -1158,11 +1159,96 @@ PUBLIC_NODE(mes_sys_kakyuusei, System,
 	[18] = &sys_backlog_kakyuusei,
 );
 
-LEAF(aiw_sys, Util); // TODO: not leaf
+LEAF(util_plan, fini);
+LEAF(util_plan, init);
+LEAF(util_plan, push);
+LEAF(util_plan, pop);
+NODE(util_plan, Plan,
+	[0] = &util_plan_fini,
+	[1] = &util_plan_init,
+	[2] = &util_plan_push,
+	[3] = &util_plan_pop,
+);
+
+LEAF(util_message_window, hide);
+LEAF(util_message_window, show);
+NODE(util_message_window, MessageWindow,
+	[0] = &util_message_window_hide,
+	[1] = &util_message_window_show,
+);
+
+LEAF(util_credits, header);
+LEAF(util_credits, eri);
+LEAF(util_credits, player);
+NODE(util_credits, Credits,
+	[0] = &util_credits_header,
+	[1] = &util_credits_eri,
+	[2] = &util_credits_player,
+);
+
+LEAF(util, pixel_crossfade);
+LEAF(util, update_schedule);
+LEAF(util, load_stored_palette);
+LEAF(util, photo_slide);
+LEAF(util, status_dirty);
+LEAF(util, pixel_palette_crossfade);
+LEAF(util, draw_clock);
+LEAF(util, zoom_movie);
+LEAF(util, zoom_cam);
+LEAF(util, crossfade_high_colors);
+LEAF(util, eri_pixel_crossfade);
+LEAF(util, scene_viewer_char_select);
+LEAF(util, scene_viewer_scene_select);
+LEAF(util, scene_viewer_zoom_out);
+LEAF(util, name_input);
+LEAF(util, draw_myouji);
+LEAF(util, draw_namae);
+LEAF(util, scroll_down);
+LEAF(util, pixel_melt);
+LEAF(util, anim_wait);
+LEAF(util, set_screen_y);
+LEAF(util, quake);
+LEAF(util, ending_logo_crossfade);
+LEAF(util, pixel_crossfade_low);
+LEAF(util, set_config_enabled);
+NODE(sys_util_shuusaku, Util,
+	[0] = &util_pixel_crossfade,
+	[1] = &util_plan,
+	[2] = &util_message_window,
+	[3] = &util_update_schedule,
+	[4] = NULL,
+	[5] = &util_load_stored_palette,
+	[6] = &util_photo_slide,
+	[7] = &util_status_dirty,
+	[8] = &util_pixel_palette_crossfade,
+	[9] = &util_draw_clock,
+	[10] = &util_zoom_movie,
+	[11] = &util_zoom_cam,
+	[12] = &util_crossfade_high_colors,
+	[13] = &util_eri_pixel_crossfade,
+	[14] = &util_scene_viewer_char_select,
+	[15] = &util_scene_viewer_scene_select,
+	[16] = NULL,
+	[17] = &util_scene_viewer_zoom_out,
+	[18] = &util_name_input,
+	[19] = &util_draw_myouji,
+	[20] = &util_draw_namae,
+	[21] = &util_credits,
+	[22] = &util_scroll_down,
+	[23] = &util_pixel_melt,
+	[24] = &util_anim_wait,
+	[25] = &util_set_screen_y,
+	[26] = &util_quake,
+	[27] = &util_ending_logo_crossfade,
+	[28] = NULL,
+	[29] = &util_pixel_crossfade_low,
+	[30] = &util_set_config_enabled,
+);
+
 LEAF(aiw_sys, display_number);
 LEAF(aiw_sys, set_text_color);
 LEAF(aiw_sys, wait);
-LEAF(aiw_sys, OP_0x21);
+LEAF(aiw_sys, text_clear);
 LEAF(aiw_sys, commit_message);
 LEAF(aiw_sys, load_image);
 LEAF(aiw_sys, surface_copy);
@@ -1170,7 +1256,7 @@ LEAF(aiw_sys, surface_copy_masked);
 LEAF(aiw_sys, surface_swap);
 LEAF(aiw_sys, surface_fill);
 LEAF(aiw_sys, surface_invert);
-LEAF(aiw_sys, OP_0x29);
+LEAF(aiw_sys, set_color);
 LEAF2(aiw_sys, hide, show);
 LEAF(aiw_sys, crossfade);
 LEAF(aiw_sys, crossfade2);
@@ -1183,13 +1269,13 @@ LEAF(aiw_sys, OP_0x34);
 
 // XXX: AIWIN games are indexed by opcode
 PUBLIC_NODE(mes_sys_shuusaku, System,
-	[AIW_MES_STMT_UTIL] = &aiw_sys_Util,
+	[AIW_MES_STMT_UTIL] = &sys_util_shuusaku,
 	[AIW_MES_STMT_LOAD] = &sys_load_shuusaku,
 	[AIW_MES_STMT_SAVE] = &sys_save_shuusaku,
 	[AIW_MES_STMT_NUM] = &aiw_sys_display_number,
 	[AIW_MES_STMT_SET_TEXT_COLOR] = &aiw_sys_set_text_color,
 	[AIW_MES_STMT_WAIT] = &aiw_sys_wait,
-	[AIW_MES_STMT_21] = &aiw_sys_OP_0x21,
+	[AIW_MES_STMT_21] = &aiw_sys_text_clear,
 	[AIW_MES_STMT_COMMIT_MESSAGE] = &aiw_sys_commit_message,
 	[AIW_MES_STMT_LOAD_IMAGE] = &aiw_sys_load_image,
 	[AIW_MES_STMT_SURF_COPY] = &aiw_sys_surface_copy,
@@ -1197,7 +1283,7 @@ PUBLIC_NODE(mes_sys_shuusaku, System,
 	[AIW_MES_STMT_SURF_SWAP] = &aiw_sys_surface_swap,
 	[AIW_MES_STMT_SURF_FILL] = &aiw_sys_surface_fill,
 	[AIW_MES_STMT_SURF_INVERT] = &aiw_sys_surface_invert,
-	[AIW_MES_STMT_29] = &aiw_sys_OP_0x29,
+	[AIW_MES_STMT_29] = &aiw_sys_set_color,
 	[AIW_MES_STMT_SHOW_HIDE] = &aiw_sys_hide_show,
 	[AIW_MES_STMT_CROSSFADE] = &aiw_sys_crossfade,
 	[AIW_MES_STMT_CROSSFADE2] = &aiw_sys_crossfade2,
@@ -1309,7 +1395,7 @@ static string get_name(string name, struct mes_path_component *parent,
 		return name;
 	if (parent->nr_children == 0 || vector_A(params, *skip_params).type != MES_PARAM_EXPRESSION)
 		return name;
-	struct mes_expression *expr = vector_A(params, 0).expr;
+	struct mes_expression *expr = vector_A(params, *skip_params).expr;
 	unsigned no = 0;
 	if (expr->op == MES_EXPR_IMM)
 		no = expr->arg8;
@@ -1567,7 +1653,6 @@ LEAF(util, crossfade_high_palette);
 LEAF(util, load_player_name);
 LEAF(util, save_player_name);
 LEAF(util, backlog_add_number);
-LEAF(util, quake);
 LEAF(util, mahoko_spin_start);
 LEAF(util, mahoko_spin_end);
 LEAF(util, save_current_palette);
