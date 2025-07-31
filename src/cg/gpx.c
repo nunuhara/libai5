@@ -27,7 +27,7 @@
 /*
  * Decode the "length" portion of an (offset,length) pair.
  */
-static int decode_run_length(struct bitbuffer *b)
+int gpx_decode_run_length(struct bitbuffer *b)
 {
 	int len = 0;
 	switch (bitbuffer_read_zeros(b, 5)) {
@@ -45,7 +45,7 @@ static int decode_run_length(struct bitbuffer *b)
  * Decode the "offset" portion of an (offset,length) pair. This is
  * 2D offset.
  */
-static void decode_offset(struct bitbuffer *b, int *entry_off, int *line_off)
+void gpx_decode_offset(struct bitbuffer *b, int *x_off, int *y_off)
 {
 	// Offset when reading from the current line. Always negative.
 	static int same_line_offsets[8] = {
@@ -60,21 +60,21 @@ static void decode_offset(struct bitbuffer *b, int *entry_off, int *line_off)
 		// source is more than 1 line distant
 		if (!bitbuffer_read_bit(b)) {
 			// 2-bit(+4) offset
-			*line_off = -(bitbuffer_read_number(b, 2) + 4);
+			*y_off = -(bitbuffer_read_number(b, 2) + 4);
 		} else {
 			// 1-bit(+2) offset
-			*line_off = -(bitbuffer_read_bit(b) + 2);
+			*y_off = -(bitbuffer_read_bit(b) + 2);
 		}
-		*entry_off = prev_line_offsets[bitbuffer_read_number(b, 4)];
+		*x_off = prev_line_offsets[bitbuffer_read_number(b, 4)];
 	} else {
 		if (bitbuffer_read_bit(b)) {
 			// previous line
-			*line_off = -1;
-			*entry_off = prev_line_offsets[bitbuffer_read_number(b, 4)];
+			*y_off = -1;
+			*x_off = prev_line_offsets[bitbuffer_read_number(b, 4)];
 		} else {
 			// current line
-			*line_off = 0;
-			*entry_off = same_line_offsets[bitbuffer_read_number(b, 3)];
+			*y_off = 0;
+			*x_off = same_line_offsets[bitbuffer_read_number(b, 3)];
 		}
 	}
 }
@@ -101,9 +101,9 @@ static void gpx_decode_horizontal(struct cg *cg, uint8_t *data, size_t size)
 			if (!bitbuffer_read_bit(&b)) {
 				// copy previously decoded bytes
 				int x_off, y_off;
-				decode_offset(&b, &x_off, &y_off);
+				gpx_decode_offset(&b, &x_off, &y_off);
 				uint8_t *src = pixel_offset(cg, col + x_off, row + y_off);
-				int len = decode_run_length(&b);
+				int len = gpx_decode_run_length(&b);
 				for (int i = 0; i < len; i++) {
 					*dst++ = *src++;
 				}
@@ -135,9 +135,9 @@ static void gpx_decode_vertical(struct cg *cg, uint8_t *data, size_t size)
 			if (!bitbuffer_read_bit(&b)) {
 				// copy previously decoded bytes
 				int x_off, y_off;
-				decode_offset(&b, &y_off, &x_off);
+				gpx_decode_offset(&b, &y_off, &x_off);
 				uint8_t *src = pixel_offset(cg, col + x_off, row + y_off);
-				int len = decode_run_length(&b);
+				int len = gpx_decode_run_length(&b);
 				for (int i = 0; i < len; i++) {
 					*dst = *src;
 					dst += cg->metrics.w;

@@ -17,6 +17,7 @@
 #ifndef AI5_CG_H
 #define AI5_CG_H
 
+#include <stdbool.h>
 #include <stdint.h>
 #include <stdio.h>
 
@@ -29,6 +30,7 @@ enum cg_type {
 	CG_TYPE_G24,
 	CG_TYPE_G32,
 	CG_TYPE_GCC,
+	CG_TYPE_GPR,
 	CG_TYPE_GPX,
 	CG_TYPE_PNG,
 	//CG_TYPE_BMP,
@@ -67,5 +69,20 @@ struct cg *cg_alloc(void);
 struct cg *cg_alloc_indexed(unsigned w, unsigned h);
 struct cg *cg_alloc_direct(unsigned w, unsigned h);
 void cg_free(struct cg *cg);
+
+struct cg *gp4_decode(uint8_t *data, size_t size);
+struct cg *gp8_decode(uint8_t *data, size_t size);
+struct cg *gxx_decode(uint8_t *data, size_t size, unsigned bpp);
+struct cg *png_decode(uint8_t *data, size_t size);
+struct cg *gcc_decode(uint8_t *data, size_t size);
+struct cg *gpx_decode(uint8_t *data, size_t size);
+struct cg *gpr_decode(uint8_t *data, size_t size);
+
+bool gxx_write(struct cg *cg, FILE *out, unsigned bpp);
+bool png_write(struct cg *cg, FILE *out);
+
+struct bitbuffer;
+int gpx_decode_run_length(struct bitbuffer *b);
+void gpx_decode_offset(struct bitbuffer *b, int *x_off, int *y_off);
 
 #endif // AI5_CG_H
