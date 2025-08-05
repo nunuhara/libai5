@@ -24,6 +24,7 @@
 struct archive_data;
 
 enum cg_type {
+	CG_TYPE_AKB,
 	CG_TYPE_GP4,
 	CG_TYPE_GP8,
 	CG_TYPE_G16,
@@ -70,6 +71,7 @@ struct cg *cg_alloc_indexed(unsigned w, unsigned h);
 struct cg *cg_alloc_direct(unsigned w, unsigned h);
 void cg_free(struct cg *cg);
 
+struct cg *akb_decode(uint8_t *data, size_t size);
 struct cg *gp4_decode(uint8_t *data, size_t size);
 struct cg *gp8_decode(uint8_t *data, size_t size);
 struct cg *gxx_decode(uint8_t *data, size_t size, unsigned bpp);

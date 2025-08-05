@@ -25,6 +25,7 @@
 static struct cg *_cg_load(uint8_t *data, size_t size, enum cg_type type)
 {
 	switch (type) {
+	case CG_TYPE_AKB: return akb_decode(data, size);
 	case CG_TYPE_GP4: return gp4_decode(data, size);
 	case CG_TYPE_GP8:  return gp8_decode(data, size);
 	case CG_TYPE_G16: return gxx_decode(data, size, 16);
@@ -49,6 +50,7 @@ struct cg *cg_load(uint8_t *data, size_t size, enum cg_type type)
 enum cg_type cg_type_from_name(const char *name)
 {
 	const char *ext = file_extension(name);
+	if (!strcasecmp(ext, "akb")) return CG_TYPE_AKB;
 	if (!strcasecmp(ext, "gp4")) return CG_TYPE_GP4;
 	if (!strcasecmp(ext, "gp8")) return CG_TYPE_GP8;
 	if (!strcasecmp(ext, "g16")) return CG_TYPE_G16;
@@ -129,6 +131,7 @@ struct cg *cg_depalettize_copy(struct cg *cg)
 bool _cg_write(struct cg *cg, FILE *out, enum cg_type type)
 {
 	switch (type) {
+	case CG_TYPE_AKB: ERROR("AKB write not supported");
 	case CG_TYPE_GP4: ERROR("GP4 write not supported");
 	case CG_TYPE_GP8: ERROR("GP8 write not supported");
 	case CG_TYPE_G16: return gxx_write(cg, out, 16);
