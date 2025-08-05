@@ -20,6 +20,7 @@
 #include <stdbool.h>
 
 enum ai5_game_id {
+	GAME_KISAKU_ANIM,    // 2011-04-28 release (animated complete edition)
 	GAME_DOUKYUUSEI2_DL, // 2007-07-06 release
 	GAME_KAWARAZAKIKE,   // 2003-10-24 release (AIWIN engine)
 	GAME_SHUUSAKU,       // 2001-10-26 release (AIWIN engine)

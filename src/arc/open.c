@@ -131,6 +131,12 @@ static bool arc_get_metadata(FILE *fp, struct arc_metadata *meta_out)
 		meta.scheme = ARCHIVE_SCHEME_GAME_SPECIFIC;
 		*meta_out = meta;
 		return true;
+	case GAME_KISAKU_ANIM:
+		meta.entry_size = 272;
+		meta.name_length = 260;
+		meta.scheme = ARCHIVE_SCHEME_GAME_SPECIFIC;
+		*meta_out = meta;
+		return true;
 	default:
 		break;
 	}
@@ -495,6 +501,41 @@ static bool kakyuusei_read_index(FILE *fp, struct archive *arc)
 	return true;
 }
 
+static bool kisaku_anim_read_index(FILE *fp, struct archive *arc)
+{
+	const size_t buf_len = arc->meta.nr_files * arc->meta.entry_size;
+	size_t buf_pos = 0;
+	uint8_t *buf = xmalloc(buf_len);
+	if (fread(buf, buf_len, 1, fp) != 1) {
+		WARNING("fread: %s", strerror(errno));
+		free(buf);
+		return false;
+	}
+
+	// read file entries
+	uint8_t dec[260];
+	vector_init(arc->files);
+	vector_resize(struct archive_data, arc->files, arc->meta.nr_files);
+	for (int i = 0; i < arc->meta.nr_files; i++, buf_pos += 272) {
+		int name_len = strnlen((char*)buf + buf_pos, 260);
+		for (int i = 0, key = name_len + 1; i < name_len; i++, key--) {
+			dec[i] = buf[buf_pos + i] - key;
+		}
+		dec[name_len] = '\0';
+		struct archive_data *file = &vector_A(arc->files, i);
+		*file = (struct archive_data) {
+			.raw_size = be_get32(buf, buf_pos + 260),
+			.offset = be_get32(buf, buf_pos + 268),
+			.name = sjis_cstring_to_utf8((char*)dec, 0),
+			.archive = arc
+		};
+	}
+
+	free(buf);
+	create_index(arc);
+	return true;
+}
+
 static bool arc_read_index(FILE *fp, struct archive *arc)
 {
 	if (fseek(fp, arc->meta.index_off, SEEK_SET)) {
@@ -508,6 +549,8 @@ static bool arc_read_index(FILE *fp, struct archive *arc)
 			return read_index(fp, arc, doukyuusei_2_dl_read_entry);
 		case GAME_KAKYUUSEI:
 			return kakyuusei_read_index(fp, arc);
+		case GAME_KISAKU_ANIM:
+			return kisaku_anim_read_index(fp, arc);
 		default:
 			WARNING("Game-specific archive type but no game specified");
 			return false;
