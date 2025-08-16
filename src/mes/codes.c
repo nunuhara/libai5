@@ -51,6 +51,8 @@ extern struct mes_path_component mes_util_yuno;
 	[MES_STMT_PTR32_SET32]    = 0x08, \
 	[MES_STMT_PTR32_SET16]    = MES_CODE_INVALID, \
 	[MES_STMT_PTR32_SET8]     = MES_CODE_INVALID, \
+	[MES_STMT_SET_ARG_CONST]  = MES_CODE_INVALID, \
+	[MES_STMT_SET_ARG_EXPR]   = MES_CODE_INVALID, \
 	[MES_STMT_JZ]             = 0x09, \
 	[MES_STMT_JMP]            = 0x0A, \
 	[MES_STMT_SYS]            = 0x0B, \
@@ -63,6 +65,14 @@ extern struct mes_path_component mes_util_yuno;
 	[MES_STMT_DEF_PROC]       = 0x12, \
 	[MES_STMT_MENU_EXEC]      = 0x13, \
 	[MES_STMT_SET_VAR32]      = 0x14, \
+	[MES_STMT_17]             = MES_CODE_INVALID, \
+	[MES_STMT_18]             = MES_CODE_INVALID, \
+	[MES_STMT_19]             = MES_CODE_INVALID, \
+	[MES_STMT_1A]             = MES_CODE_INVALID, \
+	[MES_STMT_1B]             = MES_CODE_INVALID, \
+	[MES_STMT_DEF_SUB]        = MES_CODE_INVALID, \
+	[MES_STMT_CALL_SUB]       = MES_CODE_INVALID, \
+	[MES_STMT_1F]             = MES_CODE_INVALID, \
 }
 
 #define DEFAULT_INT_TO_STMT_OP { \
@@ -89,6 +99,13 @@ extern struct mes_path_component mes_util_yuno;
 	[0x14] = MES_STMT_SET_VAR32, \
 	[0x15] = MES_CODE_INVALID, \
 	[0x16] = MES_CODE_INVALID, \
+	[0x17] = MES_CODE_INVALID, \
+	[0x18] = MES_CODE_INVALID, \
+	[0x19] = MES_CODE_INVALID, \
+	[0x1a] = MES_CODE_INVALID, \
+	[0x1b] = MES_CODE_INVALID, \
+	[0x1c] = MES_CODE_INVALID, \
+	[0x1d] = MES_CODE_INVALID, \
 }
 
 #define DEFAULT_EXPR_OP_TO_INT { \
@@ -118,6 +135,8 @@ extern struct mes_path_component mes_util_yuno;
 	[MES_EXPR_GET_FLAG_EXPR]  = 0xF4, \
 	[MES_EXPR_PTR32_GET32]    = 0xF5, \
 	[MES_EXPR_GET_VAR32]      = 0xF6, \
+	[MES_EXPR_GET_ARG_CONST]  = MES_CODE_INVALID, \
+	[MES_EXPR_GET_ARG_EXPR]   = MES_CODE_INVALID, \
 	[MES_EXPR_END]            = 0xFF, \
 }
 
@@ -445,6 +464,8 @@ struct mes_code_tables beyond_tables = {
 	[MES_STMT_PTR32_SET32]    = 0x08, \
 	[MES_STMT_PTR32_SET16]    = 0x09, \
 	[MES_STMT_PTR32_SET8]     = 0x0A, \
+	[MES_STMT_SET_ARG_CONST]  = MES_CODE_INVALID, \
+	[MES_STMT_SET_ARG_EXPR]   = MES_CODE_INVALID, \
 	[MES_STMT_JZ]             = 0x0B, \
 	[MES_STMT_JMP]            = 0x0C, \
 	[MES_STMT_SYS]            = 0x0D, \
@@ -457,6 +478,14 @@ struct mes_code_tables beyond_tables = {
 	[MES_STMT_DEF_PROC]       = 0x14, \
 	[MES_STMT_MENU_EXEC]      = 0x15, \
 	[MES_STMT_SET_VAR32]      = 0x16, \
+	[MES_STMT_17]             = MES_CODE_INVALID, \
+	[MES_STMT_18]             = MES_CODE_INVALID, \
+	[MES_STMT_19]             = MES_CODE_INVALID, \
+	[MES_STMT_1A]             = MES_CODE_INVALID, \
+	[MES_STMT_1B]             = MES_CODE_INVALID, \
+	[MES_STMT_DEF_SUB]        = MES_CODE_INVALID, \
+	[MES_STMT_CALL_SUB]       = MES_CODE_INVALID, \
+	[MES_STMT_1F]             = MES_CODE_INVALID, \
 }
 
 #define CLASSICS_INT_TO_STMT_OP { \
@@ -483,6 +512,13 @@ struct mes_code_tables beyond_tables = {
 	[0x14] = MES_STMT_DEF_PROC, \
 	[0x15] = MES_STMT_MENU_EXEC, \
 	[0x16] = MES_STMT_SET_VAR32, \
+	[0x17] = MES_CODE_INVALID, \
+	[0x18] = MES_CODE_INVALID, \
+	[0x19] = MES_CODE_INVALID, \
+	[0x1a] = MES_CODE_INVALID, \
+	[0x1b] = MES_CODE_INVALID, \
+	[0x1c] = MES_CODE_INVALID, \
+	[0x1d] = MES_CODE_INVALID, \
 }
 
 #define CLASSICS_EXPR_OP_TO_INT { \
@@ -515,6 +551,8 @@ struct mes_code_tables beyond_tables = {
 	[MES_EXPR_PTR32_GET16]    = 0xF6, \
 	[MES_EXPR_PTR32_GET8]     = 0xF7, \
 	[MES_EXPR_GET_VAR32]      = 0xF8, \
+	[MES_EXPR_GET_ARG_CONST]  = MES_CODE_INVALID, \
+	[MES_EXPR_GET_ARG_EXPR]   = MES_CODE_INVALID, \
 	[MES_EXPR_END]            = 0xFF, \
 }
 
@@ -864,6 +902,155 @@ struct mes_code_tables kawarazakike_tables = {
 };
 
 // kawarazaki-ke }}}
+// {{{ nonomura byouin
+
+#define NONOMURA_STMT_OP_TO_INT { \
+	[MES_STMT_END]            = 0x00, \
+	[MES_STMT_ZENKAKU]        = 0x01, \
+	[MES_STMT_HANKAKU]        = 0x02, \
+	[MES_STMT_SET_FLAG_CONST] = 0x03, \
+	[MES_STMT_SET_VAR16]      = 0x04, \
+	[MES_STMT_SET_FLAG_EXPR]  = 0x05, \
+	[MES_STMT_PTR16_SET8]     = 0x06, \
+	[MES_STMT_PTR16_SET16]    = 0x07, \
+	[MES_STMT_PTR32_SET32]    = 0x08, \
+	[MES_STMT_SET_ARG_CONST]  = 0x09, \
+	[MES_STMT_SET_ARG_EXPR]   = 0x0A, \
+	[MES_STMT_JZ]             = 0x0B, \
+	[MES_STMT_JMP]            = 0x0C, \
+	[MES_STMT_SYS]            = 0x0D, \
+	[MES_STMT_JMP_MES]        = 0x0E, \
+	[MES_STMT_CALL_MES]       = 0x0F, \
+	[MES_STMT_DEF_MENU]       = 0x10, \
+	[MES_STMT_CALL_PROC]      = 0x11, \
+	[MES_STMT_UTIL]           = 0x12, \
+	[MES_STMT_LINE]           = 0x13, \
+	[MES_STMT_DEF_PROC]       = 0x14, \
+	[MES_STMT_MENU_EXEC]      = 0x15, \
+	[MES_STMT_SET_VAR32]      = 0x16, \
+	[MES_STMT_17]             = 0x17, \
+	[MES_STMT_18]             = 0x18, \
+	[MES_STMT_19]             = 0x19, \
+	[MES_STMT_1A]             = 0x1a, \
+	[MES_STMT_1B]             = 0x1b, \
+	[MES_STMT_DEF_SUB]        = 0x1c, \
+	[MES_STMT_CALL_SUB]       = 0x1d, \
+	[MES_STMT_1F]             = 0x1f, \
+}
+
+#define NONOMURA_INT_TO_STMT_OP { \
+	[0x00] = MES_STMT_END, \
+	[0x01] = MES_STMT_ZENKAKU, \
+	[0x02] = MES_STMT_HANKAKU, \
+	[0x03] = MES_STMT_SET_FLAG_CONST, \
+	[0x04] = MES_STMT_SET_VAR16, \
+	[0x05] = MES_STMT_SET_FLAG_EXPR, \
+	[0x06] = MES_STMT_PTR16_SET8, \
+	[0x07] = MES_STMT_PTR16_SET16, \
+	[0x08] = MES_STMT_PTR32_SET32, \
+	[0x09] = MES_STMT_SET_ARG_CONST, \
+	[0x0A] = MES_STMT_SET_ARG_EXPR, \
+	[0x0B] = MES_STMT_JZ, \
+	[0x0C] = MES_STMT_JMP, \
+	[0x0D] = MES_STMT_SYS, \
+	[0x0E] = MES_STMT_JMP_MES, \
+	[0x0F] = MES_STMT_CALL_MES, \
+	[0x10] = MES_STMT_DEF_MENU, \
+	[0x11] = MES_STMT_CALL_PROC, \
+	[0x12] = MES_STMT_UTIL, \
+	[0x13] = MES_STMT_LINE, \
+	[0x14] = MES_STMT_DEF_PROC, \
+	[0x15] = MES_STMT_MENU_EXEC, \
+	[0x16] = MES_STMT_SET_VAR32, \
+	[0x17] = MES_STMT_17, \
+	[0x18] = MES_STMT_18, \
+	[0x19] = MES_STMT_19, \
+	[0x1a] = MES_STMT_1A, \
+	[0x1b] = MES_STMT_1B, \
+	[0x1c] = MES_STMT_DEF_SUB, \
+	[0x1d] = MES_STMT_CALL_SUB, \
+	[0x1f] = MES_STMT_1F, \
+}
+
+#define NONOMURA_EXPR_OP_TO_INT { \
+	[MES_EXPR_IMM]            = 0x00, \
+	[MES_EXPR_GET_VAR16]      = 0x80, \
+	[MES_EXPR_PTR16_GET16]    = 0xA0, \
+	[MES_EXPR_PTR16_GET8]     = 0xC0, \
+	[MES_EXPR_PLUS]           = 0xE0, \
+	[MES_EXPR_MINUS]          = 0xE1, \
+	[MES_EXPR_MUL]            = 0xE2, \
+	[MES_EXPR_DIV]            = 0xE3, \
+	[MES_EXPR_MOD]            = 0xE4, \
+	[MES_EXPR_RAND]           = 0xE5, \
+	[MES_EXPR_AND]            = 0xE6, \
+	[MES_EXPR_OR]             = 0xE7, \
+	[MES_EXPR_BITAND]         = 0xE8, \
+	[MES_EXPR_BITIOR]         = 0xE9, \
+	[MES_EXPR_BITXOR]         = 0xEA, \
+	[MES_EXPR_LT]             = 0xEB, \
+	[MES_EXPR_GT]             = 0xEC, \
+	[MES_EXPR_LTE]            = 0xED, \
+	[MES_EXPR_GTE]            = 0xEE, \
+	[MES_EXPR_EQ]             = 0xEF, \
+	[MES_EXPR_NEQ]            = 0xF0, \
+	[MES_EXPR_IMM16]          = 0xF1, \
+	[MES_EXPR_IMM32]          = 0xF2, \
+	[MES_EXPR_GET_FLAG_CONST] = 0xF3, \
+	[MES_EXPR_GET_FLAG_EXPR]  = 0xF5, \
+	[MES_EXPR_GET_ARG_CONST]  = 0xF6, \
+	[MES_EXPR_GET_ARG_EXPR]   = 0xF7, \
+	[MES_EXPR_GET_VAR32]      = 0xF8, \
+	[MES_EXPR_PTR32_GET32]    = 0xF9, \
+	[MES_EXPR_END]            = 0xFF, \
+}
+
+#define NONOMURA_INT_TO_EXPR_OP { \
+	[0x80] = MES_EXPR_GET_VAR16, \
+	[0xA0] = MES_EXPR_PTR16_GET16, \
+	[0xC0] = MES_EXPR_PTR16_GET8, \
+	[0xE0] = MES_EXPR_PLUS, \
+	[0xE1] = MES_EXPR_MINUS, \
+	[0xE2] = MES_EXPR_MUL, \
+	[0xE3] = MES_EXPR_DIV, \
+	[0xE4] = MES_EXPR_MOD, \
+	[0xE5] = MES_EXPR_RAND, \
+	[0xE6] = MES_EXPR_AND, \
+	[0xE7] = MES_EXPR_OR, \
+	[0xE8] = MES_EXPR_BITAND, \
+	[0xE9] = MES_EXPR_BITIOR, \
+	[0xEA] = MES_EXPR_BITXOR, \
+	[0xEB] = MES_EXPR_LT, \
+	[0xEC] = MES_EXPR_GT, \
+	[0xED] = MES_EXPR_LTE, \
+	[0xEE] = MES_EXPR_GTE, \
+	[0xEF] = MES_EXPR_EQ, \
+	[0xF0] = MES_EXPR_NEQ, \
+	[0xF1] = MES_EXPR_IMM16, \
+	[0xF2] = MES_EXPR_IMM32, \
+	[0xF3] = MES_EXPR_GET_FLAG_CONST, \
+	[0xF5] = MES_EXPR_GET_FLAG_EXPR, \
+	[0xF6] = MES_EXPR_GET_ARG_CONST, \
+	[0xF7] = MES_EXPR_GET_ARG_EXPR, \
+	[0xF8] = MES_EXPR_GET_VAR32, \
+	[0xF9] = MES_EXPR_PTR32_GET32, \
+	[0xFF] = MES_EXPR_END, \
+}
+
+struct mes_code_tables nonomura_tables = {
+	.stmt_op_to_int = NONOMURA_STMT_OP_TO_INT,
+	.int_to_stmt_op = NONOMURA_INT_TO_STMT_OP,
+	.expr_op_to_int = NONOMURA_EXPR_OP_TO_INT,
+	.int_to_expr_op = NONOMURA_INT_TO_EXPR_OP,
+	.sysvar16_to_int = DEFAULT_SYSVAR16_TO_INT,
+	.int_to_sysvar16 = DEFAULT_INT_TO_SYSVAR16,
+	.sysvar32_to_int = DEFAULT_SYSVAR32_TO_INT,
+	.int_to_sysvar32 = DEFAULT_INT_TO_SYSVAR32,
+	.system = &mes_sys_none,
+	.util = &mes_util_none,
+};
+
+// }}} nonomura byouin
 
 struct mes_code_tables mes_code_tables = {
 	.stmt_op_to_int = DEFAULT_STMT_OP_TO_INT,
@@ -897,6 +1084,8 @@ static struct mes_code_tables *get_code_tables(enum ai5_game_id id)
 		return &shuusaku_tables;
 	case GAME_KAWARAZAKIKE:
 		return &kawarazakike_tables;
+	case GAME_NONOMURA:
+		return &nonomura_tables;
 	default:
 		return &default_tables;
 	}

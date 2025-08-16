@@ -93,10 +93,6 @@ static struct mes_expression *_mes_parse_expression(struct buffer *mes)
 			switch (ai5_target_game) {
 			case GAME_DOUKYUUSEI:
 			case GAME_KAKYUUSEI:
-				// TODO: which other games do this?
-				//       should test:
-				//         Shuusaku (1998 CD version)
-				//         Kawarazaki-ke (1997 CD version)
 				expr->sub_a = xcalloc(1, sizeof(struct mes_expression));
 				expr->sub_a->op = MES_EXPR_IMM16;
 				expr->sub_a->arg16 = buffer_read_u16(mes);
@@ -114,9 +110,11 @@ static struct mes_expression *_mes_parse_expression(struct buffer *mes)
 			expr->arg32 = buffer_read_u32(mes);
 			break;
 		case MES_EXPR_GET_FLAG_CONST:
+		case MES_EXPR_GET_ARG_CONST:
 			expr->arg16 = buffer_read_u16(mes);
 			break;
 		case MES_EXPR_GET_FLAG_EXPR:
+		case MES_EXPR_GET_ARG_EXPR:
 			if (!(expr->sub_a = stack_pop(mes->index-1, stack, &stack_ptr)))
 				goto error;
 			break;
@@ -392,6 +390,7 @@ static struct mes_statement *_mes_parse_statement(struct buffer *mes)
 			goto error;
 		break;
 	case MES_STMT_SET_FLAG_CONST:
+	case MES_STMT_SET_ARG_CONST:
 		stmt->SET_VAR_CONST.var_no = buffer_read_u16(mes);
 		if (!mes_parse_expression_list(mes, &stmt->SET_VAR_CONST.val_exprs))
 			goto error;
@@ -403,6 +402,7 @@ static struct mes_statement *_mes_parse_statement(struct buffer *mes)
 			goto error;
 		break;
 	case MES_STMT_SET_FLAG_EXPR:
+	case MES_STMT_SET_ARG_EXPR:
 		if (!(stmt->SET_VAR_EXPR.var_expr = _mes_parse_expression(mes)))
 			goto error;
 		if (!mes_parse_expression_list(mes, &stmt->SET_VAR_EXPR.val_exprs)) {
@@ -429,6 +429,8 @@ static struct mes_statement *_mes_parse_statement(struct buffer *mes)
 		stmt->JZ.addr = buffer_read_u32(mes);
 		break;
 	case MES_STMT_JMP:
+	case MES_STMT_17:
+	case MES_STMT_1F:
 		stmt->JMP.addr = buffer_read_u32(mes);
 		break;
 	case MES_STMT_SYS:
@@ -443,6 +445,8 @@ static struct mes_statement *_mes_parse_statement(struct buffer *mes)
 	case MES_STMT_CALL_MES:
 	case MES_STMT_CALL_PROC:
 	case MES_STMT_UTIL:
+	case MES_STMT_CALL_SUB:
+	case MES_STMT_1B:
 		if (!mes_parse_parameter_list(mes, &stmt->CALL.params))
 			goto error;
 		break;
@@ -455,15 +459,28 @@ static struct mes_statement *_mes_parse_statement(struct buffer *mes)
 		stmt->LINE.arg = buffer_read_u8(mes);
 		break;
 	case MES_STMT_DEF_PROC:
+	case MES_STMT_DEF_SUB:
 		if (!(stmt->DEF_PROC.no_expr = _mes_parse_expression(mes)))
 			goto error;
 		stmt->DEF_PROC.skip_addr = buffer_read_u32(mes);
 		break;
 	case MES_STMT_MENU_EXEC:
+		if (ai5_target_game == GAME_NONOMURA) {
+			if (!mes_parse_parameter_list(mes, &stmt->DEF_MENU.params))
+				goto error;
+		}
+		break;
+	case MES_STMT_18:
+		if (!(stmt->SET_VAR_EXPR.var_expr = _mes_parse_expression(mes)))
+			goto error;
+		break;
+	case MES_STMT_19:
+	case MES_STMT_1A:
 		break;
 	default:
 		mes->index--;
 		DC_WARNING(mes->index, "Unprefixed text: 0x%02x (possibly unhandled statement)", b);
+		ERROR("Unprefixed text: 0x%02x (possibly unhandled statement)", b);
 		if (mes_char_is_hankaku(buffer_peek_u8(mes))) {
 			stmt->op = MES_STMT_HANKAKU;
 			if (!(stmt->TXT.text = mes_parse_str(mes, &stmt->TXT.terminated)))
@@ -532,6 +549,7 @@ static void tag_jump_targets(mes_statement_list statements)
 			kh_value(&table, k)->is_jump_target = true;
 			break;
 		case MES_STMT_DEF_PROC:
+		case MES_STMT_DEF_SUB:
 			k = hashtable_get(addr_table, &table, p->DEF_PROC.skip_addr);
 			if (unlikely(k == hashtable_end(&table)))
 				ERROR("invalid address in DEF_PROC statement");
@@ -551,6 +569,18 @@ bool mes_parse_statements(uint8_t *data, size_t data_size, mes_statement_list *s
 {
 	if (game_is_aiwin())
 		return aiw_mes_parse_statements(data, data_size, statements);
+
+	// TODO: read this?
+	if (ai5_target_game == GAME_NONOMURA) {
+		// address table
+		if (data_size < 4)
+			return false;
+		uint32_t table_size = 4 + le_get32(data, 0) * 4;
+		if (data_size < table_size)
+			return false;
+		data += table_size;
+		data_size -= table_size;
+	}
 
 	struct buffer mes;
 	buffer_init(&mes, data, data_size);
@@ -621,9 +651,11 @@ void mes_statement_free(struct mes_statement *stmt)
 	case MES_STMT_SET_FLAG_CONST:
 	case MES_STMT_SET_VAR16:
 	case MES_STMT_SET_VAR32:
+	case MES_STMT_SET_ARG_CONST:
 		mes_expression_list_free(stmt->SET_VAR_CONST.val_exprs);
 		break;
 	case MES_STMT_SET_FLAG_EXPR:
+	case MES_STMT_SET_ARG_EXPR:
 		mes_expression_free(stmt->SET_VAR_EXPR.var_expr);
 		mes_expression_list_free(stmt->SET_VAR_EXPR.val_exprs);
 		break;
@@ -646,19 +678,31 @@ void mes_statement_free(struct mes_statement *stmt)
 	case MES_STMT_CALL_MES:
 	case MES_STMT_CALL_PROC:
 	case MES_STMT_UTIL:
+	case MES_STMT_CALL_SUB:
+	case MES_STMT_1B:
 		mes_parameter_list_free(stmt->CALL.params);
 		break;
 	case MES_STMT_DEF_MENU:
 		mes_parameter_list_free(stmt->DEF_MENU.params);
 		break;
 	case MES_STMT_DEF_PROC:
+	case MES_STMT_DEF_SUB:
 		mes_expression_free(stmt->DEF_PROC.no_expr);
 		break;
 	case MES_STMT_END:
 	case MES_STMT_JMP:
 	case MES_STMT_LINE:
-	case MES_STMT_MENU_EXEC:
+	case MES_STMT_17:
+	case MES_STMT_19:
+	case MES_STMT_1A:
+	case MES_STMT_1F:
 		break;
+	case MES_STMT_MENU_EXEC:
+		if (ai5_target_game == GAME_NONOMURA)
+			mes_parameter_list_free(stmt->DEF_MENU.params);
+		break;
+	case MES_STMT_18:
+		mes_expression_free(stmt->SET_VAR_EXPR.var_expr);
 	}
 	free(stmt);
 }

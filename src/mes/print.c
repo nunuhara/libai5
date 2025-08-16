@@ -92,6 +92,8 @@ static bool binary_parens_required(enum mes_expression_op op, struct mes_express
 	case MES_EXPR_PTR32_GET16:
 	case MES_EXPR_PTR32_GET8:
 	case MES_EXPR_GET_VAR32:
+	case MES_EXPR_GET_ARG_CONST:
+	case MES_EXPR_GET_ARG_EXPR:
 	case MES_EXPR_END:
 		ERROR("invalid binary operator: %d", op);
 	case MES_EXPR_MUL:
@@ -321,6 +323,14 @@ static void _mes_expression_print(struct mes_expression *expr, struct port *out,
 		break;
 	case MES_EXPR_GET_VAR32:
 		port_printf(out, "var32[%d]", (int)expr->arg8);
+		break;
+	case MES_EXPR_GET_ARG_CONST:
+		port_printf(out, "arg[%d]", (int)expr->arg16);
+		break;
+	case MES_EXPR_GET_ARG_EXPR:
+		port_puts(out, "arg[");
+		_mes_expression_print(expr->sub_a, out, false);
+		port_putc(out, ']');
 		break;
 	case MES_EXPR_END:
 		ERROR("encountered END expression when printing");
@@ -612,11 +622,60 @@ void _mes_statement_print(struct mes_statement *stmt, struct port *out, int inde
 		mes_label_print(stmt->DEF_PROC.skip_addr, ";\n", out);
 		break;
 	case MES_STMT_MENU_EXEC:
-		port_puts(out, "menuexec;\n");
+		port_puts(out, "menuexec");
+		if (ai5_target_game == GAME_NONOMURA) {
+			mes_parameter_list_print(stmt->DEF_MENU.params, out);
+		}
+		port_puts(out, ";\n");
 		break;
 	case MES_STMT_SET_VAR32:
 		port_printf(out, "var32[%d] = ", (unsigned)stmt->SET_VAR_CONST.var_no);
 		mes_expression_list_print(stmt->SET_VAR_CONST.val_exprs, out);
+		port_puts(out, ";\n");
+		break;
+	case MES_STMT_17:
+		port_printf(out, "OP_0x17 %u;\n", (unsigned)stmt->JMP.addr);
+		break;
+	case MES_STMT_18:
+		port_puts(out, "OP_0x18 ");
+		mes_expression_print(stmt->SET_VAR_EXPR.var_expr, out);
+		port_puts(out, ";\n");
+		break;
+	case MES_STMT_19:
+		port_puts(out, "OP_0x19;\n");
+		break;
+	case MES_STMT_1A:
+		port_puts(out, "OP_0x1A;\n");
+		break;
+	case MES_STMT_1B:
+		port_puts(out, "OP_0x1B");
+		mes_parameter_list_print(stmt->CALL.params, out);
+		port_puts(out, ";\n");
+		break;
+	case MES_STMT_DEF_SUB:
+		port_puts(out, "defsub ");
+		mes_expression_print(stmt->DEF_PROC.no_expr, out);
+		port_putc(out, ' ');
+		mes_label_print(stmt->DEF_PROC.skip_addr, ";\n", out);
+		break;
+	case MES_STMT_CALL_SUB:
+		port_puts(out, "call_sub");
+		mes_parameter_list_print(stmt->CALL.params, out);
+		port_puts(out, ";\n");
+		break;
+	case MES_STMT_1F:
+		port_printf(out, "OP_0x1F %u;\n", stmt->JMP.addr);
+		break;
+	case MES_STMT_SET_ARG_CONST:
+		port_printf(out, "arg[%d] = ", (unsigned)stmt->SET_VAR_CONST.var_no);
+		mes_expression_list_print(stmt->SET_VAR_CONST.val_exprs, out);
+		port_puts(out, ";\n");
+		break;
+	case MES_STMT_SET_ARG_EXPR:
+		port_puts(out, "arg[");
+		mes_expression_print(stmt->SET_VAR_EXPR.var_expr, out);
+		port_puts(out, "] = ");
+		mes_expression_list_print(stmt->SET_VAR_EXPR.val_exprs, out);
 		port_puts(out, ";\n");
 		break;
 	}

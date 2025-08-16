@@ -33,6 +33,7 @@ struct ai5_game ai5_games[] = {
 	{ "kawarazakike",   GAME_KAWARAZAKIKE,   "河原崎家の一族" },
 	{ "kisaku-anim",    GAME_KISAKU_ANIM,    "鬼作 アニメーション追加完全版" },
 	{ "koihime",        GAME_KOIHIME,        "恋姫" },
+	{ "nonomura",       GAME_NONOMURA,       "野々村病院の人々" },
 	{ "shangrlia",      GAME_SHANGRLIA,      "SHANGRLIA" },
 	{ "shangrlia2",     GAME_SHANGRLIA2,     "SHANGRLIA2" },
 	{ "shuusaku",       GAME_SHUUSAKU,       "臭作" },
