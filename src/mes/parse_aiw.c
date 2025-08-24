@@ -146,7 +146,7 @@ static bool aiw_mes_parse_expression_list(struct buffer *mes, mes_expression_lis
 
 	uint8_t b;
 	// XXX: Kawarazaki-ke terminates on both 0xff and 0xfe
-	//      Shuusaku on 0xff only
+	//      Shuusaku/Kisaku on 0xff only
 	uint8_t mask = 0xff;
 	if (ai5_target_game == GAME_KAWARAZAKIKE)
 		mask = 0xfe;
@@ -274,7 +274,7 @@ static enum aiw_mes_statement_op aiw_mes_opcode_to_stmt(uint8_t b)
 static string aiw_mes_parse_text(struct buffer *mes)
 {
 	uint8_t term = 0xff;
-	if (ai5_target_game == GAME_KAWARAZAKIKE)
+	if (ai5_target_game == GAME_KAWARAZAKIKE || ai5_target_game == GAME_KISAKU)
 		term = 0;
 	size_t rem = buffer_remaining(mes);
 	uint8_t *str = (uint8_t*)buffer_strdata(mes);

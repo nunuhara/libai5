@@ -335,7 +335,7 @@ extern struct mes_code_tables mes_code_tables;
 static inline enum mes_statement_op mes_opcode_to_stmt(uint8_t op)
 {
 	if (unlikely(op >= ARRAY_SIZE(mes_code_tables.int_to_stmt_op)))
-		return MES_CODE_INVALID;
+		return (enum mes_statement_op)MES_CODE_INVALID;
 	return mes_code_tables.int_to_stmt_op[op];
 }
 
@@ -353,7 +353,7 @@ static inline enum mes_expression_op mes_opcode_to_expr(uint8_t op)
 static inline enum mes_system_var16 mes_index_to_sysvar16(uint8_t i)
 {
 	if (unlikely(i >= ARRAY_SIZE(mes_code_tables.int_to_sysvar16)))
-		return MES_CODE_INVALID;
+		return (enum mes_system_var16)MES_CODE_INVALID;
 	return mes_code_tables.int_to_sysvar16[i];
 }
 
@@ -363,7 +363,7 @@ static inline enum mes_system_var16 mes_index_to_sysvar16(uint8_t i)
 static inline enum mes_system_var32 mes_index_to_sysvar32(uint8_t i)
 {
 	if (unlikely(i >= ARRAY_SIZE(mes_code_tables.int_to_sysvar32)))
-		return MES_CODE_INVALID;
+		return (enum mes_system_var32)MES_CODE_INVALID;
 	return mes_code_tables.int_to_sysvar32[i];
 }
 /*

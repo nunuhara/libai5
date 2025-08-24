@@ -31,6 +31,7 @@ struct ai5_game ai5_games[] = {
 	{ "isaku",          GAME_ISAKU,          "遺作 リニューアル" },
 	{ "kakyuusei",      GAME_KAKYUUSEI,      "下級生" },
 	{ "kawarazakike",   GAME_KAWARAZAKIKE,   "河原崎家の一族" },
+	{ "kisaku",         GAME_KISAKU,         "鬼作" },
 	{ "kisaku-anim",    GAME_KISAKU_ANIM,    "鬼作 アニメーション追加完全版" },
 	{ "koihime",        GAME_KOIHIME,        "恋姫" },
 	{ "nonomura",       GAME_NONOMURA,       "野々村病院の人々" },

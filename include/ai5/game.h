@@ -24,7 +24,7 @@ enum ai5_game_id {
 	GAME_DOUKYUUSEI2_DL, // 2007-07-06 release
 	GAME_KAWARAZAKIKE,   // 2003-10-24 release (AIWIN engine)
 	GAME_NONOMURA,       // 2003-10-24 release
-	GAME_SHUUSAKU,       // 2001-10-26 release (AIWIN engine)
+	GAME_KISAKU,         // 2001-09-28 release (DVD-ROM edition)
 	GAME_YUKINOJOU,      // 2001-08-31 release
 	GAME_YUNO,           // 2000-12-22 release (elf classics)
 	GAME_SHANGRLIA,      // 2000-12-22 release (elf classics)
@@ -36,8 +36,9 @@ enum ai5_game_id {
 	GAME_DOUKYUUSEI,     // 1999-08-27 release (windows edition)
 	GAME_ISAKU,          // 1999-02-26 release (renewal version)
 	GAME_KAKYUUSEI,      // 1998-06-26 release
+	GAME_SHUUSAKU,       // 1998-03-27/2001-10-26 release (AIWIN engine)
 };
-#define AI5_NR_GAME_IDS (GAME_KAKYUUSEI+1)
+#define AI5_NR_GAME_IDS (GAME_SHUUSAKU+1)
 
 extern enum ai5_game_id ai5_target_game;
 
@@ -52,6 +53,7 @@ static inline bool game_is_aiwin(void)
 	switch (ai5_target_game) {
 	case GAME_KAWARAZAKIKE:
 	case GAME_SHUUSAKU:
+	case GAME_KISAKU:
 		return true;
 	default:
 		return false;

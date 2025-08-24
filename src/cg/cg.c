@@ -114,6 +114,7 @@ void cg_depalettize(struct cg *cg)
 	uint8_t *px = _cg_depalettize(cg);
 	free(cg->pixels);
 	free(cg->palette);
+	cg->palette = NULL;
 	cg->pixels = px;
 }
 
