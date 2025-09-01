@@ -193,6 +193,7 @@ void ccd_free(struct ccd *ccd)
 	vector_destroy(ccd->sprites);
 	vector_destroy(ccd->scripts);
 	vector_destroy(ccd->spawns);
+	free(ccd);
 }
 
 void ccd_print(struct port *out, struct ccd *ccd)

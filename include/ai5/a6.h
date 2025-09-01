@@ -19,6 +19,8 @@
 
 #include "nulib/vector.h"
 
+struct port;
+
 struct a6_entry {
 	unsigned id;
 	unsigned x_left;

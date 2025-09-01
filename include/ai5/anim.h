@@ -19,6 +19,13 @@
 
 #include <stdint.h>
 #include "nulib/vector.h"
+#include "ai5/game.h"
+
+enum anim_type {
+	ANIM_S4,
+	ANIM_A8, // 8-bit .A
+	ANIM_A,  // 16-bit .A (typical)
+};
 
 struct port;
 
@@ -154,19 +161,11 @@ typedef vector_t(struct anim_instruction) anim_stream;
 
 #define ANIM_MAX_STREAMS 100
 
-enum anim_type {
-	ANIM_S4,
-	ANIM_A8, // 8-bit .A
-	ANIM_A,  // 16-bit .A (typical)
-};
-
 struct anim {
 	anim_stream streams[ANIM_MAX_STREAMS];
 	anim_draw_call_list draw_calls;
 	anim_palette_list palettes;
 };
-
-enum ai5_game_id;
 
 void anim_set_game(enum ai5_game_id game);
 struct anim *anim_parse(uint8_t *data, size_t data_size);
