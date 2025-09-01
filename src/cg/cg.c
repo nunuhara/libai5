@@ -132,15 +132,15 @@ struct cg *cg_depalettize_copy(struct cg *cg)
 bool _cg_write(struct cg *cg, FILE *out, enum cg_type type)
 {
 	switch (type) {
-	case CG_TYPE_AKB: ERROR("AKB write not supported");
-	case CG_TYPE_GP4: ERROR("GP4 write not supported");
-	case CG_TYPE_GP8: ERROR("GP8 write not supported");
+	case CG_TYPE_AKB: sys_warning("AKB write not supported"); return false;
+	case CG_TYPE_GP4: sys_warning("GP4 write not supported"); return false;
+	case CG_TYPE_GP8: sys_warning("GP8 write not supported"); return false;
 	case CG_TYPE_G16: return gxx_write(cg, out, 16);
 	case CG_TYPE_G24: return gxx_write(cg, out, 24);
 	case CG_TYPE_G32: return gxx_write(cg, out, 32);
-	case CG_TYPE_GCC: ERROR("GCC write not supported");
-	case CG_TYPE_GPX: ERROR("GPX write not supported");
-	case CG_TYPE_GPR: ERROR("GPR write not supported");
+	case CG_TYPE_GCC: sys_warning("GCC write not supported"); return false;
+	case CG_TYPE_GPX: sys_warning("GPX write not supported"); return false;
+	case CG_TYPE_GPR: sys_warning("GPR write not supported"); return false;
 	case CG_TYPE_PNG: return png_write(cg, out);
 	}
 	ERROR("Invalid CG type: %d", type);

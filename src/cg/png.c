@@ -28,8 +28,13 @@ static void read_png_data(png_structp png_ptr, png_bytep out, size_t length)
 		return;
 
 	struct buffer *buf = (struct buffer*) png_get_io_ptr(png_ptr);
-	if (buffer_remaining(buf) < length)
-		ERROR("png truncated"); // FIXME: make this recoverable
+	if (buffer_remaining(buf) < length) {
+		size_t rem = buffer_remaining(buf);
+		if (rem)
+			buffer_read_bytes(buf, out, rem);
+		memset(out+rem, 0, length - rem);
+		return;
+	}
 
 	buffer_read_bytes(buf, out, length);
 }

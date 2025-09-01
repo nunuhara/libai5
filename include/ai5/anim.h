@@ -170,7 +170,7 @@ struct anim {
 void anim_set_game(enum ai5_game_id game);
 struct anim *anim_parse(uint8_t *data, size_t data_size);
 bool anim_parse_draw_call(uint8_t *data, struct anim_draw_call *out, unsigned src_i);
-void anim_print(struct port *out, struct anim *anim);
+bool anim_print(struct port *out, struct anim *anim);
 void anim_free(struct anim *anim);
 
 #endif // LIBAI5_ANIM_H

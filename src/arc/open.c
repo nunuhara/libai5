@@ -350,8 +350,13 @@ static bool read_index(FILE *fp, struct archive *arc,
 	for (int i = 0; i < arc->meta.nr_files; i++, buf_pos += arc->meta.entry_size) {
 		struct archive_data *file = &vector_A(arc->files, i);
 		*file = (struct archive_data){0};
-		if (!read_entry(arc, file, buf + buf_pos))
-			ERROR("Failed to read archive entry %d", i);
+		if (!read_entry(arc, file, buf + buf_pos)) {
+			WARNING("Failed to read archive entry %d", i);
+			vector_destroy(arc->files);
+			vector_init(arc->files);
+			free(buf);
+			return false;
+		}
 		file->archive = arc;
 	}
 

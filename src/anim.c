@@ -629,7 +629,7 @@ static void print_draw_args(struct port *out, struct anim_draw_call *call)
 	}
 }
 
-static void anim_print_draw_call(struct port *out, struct anim_draw_call *call, int indent)
+static bool anim_print_draw_call(struct port *out, struct anim_draw_call *call, int indent)
 {
 	for (int i = 0; i < indent; i++) {
 		port_puts(out, "\t");
@@ -681,9 +681,11 @@ static void anim_print_draw_call(struct port *out, struct anim_draw_call *call, 
 		port_puts(out, "0x66");
 		break;
 	default:
-		ERROR("Invalid draw call: %d", call->op);
+		sys_warning("Invalid draw call: %d", call->op);
+		return false;
 	}
 	print_draw_args(out, call);
+	return true;
 }
 
 static int get_palette_no(struct anim *anim, uint16_t addr)
@@ -743,7 +745,7 @@ static void anim_print_instruction(struct port *out, struct anim *anim,
 	}
 }
 
-void anim_print(struct port *out, struct anim *anim)
+bool anim_print(struct port *out, struct anim *anim)
 {
 	int pal_no = 0;
 	struct anim_palette *p;
@@ -771,7 +773,8 @@ void anim_print(struct port *out, struct anim *anim)
 				indent--;
 			if (p->op == ANIM_OP_DRAW) {
 				struct anim_draw_call *call = &vector_A(anim->draw_calls, p->arg);
-				anim_print_draw_call(out, call, indent);
+				if (!anim_print_draw_call(out, call, indent))
+					return false;
 			} else {
 				anim_print_instruction(out, anim, p, indent);
 			}
@@ -779,4 +782,5 @@ void anim_print(struct port *out, struct anim *anim)
 				indent++;
 		}
 	}
+	return true;
 }
