@@ -522,6 +522,11 @@ NODE(sys_voice_beyond, Voice,
 	[7] = &sys_voice_play_prepared,
 	[8] = &sys_voice_play_prepared_sync,
 );
+NODE(sys_voice_doukyuusei2, Voice,
+	[0] = &sys_voice_play,
+	[1] = &sys_voice_stop,
+	[2] = &sys_voice_play_sync,
+);
 NODE(sys_voice_kakyuusei, Voice,
 	[0] = &sys_voice_play,
 	[1] = &sys_voice_stop,
@@ -1109,6 +1114,30 @@ PUBLIC_NODE(mes_sys_doukyuusei, System,
 	[24] = &sys_strlen,
 	[25] = NULL, // TODO
 	[26] = NULL, // TODO
+);
+
+PUBLIC_NODE(mes_sys_doukyuusei2, System,
+	[0] = &sys_set_font_size,
+	[1] = &sys_display_number,
+	[2] = &sys_cursor_kakyuusei,
+	[3] = &sys_anim_kakyuusei,
+	[4] = &sys_savedata_kakyuusei,
+	[5] = &sys_audio_kakyuusei,
+	[6] = &sys_voice_doukyuusei2,
+	[7] = &sys_load_file,
+	[8] = &sys_load_image,
+	[9] = &sys_palette_kakyuusei,
+	[10] = &sys_image_kakyuusei,
+	[11] = &sys_wait,
+	[12] = &sys_set_text_colors,
+	[13] = &sys_farcall,
+	[14] = &sys_get_cursor_segment,
+	[15] = &sys_get_menu_no,
+	[16] = &sys_get_time,
+	[17] = &sys_map_kakyuusei,
+	[18] = &sys_backlog_kakyuusei,
+	[19] = NULL, // TODO
+	[20] = NULL, // TODO
 );
 
 PUBLIC_NODE(mes_sys_beyond, System,

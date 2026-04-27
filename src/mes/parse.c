@@ -92,6 +92,7 @@ static struct mes_expression *_mes_parse_expression(struct buffer *mes)
 		case MES_EXPR_RAND:
 			switch (ai5_target_game) {
 			case GAME_DOUKYUUSEI:
+			case GAME_DOUKYUUSEI2:
 			case GAME_KAKYUUSEI:
 				expr->sub_a = xcalloc(1, sizeof(struct mes_expression));
 				expr->sub_a->op = MES_EXPR_IMM16;

@@ -37,8 +37,9 @@ enum ai5_game_id {
 	GAME_ISAKU,          // 1999-02-26 release (renewal version)
 	GAME_KAKYUUSEI,      // 1998-06-26 release
 	GAME_SHUUSAKU,       // 1998-03-27/2001-10-26 release (AIWIN engine)
+	GAME_DOUKYUUSEI2,    // 1997-08-29 release (windows CD version)
 };
-#define AI5_NR_GAME_IDS (GAME_SHUUSAKU+1)
+#define AI5_NR_GAME_IDS (GAME_DOUKYUUSEI2+1)
 
 extern enum ai5_game_id ai5_target_game;
 

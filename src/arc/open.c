@@ -382,7 +382,7 @@ static bool typical_read_entry(struct archive *arc, struct archive_data *file, u
 	file->offset = le_get32(buf, meta->offset_off) ^ meta->offset_key;
 	file->raw_size = le_get32(buf, meta->size_off) ^ meta->size_key;
 	// XXX: name is not necessarily null-terminated (happens in Kawa95)
-	file->name = string_new_len(name, name_len);
+	file->name = sjis_cstring_to_utf8((const char*)name, name_len);
 
 	if (file->offset + file->raw_size > meta->arc_size) {
 		WARNING("%s @ %x + %x extends beyond eof (%x)", file->name, file->offset,

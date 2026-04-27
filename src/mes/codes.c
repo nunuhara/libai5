@@ -24,6 +24,7 @@
 extern struct mes_path_component mes_sys_none;
 extern struct mes_path_component mes_sys_isaku;
 extern struct mes_path_component mes_sys_doukyuusei;
+extern struct mes_path_component mes_sys_doukyuusei2;
 extern struct mes_path_component mes_sys_kakyuusei;
 extern struct mes_path_component mes_sys_allstars;
 extern struct mes_path_component mes_sys_ai_shimai;
@@ -824,6 +825,22 @@ struct mes_code_tables kakyuusei_tables = {
 };
 
 // kakyuusei }}}
+// doukyuusei 2 {{{
+
+struct mes_code_tables doukyuusei2_tables = {
+	.stmt_op_to_int = DEFAULT_STMT_OP_TO_INT,
+	.int_to_stmt_op = DEFAULT_INT_TO_STMT_OP,
+	.expr_op_to_int = DEFAULT_EXPR_OP_TO_INT,
+	.int_to_expr_op = DEFAULT_INT_TO_EXPR_OP,
+	.sysvar16_to_int = KAKYUUSEI_SYSVAR16_TO_INT,
+	.int_to_sysvar16 = KAKYUUSEI_INT_TO_SYSVAR16,
+	.sysvar32_to_int = KAKYUUSEI_SYSVAR32_TO_INT,
+	.int_to_sysvar32 = KAKYUUSEI_INT_TO_SYSVAR32,
+	.system = &mes_sys_doukyuusei2,
+	.util = &mes_util_none,
+};
+
+// doukyuusei 2 }}}
 // shuusaku {{{
 
 #define SHUUSAKU_SYSVAR16_TO_INT { \
@@ -1078,6 +1095,8 @@ static struct mes_code_tables *get_code_tables(enum ai5_game_id id)
 		return &allstars_tables;
 	case GAME_BEYOND:
 		return &beyond_tables;
+	case GAME_DOUKYUUSEI2:
+		return &doukyuusei2_tables;
 	case GAME_KAKYUUSEI:
 		return &kakyuusei_tables;
 	case GAME_SHUUSAKU:
@@ -1096,6 +1115,7 @@ static mes_namespace_t get_system_namespace(enum ai5_game_id id)
 	switch (id) {
 	case GAME_ISAKU:        return &mes_sys_isaku;
 	case GAME_DOUKYUUSEI:   return &mes_sys_doukyuusei;
+	case GAME_DOUKYUUSEI2:  return &mes_sys_doukyuusei2;
 	case GAME_KAKYUUSEI:    return &mes_sys_kakyuusei;
 	case GAME_ALLSTARS:     return &mes_sys_allstars;
 	case GAME_AI_SHIMAI:    return &mes_sys_ai_shimai;

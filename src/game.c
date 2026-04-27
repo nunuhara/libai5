@@ -27,6 +27,7 @@ struct ai5_game ai5_games[] = {
 	{ "allstars",       GAME_ALLSTARS,       "エルフオールスターズ脱衣雀" },
 	{ "beyond",         GAME_BEYOND,         "ビ・ ヨンド ～黒大将に見られてる～" },
 	{ "doukyuusei",     GAME_DOUKYUUSEI,     "同級生 Windows版" },
+	{ "doukyuusei2",    GAME_DOUKYUUSEI2,    "同級生２" },
 	{ "doukyuusei2-dl", GAME_DOUKYUUSEI2_DL, "同級生２ ＤＬ版" },
 	{ "isaku",          GAME_ISAKU,          "遺作 リニューアル" },
 	{ "kakyuusei",      GAME_KAKYUUSEI,      "下級生" },
