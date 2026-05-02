@@ -35,6 +35,7 @@ void anim_set_game(enum ai5_game_id game)
 		anim_draw_call_size = 17;
 		anim_type = ANIM_A;
 		break;
+	case GAME_DOUKYUUSEI2:
 	case GAME_KAKYUUSEI:
 	case GAME_SHUUSAKU:
 		anim_draw_call_size = 17;
@@ -143,7 +144,7 @@ static enum anim_draw_opcode parse_a8_draw_opcode(uint8_t op)
 	// XXX: 0x40 is COMPOSE in Shuusaku, unused in Kakyuusei
 	case 0x40: return ANIM_DRAW_OP_COMPOSE;
 	// XXX: 0x50 is COPY_MASKED (redundant) in Kakyuusei, unused in Shuusaku
-	case 0x50: return ANIM_DRAW_OP_COPY_MASKED;
+	case 0x50: return ANIM_DRAW_OP_COPY_MASKED2;
 	case 0x60: return ANIM_DRAW_OP_FILL;
 	}
 	return -1;
@@ -194,6 +195,12 @@ static bool parse_a8_draw_call(struct buffer *in, struct anim_draw_call *out, un
 		out->compose.dst.i = (op & 1) ? src_i : 0;
 		out->compose.fg.i = ((op >> 1) & 1) ? src_i : 0;
 		out->compose.bg.i = 3; // hardcoded in Shuusaku
+		parse_compose_args(in, &out->compose);
+		break;
+	case ANIM_DRAW_OP_COPY_MASKED2:
+		out->compose.dst.i = (op & 1) ? src_i : 0;
+		out->compose.fg.i = ((op >> 1) & 1) ? src_i : 0;
+		out->compose.bg.i = ((op >> 2) & 1) ? src_i : 0;
 		parse_compose_args(in, &out->compose);
 		break;
 	default:
@@ -479,7 +486,7 @@ static struct anim *anim_a8_parse(struct buffer *in)
 	// read draw calls
 	while (!buffer_end(in) && in->index < stream_start) {
 		struct anim_draw_call call;
-		if (ai5_target_game == GAME_SHUUSAKU) {
+		if (ai5_target_game == GAME_SHUUSAKU || ai5_target_game == GAME_DOUKYUUSEI2) {
 			// XXX: Palettes are counted as draw calls, but they have a different
 			//      length. There is no way to detect whether we are looking at a
 			//      draw call or a palette without reading the bytecode first.
@@ -500,7 +507,7 @@ static struct anim *anim_a8_parse(struct buffer *in)
 				continue;
 			}
 		}
-		if (!parse_a_draw_call(in, &call, 1))
+		if (!parse_a8_draw_call(in, &call, 1))
 			goto err;
 		vector_push(struct anim_draw_call, anim->draw_calls, call);
 	}
@@ -599,6 +606,7 @@ static void print_draw_args(struct port *out, struct anim_draw_call *call)
 		break;
 	case ANIM_DRAW_OP_COMPOSE:
 	case ANIM_DRAW_OP_COMPOSE_WITH_OFFSET:
+	case ANIM_DRAW_OP_COPY_MASKED2:
 	case ANIM_DRAW_OP_0x61_COMPOSE:
 	case ANIM_DRAW_OP_0x64_COMPOSE_MASKED:
 	case ANIM_DRAW_OP_0x65_COMPOSE:
@@ -652,6 +660,9 @@ static bool anim_print_draw_call(struct port *out, struct anim_draw_call *call, 
 		break;
 	case ANIM_DRAW_OP_COMPOSE_WITH_OFFSET:
 		port_puts(out, "COMPOSE_WITH_OFFSET");
+		break;
+	case ANIM_DRAW_OP_COPY_MASKED2:
+		port_puts(out, "COPY_MASKED2");
 		break;
 	case ANIM_DRAW_OP_FILL:
 		port_puts(out, "FILL");
