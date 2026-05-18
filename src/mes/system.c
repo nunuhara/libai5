@@ -461,6 +461,13 @@ NODE(sys_audio_kakyuusei, Audio,
 	[4] = &sys_audio_se_fade_out,
 	[5] = &sys_audio_se_stop,
 );
+NODE(sys_audio_doukyuusei2, Audio,
+	[0] = &sys_audio_bgm_play,
+	[1] = &sys_audio_bgm_fade_out,
+	[2] = &sys_audio_bgm_stop,
+	[3] = &sys_audio_se_play,
+	[4] = &sys_audio_se_stop,
+);
 
 NODE(sys_audio_shuusaku, Audio,
 	[0] = &sys_audio_bgm_play,
@@ -979,6 +986,12 @@ NODE(sys_face_window, FaceWindow,
 // System.run_mahjong (allstars)
 LEAF(sys, run_mahjong);
 
+// System.check_disc (doukyuusei 2)
+LEAF(sys, check_disc);
+
+// System.wait_click (doukyuusei 2)
+LEAF(sys, wait_click);
+
 PUBLIC_NODE(mes_sys_classics, System,
 	[0] = &sys_set_font_size,
 	[1] = &sys_display_number,
@@ -1122,7 +1135,7 @@ PUBLIC_NODE(mes_sys_doukyuusei2, System,
 	[2] = &sys_cursor_kakyuusei,
 	[3] = &sys_anim_kakyuusei,
 	[4] = &sys_savedata_kakyuusei,
-	[5] = &sys_audio_kakyuusei,
+	[5] = &sys_audio_doukyuusei2,
 	[6] = &sys_voice_doukyuusei2,
 	[7] = &sys_load_file,
 	[8] = &sys_load_image,
@@ -1136,8 +1149,8 @@ PUBLIC_NODE(mes_sys_doukyuusei2, System,
 	[16] = &sys_get_time,
 	[17] = &sys_map_kakyuusei,
 	[18] = &sys_backlog_kakyuusei,
-	[19] = NULL, // TODO
-	[20] = NULL, // TODO
+	[19] = &sys_check_disc,
+	[20] = &sys_wait_click,
 );
 
 PUBLIC_NODE(mes_sys_beyond, System,
