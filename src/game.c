@@ -63,3 +63,33 @@ void ai5_set_game(const char *name)
 	mes_set_game(ai5_target_game);
 	anim_set_game(ai5_target_game);
 }
+
+int ai5_game_id_from_title(const char *title)
+{
+	if (!strcmp(title, "～この世の果てで恋を唄う少女～")) {
+		return GAME_YUNO;
+	} else if (!strcmp(title, "YU-NO - The Girl that Chants Love at the Edge of the World")) {
+		return GAME_YUNO;
+	} else if (!strcmp(title, "ｼｬﾝｸﾞﾘﾗ")) {
+		return GAME_SHANGRLIA;
+	} else if (!strcmp(title, "ｼｬﾝｸﾞﾘﾗ2")) {
+		return GAME_SHANGRLIA2;
+	} else if (!strcmp(title, "遺作９８")) {
+		return GAME_ISAKU;
+	} else if (!strcmp(title, "Isaku98")) {
+		return GAME_ISAKU;
+	} else if (!strcmp(title, "AISHIMAI")) {
+		return GAME_AI_SHIMAI;
+	} else if (!strcmp(title, "DOUKYUSEI")) {
+		return GAME_DOUKYUUSEI;
+	} else if (!strcmp(title, "同級生２")) {
+		return GAME_DOUKYUUSEI2;
+	} else if (!strcmp(title, "Be-Yond")) {
+		return GAME_BEYOND;
+	} else if (!strcmp(title, "下級生")) {
+		return GAME_KAKYUUSEI;
+	} else if (!strcmp(title, "臭作")) {
+		return GAME_SHUUSAKU;
+	}
+	return -1;
+}

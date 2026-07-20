@@ -63,6 +63,7 @@ static inline bool game_is_aiwin(void)
 
 extern struct ai5_game ai5_games[AI5_NR_GAME_IDS];
 
+int ai5_game_id_from_title(const char *title);
 enum ai5_game_id ai5_parse_game_id(const char *str);
 void ai5_set_game(const char *name);
 
